@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CrmRuntime32 {
+  id        String   @id @default(cuid())
+  crm32Name String
+  crm32Owner String
+  crm32State String
+  crm32Score String
+  CrmEvent32 CrmEvent32[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CrmEvent32 {
+  id        String   @id @default(cuid())
+  crm32RecordId String
+  crm32Action String
+  crm32Actor String
+  crm32Result String
+  CrmAudit32 CrmAudit32[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CrmAudit32 {
+  id        String   @id @default(cuid())
+  crm32EventId String
+  crm32Reviewer String
+  crm32Decision String
+  crm32CreatedAt String
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

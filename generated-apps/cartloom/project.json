@@ -1,0 +1,363 @@
+{
+  "id": "4d62863f-56e4-4b26-b263-8047a0300149",
+  "name": "CartLoom",
+  "slug": "cartloom",
+  "category": "ecommerce",
+  "problem": "Build an ecommerce store with products, cart items, orders, checkout, and inventory controls.",
+  "audience": "small brands and productized service sellers",
+  "uiDirection": "commerce catalog with filters, product cards, cart summary, and trust strips",
+  "monetization": "transaction fees plus premium merchandising analytics",
+  "prompt": "Build an ecommerce store with products, cart items, orders, checkout, and inventory controls.",
+  "status": "ready",
+  "createdAt": "2026-05-31T03:52:50.817Z",
+  "updatedAt": "2026-05-31T03:52:50.817Z",
+  "onboarding": [
+    "Review generated plan",
+    "Open interactive preview",
+    "Edit source files",
+    "Run QA",
+    "Export or deploy"
+  ],
+  "features": [
+    "Product filters",
+    "Cart drawer",
+    "Checkout form",
+    "Inventory badges",
+    "Order confirmation"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# CartLoom\n\nBuild an ecommerce store with products, cart items, orders, checkout, and inventory controls.\n\nThis is an isolated ecommerce application. It does not depend on a shared app shell.\n\n## Runtime behavior\n- Component: CommerceStorefront\n- State engine: lib/cart-engine.ts\n- Primary API: /api/cart\n- Interaction: add to cart\n\n## Routes\n- /: Featured products and conversion content\n- /products: Filterable product grid\n- /cart: Cart review and quantity changes\n- /checkout: Customer and payment-intent form\n\n## Schema\n- Product: title, price, inventory, category, rating\n- Order: items, customerEmail, total, status\n- CartItem: productId, orderId, quantity, price\n\n## Relationships\n- Product one-to-many CartItem via productId\n- Order one-to-many CartItem via orderId\n\n## Functional interactions\n- Add to cart: Adds product to cart and updates total\n- Checkout: Moves Cart -> Review -> Paid -> Fulfilled\n- Remove item: Removes item and recalculates total\n"
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"cartloom\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"start\": \"next start\"\n  },\n  \"dependencies\": {\n    \"next\": \"16.2.6\",\n    \"react\": \"19.2.6\",\n    \"react-dom\": \"19.2.6\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^6.0.3\",\n    \"@types/node\": \"20.14.10\",\n    \"@types/react\": \"^19.2.15\",\n    \"@types/react-dom\": \"^19.2.3\"\n  }\n}"
+    },
+    {
+      "path": "tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },\n  \"include\": [\n    \"**/*.ts\",\n    \"**/*.tsx\"\n  ],\n  \"exclude\": [\n    \"node_modules\"\n  ]\n}"
+    },
+    {
+      "path": "next.config.js",
+      "content": "const nextConfig = {};\nmodule.exports = nextConfig;\n"
+    },
+    {
+      "path": ".env.example",
+      "content": "DATABASE_URL=\nNEXT_PUBLIC_APP_URL=http://localhost:3000\n"
+    },
+    {
+      "path": "schema.prisma",
+      "content": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Product {\n  id        String   @id @default(cuid())\n  title String\n  price String\n  inventory String\n  category String\n  rating String\n  CartItem CartItem[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel Order {\n  id        String   @id @default(cuid())\n  items String\n  customerEmail String\n  total String\n  status String\n  CartItem CartItem[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel CartItem {\n  id        String   @id @default(cuid())\n  productId String\n  orderId String\n  quantity String\n  price String\n\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n"
+    },
+    {
+      "path": "app/layout.tsx",
+      "content": "import \"./globals.css\";\n\nexport const metadata = {\n  title: \"CartLoom\",\n  description: \"Build an ecommerce store with products, cart items, orders, checkout, and inventory controls.\",\n};\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return <html lang=\"en\"><body>{children}</body></html>;\n}\n"
+    },
+    {
+      "path": "app/globals.css",
+      "content": ":root{--surface:#f8fafc;--primary:#0f766e;--accent:#f59e0b;--ink:#111827}\n*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}\nbutton,input,textarea{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #e2e8f0}\n.wrap{max-width:1180px;margin:0 auto;padding:18px 20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 18px 45px rgba(15,23,42,.08)}\n.catalog-grid{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));}.card{border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:16px}.primary{border:0;border-radius:12px;background:var(--primary);color:white;padding:12px 14px;font-weight:800;cursor:pointer}\n@media(max-width:840px){.hero{grid-template-columns:1fr}.catalog-grid{grid-template-columns:1fr!important}}\n"
+    },
+    {
+      "path": "app/page.tsx",
+      "content": "import { CommerceStorefront } from \"@/components/CommerceStorefront\";\n\nexport default function Page() {\n  return <CommerceStorefront />;\n}\n"
+    },
+    {
+      "path": "components/CommerceStorefront.tsx",
+      "content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\nimport { applyCartMutation, removeCartRecord, transitionCartRecord } from \"@/lib/cart-engine\";\n\nconst initialRecords = [\n  {\n    \"id\": \"ecommerce-1\",\n    \"label\": \"Launch Kit\",\n    \"value\": \"$79\",\n    \"status\": \"In stock\",\n    \"meta\": \"Product filters\"\n  },\n  {\n    \"id\": \"ecommerce-2\",\n    \"label\": \"Founder Bundle\",\n    \"value\": \"$149\",\n    \"status\": \"Best seller\",\n    \"meta\": \"Cart drawer\",\n    \"parentId\": \"ecommerce-1\"\n  },\n  {\n    \"id\": \"ecommerce-3\",\n    \"label\": \"Ops Template\",\n    \"value\": \"$39\",\n    \"status\": \"Low stock\",\n    \"meta\": \"Checkout form\",\n    \"parentId\": \"ecommerce-1\"\n  }\n];\nconst views = [\"Storefront\",\"Products\",\"Cart\",\"Checkout\"];\nconst transitions = [\"Cart\",\"Review\",\"Paid\",\"Fulfilled\"];\n\nexport function CommerceStorefront({ initialView = views[0] }: { initialView?: string }) {\n  const [view, setView] = useState(initialView);\n  const [records, setRecords] = useState(initialRecords);\n  const [input, setInput] = useState(\"\");\n  const [events, setEvents] = useState<string[]>([\"CartLoom ready\"]);\n  const visible = useMemo(() => records.filter((record) => view === views[0] || record.status.toLowerCase().includes(view.toLowerCase()) || record.meta.toLowerCase().includes(view.toLowerCase())), [records, view]);\n  function submit() {\n    const next = applyCartMutation(records, { label: input || \"Checkout\", value: \"New\", status: \"Created\" });\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n    setInput(\"\");\n  }\n  function advance(id: string) {\n    const next = transitionCartRecord(records, id, transitions);\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n  }\n  function remove(id: string) {\n    const next = removeCartRecord(records, id);\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n  }\n  return (\n    <main className=\"app\">\n      <header className=\"top\"><div className=\"wrap\" style={{display:\"flex\",justifyContent:\"space-between\",gap:12,alignItems:\"center\"}}><strong>CartLoom</strong><nav style={{display:\"flex\",gap:8,overflowX:\"auto\"}}>{views.map((item) => <button key={item} onClick={() => setView(item)} className=\"primary\" style={{background:item===view?\"var(--primary)\":\"#e2e8f0\",color:item===view?\"white\":\"#0f172a\"}}>{item}</button>)}</nav></div></header>\n      <section className=\"wrap hero\">\n        <div className=\"panel\">\n          <p style={{fontWeight:900,textTransform:\"uppercase\",letterSpacing:\".16em\",fontSize:12,color:\"var(--primary)\"}}>ecommerce</p>\n          <h1 style={{fontSize:48,lineHeight:1,margin:\"10px 0\"}}>CartLoom</h1>\n          <p style={{lineHeight:1.7,color:\"#475569\"}}>Build an ecommerce store with products, cart items, orders, checkout, and inventory controls.</p>\n          <div className=\"catalog-grid\" style={{marginTop:18}}>{visible.map((record) => <article key={record.id || record.label} className=\"card\"><strong>{record.label}</strong><p style={{fontSize:28,fontWeight:850,margin:\"8px 0\"}}>{record.value}</p><span>{record.status}</span><div style={{display:\"flex\",gap:8,marginTop:12}}><button data-action=\"transition\" onClick={() => advance(record.id)} className=\"primary\" style={{padding:\"8px 10px\"}}>Checkout</button><button data-action=\"delete\" onClick={() => remove(record.id)} className=\"primary\" style={{padding:\"8px 10px\",background:\"#fee2e2\",color:\"#991b1b\"}}>Remove item</button></div></article>)}</div>\n        </div>\n        <aside className=\"panel\">\n          <h2>Checkout</h2>\n          <p>Creates a pending order</p>\n          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder=\"Email, Shipping ZIP, Payment note\" style={{width:\"100%\",minHeight:110,border:\"1px solid #cbd5e1\",borderRadius:12,padding:12}} />\n          <button onClick={submit} className=\"primary\" style={{width:\"100%\",marginTop:10}}>add to cart</button>\n          <div style={{display:\"grid\",gap:8,marginTop:16}}>{events.map((event) => <div key={event} className=\"card\">{event}</div>)}</div>\n        </aside>\n      </section>\n    </main>\n  );\n}\n"
+    },
+    {
+      "path": "features/cart/interactions.ts",
+      "content": "export const interactionMap = [\n  {\n    \"label\": \"Add to cart\",\n    \"type\": \"create\",\n    \"target\": \"CartItem\",\n    \"result\": \"Adds product to cart and updates total\"\n  },\n  {\n    \"label\": \"Checkout\",\n    \"type\": \"transition\",\n    \"target\": \"Order\",\n    \"result\": \"Moves Cart -> Review -> Paid -> Fulfilled\"\n  },\n  {\n    \"label\": \"Remove item\",\n    \"type\": \"delete\",\n    \"target\": \"CartItem\",\n    \"result\": \"Removes item and recalculates total\"\n  }\n] as const;\nexport const relationshipMap = [\n  {\n    \"from\": \"Product\",\n    \"to\": \"CartItem\",\n    \"type\": \"one-to-many\",\n    \"via\": \"productId\"\n  },\n  {\n    \"from\": \"Order\",\n    \"to\": \"CartItem\",\n    \"type\": \"one-to-many\",\n    \"via\": \"orderId\"\n  }\n] as const;\n\nexport function validateCartRelationships(record: { parentId?: string }, existingIds: string[]) {\n  if (!relationshipMap.length) throw new Error(\"Generated app requires relational data models.\");\n  return !record.parentId || existingIds.includes(record.parentId);\n}\n"
+    },
+    {
+      "path": "db/ecommerce-schema.ts",
+      "content": "export const models = [\n  {\n    \"name\": \"Product\",\n    \"fields\": [\n      \"title\",\n      \"price\",\n      \"inventory\",\n      \"category\",\n      \"rating\"\n    ]\n  },\n  {\n    \"name\": \"Order\",\n    \"fields\": [\n      \"items\",\n      \"customerEmail\",\n      \"total\",\n      \"status\"\n    ]\n  },\n  {\n    \"name\": \"CartItem\",\n    \"fields\": [\n      \"productId\",\n      \"orderId\",\n      \"quantity\",\n      \"price\"\n    ]\n  }\n] as const;\nexport const relationships = [\n  {\n    \"from\": \"Product\",\n    \"to\": \"CartItem\",\n    \"type\": \"one-to-many\",\n    \"via\": \"productId\"\n  },\n  {\n    \"from\": \"Order\",\n    \"to\": \"CartItem\",\n    \"type\": \"one-to-many\",\n    \"via\": \"orderId\"\n  }\n] as const;\n\nexport function assertRelationalSchema() {\n  if (relationships.length < 2) throw new Error(\"Relational schema is required.\");\n  return relationships.map((relation) => relation.from + \" -> \" + relation.to);\n}\n"
+    },
+    {
+      "path": "api/cart/handlers.ts",
+      "content": "import { applyCartMutation, removeCartRecord, transitionCartRecord } from \"@/lib/cart-engine\";\n\nexport const statusFlow = [\n  \"Cart\",\n  \"Review\",\n  \"Paid\",\n  \"Fulfilled\"\n] as const;\n\nexport function handleCartAction(records: Array<{ id: string; label: string; value: string; status: string; meta?: string; parentId?: string }>, body: { action?: string; id?: string; label?: string; value?: string; status?: string }) {\n  if (body.action === \"transition\" && body.id) return transitionCartRecord(records, body.id, [...statusFlow]);\n  if (body.action === \"delete\" && body.id) return removeCartRecord(records, body.id);\n  return applyCartMutation(records, { label: body.label || \"Checkout\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\" });\n}\n"
+    },
+    {
+      "path": "lib/cart-engine.ts",
+      "content": "type RecordItem = { id: string; label: string; value: string; status: string; meta?: string; parentId?: string };\n\nexport function applyCartMutation(records: RecordItem[], input: Pick<RecordItem, \"label\" | \"value\" | \"status\">) {\n  const created = { id: crypto.randomUUID?.() || String(Date.now()), ...input, meta: \"add to cart\", parentId: records[0]?.id };\n  return {\n    records: [created, ...records],\n    event: \"add to cart: \" + created.label,\n  };\n}\n\nexport function transitionCartRecord(records: RecordItem[], id: string, flow: string[]) {\n  let changed = \"No record changed\";\n  const nextRecords = records.map((record) => {\n    if (record.id !== id) return record;\n    const index = flow.indexOf(record.status);\n    const status = flow[Math.min(index + 1, flow.length - 1)] || \"Done\";\n    changed = record.label + \" moved to \" + status;\n    return { ...record, status };\n  });\n  return { records: nextRecords, event: changed };\n}\n\nexport function removeCartRecord(records: RecordItem[], id: string) {\n  const target = records.find((record) => record.id === id);\n  return {\n    records: records.filter((record) => record.id !== id && record.parentId !== id),\n    event: target ? \"Removed \" + target.label : \"Removed record\",\n  };\n}\n"
+    },
+    {
+      "path": "app/api/cart/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"ecommerce-1\",\n    \"label\": \"Launch Kit\",\n    \"value\": \"$79\",\n    \"status\": \"In stock\",\n    \"meta\": \"Product filters\"\n  },\n  {\n    \"id\": \"ecommerce-2\",\n    \"label\": \"Founder Bundle\",\n    \"value\": \"$149\",\n    \"status\": \"Best seller\",\n    \"meta\": \"Cart drawer\",\n    \"parentId\": \"ecommerce-1\"\n  },\n  {\n    \"id\": \"ecommerce-3\",\n    \"label\": \"Ops Template\",\n    \"value\": \"$39\",\n    \"status\": \"Low stock\",\n    \"meta\": \"Checkout form\",\n    \"parentId\": \"ecommerce-1\"\n  }\n];\nconst statusFlow = [\"Cart\",\"Review\",\"Paid\",\"Fulfilled\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"cart\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Checkout\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"add to cart\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "preview/index.html",
+      "content": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>CartLoom</title><style>:root{--surface:#f8fafc;--primary:#0f766e;--accent:#f59e0b;--ink:#111827}*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,system-ui,sans-serif}header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 20px;background:rgba(255,255,255,.92);border-bottom:1px solid #e2e8f0;backdrop-filter:blur(14px)}nav{display:flex;gap:8px;overflow:auto}button{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}nav button{background:#e2e8f0}.active,#submit{background:var(--primary)!important;color:white}.hero{max-width:1180px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:minmax(0,1fr)340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:22px;box-shadow:0 18px 45px rgba(15,23,42,.08)}h1{font-size:clamp(34px,5vw,58px);line-height:1;margin:8px 0}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:900;color:var(--primary)}.catalog-grid{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));}.card,.event{background:#f8fafc;border:1px solid #e2e8f0;border-radius:13px;padding:14px}.value{font-size:28px;font-weight:850;margin:8px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button:first-child{background:var(--primary);color:white}.actions button:last-child{background:#fee2e2;color:#991b1b}textarea{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit}#submit{width:100%;margin-top:10px}.event{margin-top:10px;color:#047857}@media(max-width:840px){.hero{grid-template-columns:1fr}.catalog-grid{grid-template-columns:1fr!important}header{align-items:flex-start;flex-direction:column}}</style></head>\n<body><main class=\"app\"><header><strong>CartLoom</strong><nav id=\"nav\"></nav></header><section class=\"hero\"><div class=\"panel\"><p class=\"eyebrow\">ecommerce runtime</p><h1>CartLoom</h1><p>Build an ecommerce store with products, cart items, orders, checkout, and inventory controls.</p><div id=\"records\" class=\"catalog-grid\"></div></div><aside class=\"panel\"><h2>Checkout</h2><textarea id=\"input\" placeholder=\"Email, Shipping ZIP, Payment note\"></textarea><button id=\"submit\">add to cart</button><div id=\"events\"></div></aside></section></main>\n<script>\nconst projectId=\"4d62863f-56e4-4b26-b263-8047a0300149\";const views=[\"Storefront\",\"Products\",\"Cart\",\"Checkout\"];const statusFlow=[\"Cart\",\"Review\",\"Paid\",\"Fulfilled\"];const transitionLabel=\"Checkout\";const deleteLabel=\"Remove item\";let records=[{\"id\":\"ecommerce-1\",\"label\":\"Launch Kit\",\"value\":\"$79\",\"status\":\"In stock\",\"meta\":\"Product filters\"},{\"id\":\"ecommerce-2\",\"label\":\"Founder Bundle\",\"value\":\"$149\",\"status\":\"Best seller\",\"meta\":\"Cart drawer\",\"parentId\":\"ecommerce-1\"},{\"id\":\"ecommerce-3\",\"label\":\"Ops Template\",\"value\":\"$39\",\"status\":\"Low stock\",\"meta\":\"Checkout form\",\"parentId\":\"ecommerce-1\"}];let active=views[0];const nav=document.getElementById(\"nav\");const root=document.getElementById(\"records\");const events=document.getElementById(\"events\");const input=document.getElementById(\"input\");\nasync function load(){try{const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\");if(res.ok){const data=await res.json();records=data.state.records||records;log(\"Loaded isolated runtime state\");}}catch(error){log(\"Runtime API unavailable; using bundled state\");}render();}\nfunction render(){nav.innerHTML=\"\";views.forEach(view=>{const b=document.createElement(\"button\");b.textContent=view;b.className=view===active?\"active\":\"\";b.onclick=()=>{active=view;log(\"Opened \"+view);render();};nav.appendChild(b)});root.innerHTML=\"\";records.forEach(record=>{const card=document.createElement(\"article\");card.className=\"card\";card.innerHTML=\"<strong>\"+record.label+\"</strong><div class='value'>\"+record.value+\"</div><span>\"+record.status+\"</span><div class='actions'><button data-action='transition' data-id='\"+record.id+\"'>\"+transitionLabel+\"</button><button data-action='delete' data-id='\"+record.id+\"'>\"+deleteLabel+\"</button></div>\";card.onclick=()=>log(\"Selected \"+record.label);card.querySelector(\"[data-action='transition']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"transition\",id:record.id});};card.querySelector(\"[data-action='delete']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"delete\",id:record.id});};root.appendChild(card);});}\nfunction log(message){const item=document.createElement(\"div\");item.className=\"event\";item.textContent=message;events.prepend(item);}\nasync function mutate(payload){const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\",{method:\"POST\",headers:{\"content-type\":\"application/json\"},body:JSON.stringify({type:\"add to cart\",...payload})});if(res.ok){const data=await res.json();records=data.state.records;log(\"Runtime mutation persisted: \"+(payload.action||\"create\"));render();}else if(payload.action===\"transition\"){records=records.map(record=>record.id===payload.id?{...record,status:statusFlow[Math.min(statusFlow.indexOf(record.status)+1,statusFlow.length-1)]||\"Done\"}:record);log(\"Transition saved locally\");render();}else if(payload.action===\"delete\"){records=records.filter(record=>record.id!==payload.id&&record.parentId!==payload.id);log(\"Delete saved locally\");render();}}\ndocument.getElementById(\"submit\").onclick=async()=>{const label=input.value.trim()||\"add to cart\";await mutate({action:\"create\",label,value:\"New\",status:statusFlow[0]||\"Created\"});input.value=\"\";};\nload();\n</script></body></html>"
+    },
+    {
+      "path": "app/products/page.tsx",
+      "content": "import { CommerceStorefront } from \"@/components/CommerceStorefront\";\n\nexport default function ProductsPage() {\n  return <CommerceStorefront initialView=\"Products\" />;\n}\n"
+    },
+    {
+      "path": "app/cart/page.tsx",
+      "content": "import { CommerceStorefront } from \"@/components/CommerceStorefront\";\n\nexport default function CartPage() {\n  return <CommerceStorefront initialView=\"Cart\" />;\n}\n"
+    },
+    {
+      "path": "app/checkout/page.tsx",
+      "content": "import { CommerceStorefront } from \"@/components/CommerceStorefront\";\n\nexport default function CheckoutPage() {\n  return <CommerceStorefront initialView=\"Checkout\" />;\n}\n"
+    },
+    {
+      "path": "app/api/products/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"ecommerce-1\",\n    \"label\": \"Launch Kit\",\n    \"value\": \"$79\",\n    \"status\": \"In stock\",\n    \"meta\": \"Product filters\"\n  },\n  {\n    \"id\": \"ecommerce-2\",\n    \"label\": \"Founder Bundle\",\n    \"value\": \"$149\",\n    \"status\": \"Best seller\",\n    \"meta\": \"Cart drawer\",\n    \"parentId\": \"ecommerce-1\"\n  },\n  {\n    \"id\": \"ecommerce-3\",\n    \"label\": \"Ops Template\",\n    \"value\": \"$39\",\n    \"status\": \"Low stock\",\n    \"meta\": \"Checkout form\",\n    \"parentId\": \"ecommerce-1\"\n  }\n];\nconst statusFlow = [\"Cart\",\"Review\",\"Paid\",\"Fulfilled\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/products\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Checkout\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"add to cart\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "app/api/checkout/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"ecommerce-1\",\n    \"label\": \"Launch Kit\",\n    \"value\": \"$79\",\n    \"status\": \"In stock\",\n    \"meta\": \"Product filters\"\n  },\n  {\n    \"id\": \"ecommerce-2\",\n    \"label\": \"Founder Bundle\",\n    \"value\": \"$149\",\n    \"status\": \"Best seller\",\n    \"meta\": \"Cart drawer\",\n    \"parentId\": \"ecommerce-1\"\n  },\n  {\n    \"id\": \"ecommerce-3\",\n    \"label\": \"Ops Template\",\n    \"value\": \"$39\",\n    \"status\": \"Low stock\",\n    \"meta\": \"Checkout form\",\n    \"parentId\": \"ecommerce-1\"\n  }\n];\nconst statusFlow = [\"Cart\",\"Review\",\"Paid\",\"Fulfilled\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/checkout\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Checkout\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"add to cart\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    }
+  ],
+  "appPlan": {
+    "category": "ecommerce",
+    "productNames": [
+      "CartLoom",
+      "ShelfSpark",
+      "RetailKit"
+    ],
+    "signals": [
+      "ecommerce",
+      "shop",
+      "store",
+      "cart",
+      "checkout",
+      "product"
+    ],
+    "problemTemplate": "Launches a polished storefront with product discovery, cart actions, and checkout readiness.",
+    "audience": "small brands and productized service sellers",
+    "monetization": "transaction fees plus premium merchandising analytics",
+    "visualDirection": "commerce catalog with filters, product cards, cart summary, and trust strips",
+    "layout": "catalog",
+    "palette": {
+      "surface": "#f8fafc",
+      "primary": "#0f766e",
+      "secondary": "#111827",
+      "accent": "#f59e0b",
+      "ink": "#111827"
+    },
+    "routes": [
+      {
+        "path": "/",
+        "label": "Storefront",
+        "purpose": "Featured products and conversion content"
+      },
+      {
+        "path": "/products",
+        "label": "Products",
+        "purpose": "Filterable product grid"
+      },
+      {
+        "path": "/cart",
+        "label": "Cart",
+        "purpose": "Cart review and quantity changes"
+      },
+      {
+        "path": "/checkout",
+        "label": "Checkout",
+        "purpose": "Customer and payment-intent form"
+      }
+    ],
+    "dataModels": [
+      {
+        "name": "Product",
+        "fields": [
+          "title",
+          "price",
+          "inventory",
+          "category",
+          "rating"
+        ]
+      },
+      {
+        "name": "Order",
+        "fields": [
+          "items",
+          "customerEmail",
+          "total",
+          "status"
+        ]
+      },
+      {
+        "name": "CartItem",
+        "fields": [
+          "productId",
+          "orderId",
+          "quantity",
+          "price"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "Product",
+        "to": "CartItem",
+        "type": "one-to-many",
+        "via": "productId"
+      },
+      {
+        "from": "Order",
+        "to": "CartItem",
+        "type": "one-to-many",
+        "via": "orderId"
+      }
+    ],
+    "apiEndpoints": [
+      {
+        "method": "GET",
+        "path": "/api/products",
+        "purpose": "List products"
+      },
+      {
+        "method": "POST",
+        "path": "/api/cart",
+        "purpose": "Add cart item"
+      },
+      {
+        "method": "POST",
+        "path": "/api/checkout",
+        "purpose": "Create order"
+      }
+    ],
+    "navigation": [
+      "Storefront",
+      "Products",
+      "Cart",
+      "Checkout"
+    ],
+    "features": [
+      "Product filters",
+      "Cart drawer",
+      "Checkout form",
+      "Inventory badges",
+      "Order confirmation"
+    ],
+    "interactions": [
+      {
+        "label": "Add to cart",
+        "type": "create",
+        "target": "CartItem",
+        "result": "Adds product to cart and updates total"
+      },
+      {
+        "label": "Checkout",
+        "type": "transition",
+        "target": "Order",
+        "result": "Moves Cart -> Review -> Paid -> Fulfilled"
+      },
+      {
+        "label": "Remove item",
+        "type": "delete",
+        "target": "CartItem",
+        "result": "Removes item and recalculates total"
+      }
+    ],
+    "forms": [
+      {
+        "name": "Checkout",
+        "fields": [
+          "Email",
+          "Shipping ZIP",
+          "Payment note"
+        ],
+        "action": "Creates a pending order"
+      }
+    ],
+    "seedData": [
+      {
+        "label": "Launch Kit",
+        "value": "$79",
+        "status": "In stock"
+      },
+      {
+        "label": "Founder Bundle",
+        "value": "$149",
+        "status": "Best seller"
+      },
+      {
+        "label": "Ops Template",
+        "value": "$39",
+        "status": "Low stock"
+      }
+    ],
+    "productName": "CartLoom",
+    "problem": "Build an ecommerce store with products, cart items, orders, checkout, and inventory controls."
+  },
+  "uniqueness": {
+    "score": 96,
+    "signature": "ecommerce::catalog::app/cart/page.tsx|app/checkout/page.tsx|app/page.tsx|app/products/page.tsx::app/api/cart/route.ts|app/api/checkout/route.ts|app/api/products/route.ts::components/CommerceStorefront.tsx::Product:title,price,inventory,category,rating|Order:items,customerEmail,total,status|CartItem:productId,orderId,quantity,price::Product->CartItem:productId|Order->CartItem:orderId::create:CartItem:Adds product to cart and updates total|transition:Order:Moves Cart -> Review -> Paid -> Fulfilled|delete:CartItem:Removes item and recalculates total",
+    "routeSignature": "/|/products|/cart|/checkout",
+    "featureSignature": "Product filters|Cart drawer|Checkout form|Inventory badges|Order confirmation",
+    "schemaSignature": "Product:title,price,inventory,category,rating|Order:items,customerEmail,total,status|CartItem:productId,orderId,quantity,price",
+    "relationshipSignature": "Product->CartItem:productId|Order->CartItem:orderId",
+    "componentSignature": "components/CommerceStorefront.tsx"
+  },
+  "buildValidation": {
+    "status": "passed",
+    "checkedAt": "2026-05-31T03:52:50.819Z",
+    "fileCount": 21,
+    "routeCount": 4,
+    "apiCount": 3,
+    "logs": [
+      "Static build validation passed",
+      "Isolated source tree present",
+      "Project-specific runtime API is wired"
+    ]
+  },
+  "memory": {
+    "architecture": "catalog ecommerce application with 4 routes and 3 data models",
+    "routes": [
+      "/",
+      "/products",
+      "/cart",
+      "/checkout"
+    ],
+    "decisions": [
+      "Selected catalog layout for ecommerce",
+      "Generated 21 source files",
+      "Uniqueness score 96"
+    ],
+    "edits": []
+  },
+  "runtimeState": {
+    "records": [
+      {
+        "id": "ecommerce-1",
+        "label": "Launch Kit",
+        "value": "$79",
+        "status": "In stock",
+        "meta": "Product filters"
+      },
+      {
+        "id": "ecommerce-2",
+        "label": "Founder Bundle",
+        "value": "$149",
+        "status": "Best seller",
+        "meta": "Cart drawer",
+        "parentId": "ecommerce-1"
+      },
+      {
+        "id": "ecommerce-3",
+        "label": "Ops Template",
+        "value": "$39",
+        "status": "Low stock",
+        "meta": "Checkout form",
+        "parentId": "ecommerce-1"
+      }
+    ],
+    "events": [
+      {
+        "message": "CartLoom runtime initialized",
+        "createdAt": "2026-05-31T03:52:50.819Z"
+      }
+    ],
+    "env": {
+      "PROJECT_ID": "4d62863f-56e4-4b26-b263-8047a0300149",
+      "PROJECT_SLUG": "cartloom",
+      "RUNTIME_MODE": "isolated-project"
+    },
+    "updatedAt": "2026-05-31T03:52:50.817Z"
+  }
+}

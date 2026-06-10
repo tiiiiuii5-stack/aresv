@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "name": "AiContentCreateAiContentEvent427",
+      "trigger": "Create variant 427 event",
+      "payload": {
+        "target": "AiContentEvent427",
+        "result": "Adds event to PromptDesk 427 runtime queue",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "append record",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "AiContentTransitionAiContentRuntime427",
+      "trigger": "Advance variant 427 state",
+      "payload": {
+        "target": "AiContentRuntime427",
+        "result": "Moves Queued -> Active -> Reviewed -> Done",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "update record status",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "AiContentDeleteAiContentAudit427",
+      "trigger": "Remove variant 427 audit",
+      "payload": {
+        "target": "AiContentAudit427",
+        "result": "Removes audit and dependent runtime rows",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "remove record and dependents",
+        "prepend audit event"
+      ]
+    }
+  ],
+  "delivery": "in-process runtime event log plus API response payload"
+}

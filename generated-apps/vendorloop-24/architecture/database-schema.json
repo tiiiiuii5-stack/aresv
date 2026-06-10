@@ -1,0 +1,81 @@
+{
+  "appType": "marketplace",
+  "models": [
+    {
+      "name": "MarketplaceRuntime24",
+      "fields": [
+        "marketplace-24Name",
+        "marketplace-24Owner",
+        "marketplace-24State",
+        "marketplace-24Score"
+      ],
+      "owns": [
+        {
+          "model": "MarketplaceEvent24",
+          "via": "marketplace-24RecordId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "MarketplaceEvent24",
+      "fields": [
+        "marketplace-24RecordId",
+        "marketplace-24Action",
+        "marketplace-24Actor",
+        "marketplace-24Result"
+      ],
+      "owns": [
+        {
+          "model": "MarketplaceAudit24",
+          "via": "marketplace-24EventId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": [
+        {
+          "model": "MarketplaceRuntime24",
+          "via": "marketplace-24RecordId",
+          "type": "one-to-many"
+        }
+      ]
+    },
+    {
+      "name": "MarketplaceAudit24",
+      "fields": [
+        "marketplace-24EventId",
+        "marketplace-24Reviewer",
+        "marketplace-24Decision",
+        "marketplace-24CreatedAt"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "MarketplaceEvent24",
+          "via": "marketplace-24EventId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "MarketplaceRuntime24",
+      "to": "MarketplaceEvent24",
+      "type": "one-to-many",
+      "via": "marketplace-24RecordId"
+    },
+    {
+      "from": "MarketplaceEvent24",
+      "to": "MarketplaceAudit24",
+      "type": "one-to-many",
+      "via": "marketplace-24EventId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

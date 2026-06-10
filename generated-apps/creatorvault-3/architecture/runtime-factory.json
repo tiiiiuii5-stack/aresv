@@ -1,0 +1,195 @@
+{
+  "pipeline": "REAL RUNTIME APPLICATION FACTORY",
+  "runtimeType": "fullstack",
+  "phases": {
+    "intentToSpec": {
+      "appType": "internal tool",
+      "structuredSpec": true,
+      "routes": [
+        {
+          "path": "/",
+          "label": "Revenue",
+          "purpose": "Revenue, subscribers, and paid offer status"
+        },
+        {
+          "path": "/offers",
+          "label": "Offers",
+          "purpose": "Paid products, tiers, and bundles"
+        },
+        {
+          "path": "/subscribers",
+          "label": "Subscribers",
+          "purpose": "Audience segments and retention risk"
+        },
+        {
+          "path": "/launches",
+          "label": "Launches",
+          "purpose": "Campaign calendar and drop readiness"
+        }
+      ],
+      "databaseSchema": [
+        {
+          "name": "Offer",
+          "fields": [
+            "title",
+            "price",
+            "tier",
+            "conversionRate",
+            "status"
+          ]
+        },
+        {
+          "name": "Subscriber",
+          "fields": [
+            "email",
+            "tier",
+            "lifetimeValue",
+            "risk",
+            "joinedAt"
+          ]
+        },
+        {
+          "name": "Purchase",
+          "fields": [
+            "offerId",
+            "subscriberId",
+            "amount",
+            "status"
+          ]
+        }
+      ],
+      "uiScreens": [
+        {
+          "path": "/",
+          "screen": "Revenue",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/offers",
+          "screen": "Offers",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/subscribers",
+          "screen": "Subscribers",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/launches",
+          "screen": "Launches",
+          "wiredToBackend": true
+        }
+      ],
+      "requiredIntegrations": [
+        "database",
+        "project runtime API"
+      ],
+      "unclearSpecPolicy": "block generation and ask questions"
+    },
+    "codeGeneration": {
+      "realFileTree": true,
+      "backendRoutes": [
+        "/api/offers",
+        "/api/subscribers",
+        "/api/offers/[id]"
+      ],
+      "frontendPages": [
+        "/",
+        "/offers",
+        "/subscribers",
+        "/launches"
+      ],
+      "databaseSchema": "schema.prisma",
+      "environmentVariables": [
+        ".env.example"
+      ],
+      "noPlaceholderButtons": true,
+      "noStaticMockDataUnlessMarkedMock": true
+    },
+    "buildInstall": {
+      "requiredCommands": [
+        "npm install",
+        "npm run build",
+        "npm run type-check",
+        "npm run lint"
+      ],
+      "maxRepairLoops": 3,
+      "invalidIfBuildFails": true
+    },
+    "runtimeBootstrap": {
+      "startCommand": "npm run start",
+      "healthChecks": [
+        "GET /",
+        "GET /api/offers"
+      ],
+      "databaseCheck": "assertRelationalSchema",
+      "brokenIfAnyFail": true
+    },
+    "interactionTesting": {
+      "clickEveryButton": true,
+      "submitEveryForm": true,
+      "navigateEveryRoute": true,
+      "testApiEndpoints": true,
+      "blockFakeUi": true
+    },
+    "previewGeneration": {
+      "realOnly": true,
+      "requiresServerRunning": true,
+      "requiresRoutesRespond": true,
+      "requiresJsExecuting": true,
+      "requiresBackendAlive": true,
+      "requiresDatabaseConnected": true,
+      "noStaticPreviewModeEver": true
+    },
+    "selfHeal": {
+      "loop": "build -> run -> test -> fail -> fix -> rebuild",
+      "maxLoops": 5,
+      "stopOnlyWhen": [
+        "zero runtime errors",
+        "all routes respond",
+        "UI is interactive",
+        "backend is connected"
+      ]
+    },
+    "deploymentGate": {
+      "buildSuccess": true,
+      "runtimeSuccess": true,
+      "testSuccess": true,
+      "noFakeUiDetected": true
+    }
+  },
+  "generationMode": "module-assisted",
+  "integrationModules": [
+    {
+      "name": "Booking-Calendar",
+      "category": "booking",
+      "description": "Availability matrix, ICS file generation, Google Calendar sync boundary, and recurring rule parser.",
+      "validationScore": 98,
+      "dependencies": [],
+      "files": [
+        "integrations/booking-calendar/availability.ts",
+        "integrations/booking-calendar/ics.ts",
+        "integrations/booking-calendar/google-sync.ts",
+        "integrations/booking-calendar/recurrence.ts"
+      ]
+    },
+    {
+      "name": "Video-Streaming",
+      "category": "video",
+      "description": "Multipart upload endpoint, FFmpeg transcoding job, HLS playlist generation, and CDN URL delivery.",
+      "validationScore": 96,
+      "dependencies": [
+        "bullmq@^5.77.3"
+      ],
+      "files": [
+        "app/api/video/upload/route.ts",
+        "integrations/video-streaming/transcode-job.ts",
+        "integrations/video-streaming/hls-playlist.ts"
+      ]
+    }
+  ],
+  "moduleInjection": {
+    "stage": "before-generation",
+    "rule": "Detected category modules are injected into the isolated runtime factory before code validation."
+  }
+}

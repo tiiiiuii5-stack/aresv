@@ -1,0 +1,305 @@
+{
+  "kind": "project-export",
+  "version": 1,
+  "generatedAt": "2026-05-31T03:52:53.584Z",
+  "project": {
+    "id": "6cc2dfe1-8265-459a-947f-7a354b156b0a",
+    "name": "DealPilot",
+    "slug": "dealpilot",
+    "category": "crm",
+    "status": "ready",
+    "createdAt": "2026-05-31T03:52:50.679Z",
+    "updatedAt": "2026-05-31T03:52:53.557Z",
+    "problem": "Build a CRM system for client pipelines, projects, tasks, revenue stages, and account follow-up.",
+    "audience": "founders, agencies, and customer-facing teams",
+    "uiDirection": "dense B2B console with kanban lanes, account health, and compact deal tables",
+    "monetization": "seat-based CRM plan with pipeline automation upgrades",
+    "prompt": "Build a CRM system for client pipelines, projects, tasks, revenue stages, and account follow-up."
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# DealPilot\n\nBuild a CRM system for client pipelines, projects, tasks, revenue stages, and account follow-up.\n\nThis is an isolated crm application. It does not depend on a shared app shell.\n\n## Runtime behavior\n- Component: PipelineCommandCenter\n- State engine: lib/pipeline-engine.ts\n- Primary API: /api/clients\n- Interaction: move deal\n\n## Routes\n- /: Pipeline overview and daily revenue actions\n- /clients: Account list, owners, and renewal risk\n- /pipeline: Drag-style deal stage board\n- /analytics: Win-rate and SLA trend reporting\n\n## Schema\n- Client: name, owner, health, renewalDate, notes\n- Deal: clientId, stage, value, probability, nextStep\n- Task: dealId, title, status, createdAt, completedAt\n\n## Relationships\n- Client one-to-many Deal via clientId\n- Deal one-to-many Task via dealId\n\n## Functional interactions\n- Create deal: Adds a deal to the first pipeline stage\n- Advance stage: Moves Lead -> In Progress -> Review -> Done\n- Delete task: Removes completed task from the deal\n"
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"dealpilot\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"start\": \"next start\"\n  },\n  \"dependencies\": {\n    \"next\": \"16.2.6\",\n    \"react\": \"19.2.6\",\n    \"react-dom\": \"19.2.6\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^6.0.3\",\n    \"@types/node\": \"20.14.10\",\n    \"@types/react\": \"^19.2.15\",\n    \"@types/react-dom\": \"^19.2.3\"\n  }\n}"
+    },
+    {
+      "path": "tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },\n  \"include\": [\n    \"**/*.ts\",\n    \"**/*.tsx\"\n  ],\n  \"exclude\": [\n    \"node_modules\"\n  ]\n}"
+    },
+    {
+      "path": "next.config.js",
+      "content": "const nextConfig = {};\nmodule.exports = nextConfig;\n"
+    },
+    {
+      "path": ".env.example",
+      "content": "DATABASE_URL=\nNEXT_PUBLIC_APP_URL=http://localhost:3000\n"
+    },
+    {
+      "path": "schema.prisma",
+      "content": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Client {\n  id        String   @id @default(cuid())\n  name String\n  owner String\n  health String\n  renewalDate String\n  notes String\n  Deal Deal[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel Deal {\n  id        String   @id @default(cuid())\n  clientId String\n  stage String\n  value String\n  probability String\n  nextStep String\n  Task Task[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel Task {\n  id        String   @id @default(cuid())\n  dealId String\n  title String\n  status String\n  createdAt String\n  completedAt String\n\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n"
+    },
+    {
+      "path": "app/layout.tsx",
+      "content": "import \"./globals.css\";\n\nexport const metadata = {\n  title: \"DealPilot\",\n  description: \"Build a CRM system for client pipelines, projects, tasks, revenue stages, and account follow-up.\",\n};\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return <html lang=\"en\"><body>{children}</body></html>;\n}\n"
+    },
+    {
+      "path": "app/globals.css",
+      "content": ":root{--surface:#f6f8fb;--primary:#155e75;--accent:#22c55e;--ink:#0f172a}\n*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}\nbutton,input,textarea{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #e2e8f0}\n.wrap{max-width:1180px;margin:0 auto;padding:18px 20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 18px 45px rgba(15,23,42,.08)}\n.kanban-board{display:grid;gap:12px;grid-template-columns:repeat(4,minmax(0,1fr));}.card{border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:16px}.primary{border:0;border-radius:12px;background:var(--primary);color:white;padding:12px 14px;font-weight:800;cursor:pointer}\n@media(max-width:840px){.hero{grid-template-columns:1fr}.kanban-board{grid-template-columns:1fr!important}}\n"
+    },
+    {
+      "path": "app/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function Page() {\n  return <PipelineCommandCenter />;\n}\n"
+    },
+    {
+      "path": "components/PipelineCommandCenter.tsx",
+      "content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\nimport { applyClientsMutation, removeClientsRecord, transitionClientsRecord } from \"@/lib/pipeline-engine\";\n\nconst initialRecords = [\n  {\n    \"id\": \"crm-1\",\n    \"label\": \"Northstar Labs\",\n    \"value\": \"$18.4k\",\n    \"status\": \"Proposal\",\n    \"meta\": \"Kanban pipeline\"\n  },\n  {\n    \"id\": \"crm-2\",\n    \"label\": \"Brightline Studio\",\n    \"value\": \"$7.2k\",\n    \"status\": \"Renewal risk\",\n    \"meta\": \"Client search\",\n    \"parentId\": \"crm-1\"\n  },\n  {\n    \"id\": \"crm-3\",\n    \"label\": \"Atlas Supply\",\n    \"value\": \"$24.9k\",\n    \"status\": \"Closing\",\n    \"meta\": \"Renewal risk scoring\",\n    \"parentId\": \"crm-1\"\n  }\n];\nconst views = [\"Dashboard\",\"Clients\",\"Pipeline\",\"Analytics\"];\nconst transitions = [\"Lead\",\"In Progress\",\"Review\",\"Done\"];\n\nexport function PipelineCommandCenter({ initialView = views[0] }: { initialView?: string }) {\n  const [view, setView] = useState(initialView);\n  const [records, setRecords] = useState(initialRecords);\n  const [input, setInput] = useState(\"\");\n  const [events, setEvents] = useState<string[]>([\"DealPilot ready\"]);\n  const visible = useMemo(() => records.filter((record) => view === views[0] || record.status.toLowerCase().includes(view.toLowerCase()) || record.meta.toLowerCase().includes(view.toLowerCase())), [records, view]);\n  function submit() {\n    const next = applyClientsMutation(records, { label: input || \"New deal\", value: \"New\", status: \"Created\" });\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n    setInput(\"\");\n  }\n  function advance(id: string) {\n    const next = transitionClientsRecord(records, id, transitions);\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n  }\n  function remove(id: string) {\n    const next = removeClientsRecord(records, id);\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n  }\n  return (\n    <main className=\"app\">\n      <header className=\"top\"><div className=\"wrap\" style={{display:\"flex\",justifyContent:\"space-between\",gap:12,alignItems:\"center\"}}><strong>DealPilot</strong><nav style={{display:\"flex\",gap:8,overflowX:\"auto\"}}>{views.map((item) => <button key={item} onClick={() => setView(item)} className=\"primary\" style={{background:item===view?\"var(--primary)\":\"#e2e8f0\",color:item===view?\"white\":\"#0f172a\"}}>{item}</button>)}</nav></div></header>\n      <section className=\"wrap hero\">\n        <div className=\"panel\">\n          <p style={{fontWeight:900,textTransform:\"uppercase\",letterSpacing:\".16em\",fontSize:12,color:\"var(--primary)\"}}>crm</p>\n          <h1 style={{fontSize:48,lineHeight:1,margin:\"10px 0\"}}>DealPilot</h1>\n          <p style={{lineHeight:1.7,color:\"#475569\"}}>Build a CRM system for client pipelines, projects, tasks, revenue stages, and account follow-up.</p>\n          <div className=\"kanban-board\" style={{marginTop:18}}>{visible.map((record) => <article key={record.id || record.label} className=\"card\"><strong>{record.label}</strong><p style={{fontSize:28,fontWeight:850,margin:\"8px 0\"}}>{record.value}</p><span>{record.status}</span><div style={{display:\"flex\",gap:8,marginTop:12}}><button data-action=\"transition\" onClick={() => advance(record.id)} className=\"primary\" style={{padding:\"8px 10px\"}}>Advance stage</button><button data-action=\"delete\" onClick={() => remove(record.id)} className=\"primary\" style={{padding:\"8px 10px\",background:\"#fee2e2\",color:\"#991b1b\"}}>Delete task</button></div></article>)}</div>\n        </div>\n        <aside className=\"panel\">\n          <h2>New deal</h2>\n          <p>Adds deal to active pipeline</p>\n          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder=\"Client, Value, Stage, Next step\" style={{width:\"100%\",minHeight:110,border:\"1px solid #cbd5e1\",borderRadius:12,padding:12}} />\n          <button onClick={submit} className=\"primary\" style={{width:\"100%\",marginTop:10}}>move deal</button>\n          <div style={{display:\"grid\",gap:8,marginTop:16}}>{events.map((event) => <div key={event} className=\"card\">{event}</div>)}</div>\n        </aside>\n      </section>\n    </main>\n  );\n}\n"
+    },
+    {
+      "path": "features/clients/interactions.ts",
+      "content": "export const interactionMap = [\n  {\n    \"label\": \"Create deal\",\n    \"type\": \"create\",\n    \"target\": \"Deal\",\n    \"result\": \"Adds a deal to the first pipeline stage\"\n  },\n  {\n    \"label\": \"Advance stage\",\n    \"type\": \"transition\",\n    \"target\": \"Deal\",\n    \"result\": \"Moves Lead -> In Progress -> Review -> Done\"\n  },\n  {\n    \"label\": \"Delete task\",\n    \"type\": \"delete\",\n    \"target\": \"Task\",\n    \"result\": \"Removes completed task from the deal\"\n  }\n] as const;\nexport const relationshipMap = [\n  {\n    \"from\": \"Client\",\n    \"to\": \"Deal\",\n    \"type\": \"one-to-many\",\n    \"via\": \"clientId\"\n  },\n  {\n    \"from\": \"Deal\",\n    \"to\": \"Task\",\n    \"type\": \"one-to-many\",\n    \"via\": \"dealId\"\n  }\n] as const;\n\nexport function validateClientsRelationships(record: { parentId?: string }, existingIds: string[]) {\n  if (!relationshipMap.length) throw new Error(\"Generated app requires relational data models.\");\n  return !record.parentId || existingIds.includes(record.parentId);\n}\n"
+    },
+    {
+      "path": "db/crm-schema.ts",
+      "content": "export const models = [\n  {\n    \"name\": \"Client\",\n    \"fields\": [\n      \"name\",\n      \"owner\",\n      \"health\",\n      \"renewalDate\",\n      \"notes\"\n    ]\n  },\n  {\n    \"name\": \"Deal\",\n    \"fields\": [\n      \"clientId\",\n      \"stage\",\n      \"value\",\n      \"probability\",\n      \"nextStep\"\n    ]\n  },\n  {\n    \"name\": \"Task\",\n    \"fields\": [\n      \"dealId\",\n      \"title\",\n      \"status\",\n      \"createdAt\",\n      \"completedAt\"\n    ]\n  }\n] as const;\nexport const relationships = [\n  {\n    \"from\": \"Client\",\n    \"to\": \"Deal\",\n    \"type\": \"one-to-many\",\n    \"via\": \"clientId\"\n  },\n  {\n    \"from\": \"Deal\",\n    \"to\": \"Task\",\n    \"type\": \"one-to-many\",\n    \"via\": \"dealId\"\n  }\n] as const;\n\nexport function assertRelationalSchema() {\n  if (relationships.length < 2) throw new Error(\"Relational schema is required.\");\n  return relationships.map((relation) => relation.from + \" -> \" + relation.to);\n}\n"
+    },
+    {
+      "path": "api/clients/handlers.ts",
+      "content": "import { applyClientsMutation, removeClientsRecord, transitionClientsRecord } from \"@/lib/pipeline-engine\";\n\nexport const statusFlow = [\n  \"Lead\",\n  \"In Progress\",\n  \"Review\",\n  \"Done\"\n] as const;\n\nexport function handleClientsAction(records: Array<{ id: string; label: string; value: string; status: string; meta?: string; parentId?: string }>, body: { action?: string; id?: string; label?: string; value?: string; status?: string }) {\n  if (body.action === \"transition\" && body.id) return transitionClientsRecord(records, body.id, [...statusFlow]);\n  if (body.action === \"delete\" && body.id) return removeClientsRecord(records, body.id);\n  return applyClientsMutation(records, { label: body.label || \"New deal\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\" });\n}\n"
+    },
+    {
+      "path": "lib/pipeline-engine.ts",
+      "content": "type RecordItem = { id: string; label: string; value: string; status: string; meta?: string; parentId?: string };\n\nexport function applyClientsMutation(records: RecordItem[], input: Pick<RecordItem, \"label\" | \"value\" | \"status\">) {\n  const created = { id: crypto.randomUUID?.() || String(Date.now()), ...input, meta: \"move deal\", parentId: records[0]?.id };\n  return {\n    records: [created, ...records],\n    event: \"move deal: \" + created.label,\n  };\n}\n\nexport function transitionClientsRecord(records: RecordItem[], id: string, flow: string[]) {\n  let changed = \"No record changed\";\n  const nextRecords = records.map((record) => {\n    if (record.id !== id) return record;\n    const index = flow.indexOf(record.status);\n    const status = flow[Math.min(index + 1, flow.length - 1)] || \"Done\";\n    changed = record.label + \" moved to \" + status;\n    return { ...record, status };\n  });\n  return { records: nextRecords, event: changed };\n}\n\nexport function removeClientsRecord(records: RecordItem[], id: string) {\n  const target = records.find((record) => record.id === id);\n  return {\n    records: records.filter((record) => record.id !== id && record.parentId !== id),\n    event: target ? \"Removed \" + target.label : \"Removed record\",\n  };\n}\n"
+    },
+    {
+      "path": "app/api/clients/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"crm-1\",\n    \"label\": \"Northstar Labs\",\n    \"value\": \"$18.4k\",\n    \"status\": \"Proposal\",\n    \"meta\": \"Kanban pipeline\"\n  },\n  {\n    \"id\": \"crm-2\",\n    \"label\": \"Brightline Studio\",\n    \"value\": \"$7.2k\",\n    \"status\": \"Renewal risk\",\n    \"meta\": \"Client search\",\n    \"parentId\": \"crm-1\"\n  },\n  {\n    \"id\": \"crm-3\",\n    \"label\": \"Atlas Supply\",\n    \"value\": \"$24.9k\",\n    \"status\": \"Closing\",\n    \"meta\": \"Renewal risk scoring\",\n    \"parentId\": \"crm-1\"\n  }\n];\nconst statusFlow = [\"Lead\",\"In Progress\",\"Review\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"clients\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"New deal\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"move deal\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "preview/index.html",
+      "content": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>DealPilot</title><style>:root{--surface:#f6f8fb;--primary:#155e75;--accent:#22c55e;--ink:#0f172a}*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,system-ui,sans-serif}header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 20px;background:rgba(255,255,255,.92);border-bottom:1px solid #e2e8f0;backdrop-filter:blur(14px)}nav{display:flex;gap:8px;overflow:auto}button{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}nav button{background:#e2e8f0}.active,#submit{background:var(--primary)!important;color:white}.hero{max-width:1180px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:minmax(0,1fr)340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:22px;box-shadow:0 18px 45px rgba(15,23,42,.08)}h1{font-size:clamp(34px,5vw,58px);line-height:1;margin:8px 0}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:900;color:var(--primary)}.kanban-board{display:grid;gap:12px;grid-template-columns:repeat(4,minmax(0,1fr));}.card,.event{background:#f8fafc;border:1px solid #e2e8f0;border-radius:13px;padding:14px}.value{font-size:28px;font-weight:850;margin:8px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button:first-child{background:var(--primary);color:white}.actions button:last-child{background:#fee2e2;color:#991b1b}textarea{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit}#submit{width:100%;margin-top:10px}.event{margin-top:10px;color:#047857}@media(max-width:840px){.hero{grid-template-columns:1fr}.kanban-board{grid-template-columns:1fr!important}header{align-items:flex-start;flex-direction:column}}</style></head>\n<body><main class=\"app\"><header><strong>DealPilot</strong><nav id=\"nav\"></nav></header><section class=\"hero\"><div class=\"panel\"><p class=\"eyebrow\">crm runtime</p><h1>DealPilot</h1><p>Build a CRM system for client pipelines, projects, tasks, revenue stages, and account follow-up.</p><div id=\"records\" class=\"kanban-board\"></div></div><aside class=\"panel\"><h2>New deal</h2><textarea id=\"input\" placeholder=\"Client, Value, Stage, Next step\"></textarea><button id=\"submit\">move deal</button><div id=\"events\"></div></aside></section></main>\n<script>\nconst projectId=\"6cc2dfe1-8265-459a-947f-7a354b156b0a\";const views=[\"Dashboard\",\"Clients\",\"Pipeline\",\"Analytics\"];const statusFlow=[\"Lead\",\"In Progress\",\"Review\",\"Done\"];const transitionLabel=\"Advance stage\";const deleteLabel=\"Delete task\";let records=[{\"id\":\"crm-1\",\"label\":\"Northstar Labs\",\"value\":\"$18.4k\",\"status\":\"Proposal\",\"meta\":\"Kanban pipeline\"},{\"id\":\"crm-2\",\"label\":\"Brightline Studio\",\"value\":\"$7.2k\",\"status\":\"Renewal risk\",\"meta\":\"Client search\",\"parentId\":\"crm-1\"},{\"id\":\"crm-3\",\"label\":\"Atlas Supply\",\"value\":\"$24.9k\",\"status\":\"Closing\",\"meta\":\"Renewal risk scoring\",\"parentId\":\"crm-1\"}];let active=views[0];const nav=document.getElementById(\"nav\");const root=document.getElementById(\"records\");const events=document.getElementById(\"events\");const input=document.getElementById(\"input\");\nasync function load(){try{const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\");if(res.ok){const data=await res.json();records=data.state.records||records;log(\"Loaded isolated runtime state\");}}catch(error){log(\"Runtime API unavailable; using bundled state\");}render();}\nfunction render(){nav.innerHTML=\"\";views.forEach(view=>{const b=document.createElement(\"button\");b.textContent=view;b.className=view===active?\"active\":\"\";b.onclick=()=>{active=view;log(\"Opened \"+view);render();};nav.appendChild(b)});root.innerHTML=\"\";records.forEach(record=>{const card=document.createElement(\"article\");card.className=\"card\";card.innerHTML=\"<strong>\"+record.label+\"</strong><div class='value'>\"+record.value+\"</div><span>\"+record.status+\"</span><div class='actions'><button data-action='transition' data-id='\"+record.id+\"'>\"+transitionLabel+\"</button><button data-action='delete' data-id='\"+record.id+\"'>\"+deleteLabel+\"</button></div>\";card.onclick=()=>log(\"Selected \"+record.label);card.querySelector(\"[data-action='transition']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"transition\",id:record.id});};card.querySelector(\"[data-action='delete']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"delete\",id:record.id});};root.appendChild(card);});}\nfunction log(message){const item=document.createElement(\"div\");item.className=\"event\";item.textContent=message;events.prepend(item);}\nasync function mutate(payload){const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\",{method:\"POST\",headers:{\"content-type\":\"application/json\"},body:JSON.stringify({type:\"move deal\",...payload})});if(res.ok){const data=await res.json();records=data.state.records;log(\"Runtime mutation persisted: \"+(payload.action||\"create\"));render();}else if(payload.action===\"transition\"){records=records.map(record=>record.id===payload.id?{...record,status:statusFlow[Math.min(statusFlow.indexOf(record.status)+1,statusFlow.length-1)]||\"Done\"}:record);log(\"Transition saved locally\");render();}else if(payload.action===\"delete\"){records=records.filter(record=>record.id!==payload.id&&record.parentId!==payload.id);log(\"Delete saved locally\");render();}}\ndocument.getElementById(\"submit\").onclick=async()=>{const label=input.value.trim()||\"move deal\";await mutate({action:\"create\",label,value:\"New\",status:statusFlow[0]||\"Created\"});input.value=\"\";};\nload();\n</script></body></html>"
+    },
+    {
+      "path": "app/clients/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function ClientsPage() {\n  return <PipelineCommandCenter initialView=\"Clients\" />;\n}\n"
+    },
+    {
+      "path": "app/pipeline/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function PipelinePage() {\n  return <PipelineCommandCenter initialView=\"Pipeline\" />;\n}\n"
+    },
+    {
+      "path": "app/analytics/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function AnalyticsPage() {\n  return <PipelineCommandCenter initialView=\"Analytics\" />;\n}\n"
+    },
+    {
+      "path": "app/api/deals/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"crm-1\",\n    \"label\": \"Northstar Labs\",\n    \"value\": \"$18.4k\",\n    \"status\": \"Proposal\",\n    \"meta\": \"Kanban pipeline\"\n  },\n  {\n    \"id\": \"crm-2\",\n    \"label\": \"Brightline Studio\",\n    \"value\": \"$7.2k\",\n    \"status\": \"Renewal risk\",\n    \"meta\": \"Client search\",\n    \"parentId\": \"crm-1\"\n  },\n  {\n    \"id\": \"crm-3\",\n    \"label\": \"Atlas Supply\",\n    \"value\": \"$24.9k\",\n    \"status\": \"Closing\",\n    \"meta\": \"Renewal risk scoring\",\n    \"parentId\": \"crm-1\"\n  }\n];\nconst statusFlow = [\"Lead\",\"In Progress\",\"Review\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/deals\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"New deal\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"move deal\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    }
+  ],
+  "metadata": {
+    "fileCount": 20,
+    "featureCount": 5,
+    "onboardingSteps": 5,
+    "archived": false
+  },
+  "appPlan": {
+    "category": "crm",
+    "productNames": [
+      "DealPilot",
+      "ClientGrid",
+      "PipelineOS"
+    ],
+    "signals": [
+      "crm",
+      "client",
+      "lead",
+      "pipeline",
+      "sales",
+      "account"
+    ],
+    "problemTemplate": "Turns scattered client follow-up into a focused revenue pipeline with visible next actions.",
+    "audience": "founders, agencies, and customer-facing teams",
+    "monetization": "seat-based CRM plan with pipeline automation upgrades",
+    "visualDirection": "dense B2B console with kanban lanes, account health, and compact deal tables",
+    "layout": "kanban",
+    "palette": {
+      "surface": "#f6f8fb",
+      "primary": "#155e75",
+      "secondary": "#0f172a",
+      "accent": "#22c55e",
+      "ink": "#0f172a"
+    },
+    "routes": [
+      {
+        "path": "/",
+        "label": "Dashboard",
+        "purpose": "Pipeline overview and daily revenue actions"
+      },
+      {
+        "path": "/clients",
+        "label": "Clients",
+        "purpose": "Account list, owners, and renewal risk"
+      },
+      {
+        "path": "/pipeline",
+        "label": "Pipeline",
+        "purpose": "Drag-style deal stage board"
+      },
+      {
+        "path": "/analytics",
+        "label": "Analytics",
+        "purpose": "Win-rate and SLA trend reporting"
+      }
+    ],
+    "dataModels": [
+      {
+        "name": "Client",
+        "fields": [
+          "name",
+          "owner",
+          "health",
+          "renewalDate",
+          "notes"
+        ]
+      },
+      {
+        "name": "Deal",
+        "fields": [
+          "clientId",
+          "stage",
+          "value",
+          "probability",
+          "nextStep"
+        ]
+      },
+      {
+        "name": "Task",
+        "fields": [
+          "dealId",
+          "title",
+          "status",
+          "createdAt",
+          "completedAt"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "Client",
+        "to": "Deal",
+        "type": "one-to-many",
+        "via": "clientId"
+      },
+      {
+        "from": "Deal",
+        "to": "Task",
+        "type": "one-to-many",
+        "via": "dealId"
+      }
+    ],
+    "apiEndpoints": [
+      {
+        "method": "GET",
+        "path": "/api/clients",
+        "purpose": "List accounts"
+      },
+      {
+        "method": "POST",
+        "path": "/api/deals",
+        "purpose": "Create deal"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/deals/[id]",
+        "purpose": "Move deal stage"
+      }
+    ],
+    "navigation": [
+      "Dashboard",
+      "Clients",
+      "Pipeline",
+      "Analytics"
+    ],
+    "features": [
+      "Kanban pipeline",
+      "Client search",
+      "Renewal risk scoring",
+      "Next-step capture",
+      "CSV export"
+    ],
+    "interactions": [
+      {
+        "label": "Create deal",
+        "type": "create",
+        "target": "Deal",
+        "result": "Adds a deal to the first pipeline stage"
+      },
+      {
+        "label": "Advance stage",
+        "type": "transition",
+        "target": "Deal",
+        "result": "Moves Lead -> In Progress -> Review -> Done"
+      },
+      {
+        "label": "Delete task",
+        "type": "delete",
+        "target": "Task",
+        "result": "Removes completed task from the deal"
+      }
+    ],
+    "forms": [
+      {
+        "name": "New deal",
+        "fields": [
+          "Client",
+          "Value",
+          "Stage",
+          "Next step"
+        ],
+        "action": "Adds deal to active pipeline"
+      }
+    ],
+    "seedData": [
+      {
+        "label": "Northstar Labs",
+        "value": "$18.4k",
+        "status": "Proposal"
+      },
+      {
+        "label": "Brightline Studio",
+        "value": "$7.2k",
+        "status": "Renewal risk"
+      },
+      {
+        "label": "Atlas Supply",
+        "value": "$24.9k",
+        "status": "Closing"
+      }
+    ],
+    "productName": "DealPilot",
+    "problem": "Build a CRM system for client pipelines, projects, tasks, revenue stages, and account follow-up."
+  },
+  "uniqueness": {
+    "score": 100,
+    "signature": "crm::kanban::app/analytics/page.tsx|app/clients/page.tsx|app/page.tsx|app/pipeline/page.tsx::app/api/clients/route.ts|app/api/deals/route.ts::components/PipelineCommandCenter.tsx::Client:name,owner,health,renewalDate,notes|Deal:clientId,stage,value,probability,nextStep|Task:dealId,title,status,createdAt,completedAt::Client->Deal:clientId|Deal->Task:dealId::create:Deal:Adds a deal to the first pipeline stage|transition:Deal:Moves Lead -> In Progress -> Review -> Done|delete:Task:Removes completed task from the deal",
+    "routeSignature": "/|/clients|/pipeline|/analytics",
+    "featureSignature": "Kanban pipeline|Client search|Renewal risk scoring|Next-step capture|CSV export",
+    "schemaSignature": "Client:name,owner,health,renewalDate,notes|Deal:clientId,stage,value,probability,nextStep|Task:dealId,title,status,createdAt,completedAt",
+    "relationshipSignature": "Client->Deal:clientId|Deal->Task:dealId",
+    "componentSignature": "components/PipelineCommandCenter.tsx"
+  },
+  "buildValidation": {
+    "status": "passed",
+    "checkedAt": "2026-05-31T03:52:50.686Z",
+    "fileCount": 20,
+    "routeCount": 4,
+    "apiCount": 3,
+    "logs": [
+      "Static build validation passed",
+      "Isolated source tree present",
+      "Project-specific runtime API is wired"
+    ]
+  }
+}

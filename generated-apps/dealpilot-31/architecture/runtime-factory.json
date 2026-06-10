@@ -1,0 +1,159 @@
+{
+  "pipeline": "REAL RUNTIME APPLICATION FACTORY",
+  "runtimeType": "fullstack",
+  "phases": {
+    "intentToSpec": {
+      "appType": "SaaS dashboard",
+      "structuredSpec": true,
+      "routes": [
+        {
+          "path": "/",
+          "label": "Command",
+          "purpose": "DealPilot 31 command center"
+        },
+        {
+          "path": "/crm-31-queue",
+          "label": "Queue",
+          "purpose": "Variant 31 work queue and approvals"
+        },
+        {
+          "path": "/crm-31-rules",
+          "label": "Rules",
+          "purpose": "Variant 31 automation rules"
+        },
+        {
+          "path": "/crm-31-insights",
+          "label": "Insights",
+          "purpose": "Variant 31 performance insights"
+        }
+      ],
+      "databaseSchema": [
+        {
+          "name": "CrmRuntime31",
+          "fields": [
+            "crm-31Name",
+            "crm-31Owner",
+            "crm-31State",
+            "crm-31Score"
+          ]
+        },
+        {
+          "name": "CrmEvent31",
+          "fields": [
+            "crm-31RecordId",
+            "crm-31Action",
+            "crm-31Actor",
+            "crm-31Result"
+          ]
+        },
+        {
+          "name": "CrmAudit31",
+          "fields": [
+            "crm-31EventId",
+            "crm-31Reviewer",
+            "crm-31Decision",
+            "crm-31CreatedAt"
+          ]
+        }
+      ],
+      "uiScreens": [
+        {
+          "path": "/",
+          "screen": "Command",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/crm-31-queue",
+          "screen": "Queue",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/crm-31-rules",
+          "screen": "Rules",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/crm-31-insights",
+          "screen": "Insights",
+          "wiredToBackend": true
+        }
+      ],
+      "requiredIntegrations": [
+        "database",
+        "project runtime API"
+      ],
+      "unclearSpecPolicy": "block generation and ask questions"
+    },
+    "codeGeneration": {
+      "realFileTree": true,
+      "backendRoutes": [
+        "/api/crm-31-runtime",
+        "/api/crm-31-events",
+        "/api/crm-31-events/[id]"
+      ],
+      "frontendPages": [
+        "/",
+        "/crm-31-queue",
+        "/crm-31-rules",
+        "/crm-31-insights"
+      ],
+      "databaseSchema": "schema.prisma",
+      "environmentVariables": [
+        ".env.example"
+      ],
+      "noPlaceholderButtons": true,
+      "noStaticMockDataUnlessMarkedMock": true
+    },
+    "buildInstall": {
+      "requiredCommands": [
+        "npm install",
+        "npm run build",
+        "npm run type-check",
+        "npm run lint"
+      ],
+      "maxRepairLoops": 3,
+      "invalidIfBuildFails": true
+    },
+    "runtimeBootstrap": {
+      "startCommand": "npm run start",
+      "healthChecks": [
+        "GET /",
+        "GET /api/clients"
+      ],
+      "databaseCheck": "assertRelationalSchema",
+      "brokenIfAnyFail": true
+    },
+    "interactionTesting": {
+      "clickEveryButton": true,
+      "submitEveryForm": true,
+      "navigateEveryRoute": true,
+      "testApiEndpoints": true,
+      "blockFakeUi": true
+    },
+    "previewGeneration": {
+      "realOnly": true,
+      "requiresServerRunning": true,
+      "requiresRoutesRespond": true,
+      "requiresJsExecuting": true,
+      "requiresBackendAlive": true,
+      "requiresDatabaseConnected": true,
+      "noStaticPreviewModeEver": true
+    },
+    "selfHeal": {
+      "loop": "build -> run -> test -> fail -> fix -> rebuild",
+      "maxLoops": 5,
+      "stopOnlyWhen": [
+        "zero runtime errors",
+        "all routes respond",
+        "UI is interactive",
+        "backend is connected"
+      ]
+    },
+    "deploymentGate": {
+      "buildSuccess": true,
+      "runtimeSuccess": true,
+      "testSuccess": true,
+      "noFakeUiDetected": true
+    }
+  }
+}

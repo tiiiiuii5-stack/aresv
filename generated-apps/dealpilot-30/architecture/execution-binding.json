@@ -1,0 +1,82 @@
+{
+  "rule": "UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH",
+  "blockBuildIfAnyStepMissing": true,
+  "apiRoute": "/api/clients",
+  "bindings": [
+    {
+      "uiAction": {
+        "label": "Create variant 30 event",
+        "selector": "[data-action=\"create\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/clients",
+        "requestAction": "create"
+      },
+      "databaseChange": {
+        "target": "CrmEvent30",
+        "operation": "insert",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Advance variant 30 state",
+        "selector": "[data-action=\"transition\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/clients",
+        "requestAction": "transition"
+      },
+      "databaseChange": {
+        "target": "CrmRuntime30",
+        "operation": "update",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Remove variant 30 audit",
+        "selector": "[data-action=\"delete\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/clients",
+        "requestAction": "delete"
+      },
+      "databaseChange": {
+        "target": "CrmAudit30",
+        "operation": "delete",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    }
+  ]
+}

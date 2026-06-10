@@ -1,0 +1,31 @@
+{
+  "mode": "module-assisted",
+  "modules": [
+    {
+      "name": "Ecommerce-Stripe",
+      "category": "ecommerce",
+      "description": "Stripe checkout session, webhook payment confirmation, cart state, and order confirmation email.",
+      "validationScore": 97,
+      "dependencies": [
+        "stripe@^22.2.0",
+        "zustand@^5.0.13"
+      ],
+      "files": [
+        "integrations/ecommerce-stripe/checkout.ts",
+        "app/api/stripe/webhook/route.ts",
+        "integrations/ecommerce-stripe/cart-store.ts",
+        "integrations/ecommerce-stripe/order-email.ts"
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "input": "cart with two line items",
+      "expectedOutput": "checkout session contains two Stripe line_items"
+    },
+    {
+      "input": "payment_intent.succeeded webhook",
+      "expectedOutput": "orderStatus is paid"
+    }
+  ]
+}

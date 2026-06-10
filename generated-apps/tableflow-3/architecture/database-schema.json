@@ -1,0 +1,81 @@
+{
+  "appType": "internal tool",
+  "models": [
+    {
+      "name": "MenuItem",
+      "fields": [
+        "name",
+        "price",
+        "station",
+        "available",
+        "prepTime"
+      ],
+      "owns": [
+        {
+          "model": "OrderLine",
+          "via": "menuItemId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "KitchenTicket",
+      "fields": [
+        "items",
+        "customerName",
+        "status",
+        "pickupTime"
+      ],
+      "owns": [
+        {
+          "model": "OrderLine",
+          "via": "ticketId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "OrderLine",
+      "fields": [
+        "ticketId",
+        "menuItemId",
+        "quantity",
+        "notes"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "KitchenTicket",
+          "via": "ticketId",
+          "type": "one-to-many"
+        },
+        {
+          "model": "MenuItem",
+          "via": "menuItemId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "KitchenTicket",
+      "to": "OrderLine",
+      "type": "one-to-many",
+      "via": "ticketId"
+    },
+    {
+      "from": "MenuItem",
+      "to": "OrderLine",
+      "type": "one-to-many",
+      "via": "menuItemId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BookingRuntime423 {
+  id        String   @id @default(cuid())
+  booking423Name String
+  booking423Owner String
+  booking423State String
+  booking423Score String
+  BookingEvent423 BookingEvent423[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BookingEvent423 {
+  id        String   @id @default(cuid())
+  booking423RecordId String
+  booking423Action String
+  booking423Actor String
+  booking423Result String
+  BookingAudit423 BookingAudit423[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BookingAudit423 {
+  id        String   @id @default(cuid())
+  booking423EventId String
+  booking423Reviewer String
+  booking423Decision String
+  booking423CreatedAt String
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

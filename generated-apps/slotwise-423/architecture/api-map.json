@@ -1,0 +1,102 @@
+{
+  "backendRequired": true,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/booking-423-runtime",
+      "purpose": "List variant 423 runtime records",
+      "hitsBackend": true,
+      "requestBody": null,
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/booking-423-events",
+      "purpose": "Create variant 423 runtime event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/booking-423-events/[id]",
+      "purpose": "Resolve variant 423 event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    }
+  ],
+  "actionBindings": [
+    {
+      "action": "Create variant 423 event",
+      "type": "create",
+      "target": "BookingEvent423",
+      "backend": {
+        "method": "GET",
+        "path": "/api/booking-423-runtime",
+        "purpose": "List variant 423 runtime records"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Advance variant 423 state",
+      "type": "transition",
+      "target": "BookingRuntime423",
+      "backend": {
+        "method": "POST",
+        "path": "/api/booking-423-events",
+        "purpose": "Create variant 423 runtime event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Remove variant 423 audit",
+      "type": "delete",
+      "target": "BookingAudit423",
+      "backend": {
+        "method": "PATCH",
+        "path": "/api/booking-423-events/[id]",
+        "purpose": "Resolve variant 423 event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    }
+  ]
+}

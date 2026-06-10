@@ -1,0 +1,32 @@
+{
+  "kind": "job-result",
+  "version": 1,
+  "jobId": "081b6a19-7e25-40e9-8af2-ba2734a69a18",
+  "action": "deploy",
+  "generatedAt": "2026-05-31T06:06:16.782Z",
+  "metadata": {
+    "appName": "Mutation Smoke",
+    "prompt": "Check mutation tracking retry flow",
+    "model": "gemini-2.5-pro",
+    "mode": null,
+    "attempts": 1,
+    "maxAttempts": 5,
+    "createdAt": "2026-05-31T06:06:15.563Z",
+    "startedAt": "2026-05-31T06:06:16.670Z",
+    "finishedAt": "2026-05-31T06:06:16.782Z"
+  },
+  "status": "failed",
+  "stage": "failed",
+  "progress": 100,
+  "summary": "Runtime validation failed for deploy",
+  "outputFiles": [],
+  "runtimeStatus": "failed",
+  "executionLogs": [],
+  "executionError": "Runtime execution is disabled in production; queue deploy/preview work outside the request cycle.",
+  "result": {
+    "message": "Runtime validation failed for deploy",
+    "status": "failed",
+    "stage": "failed",
+    "progress": 100
+  }
+}

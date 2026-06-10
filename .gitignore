@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# Next.js / build output
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# local env and deployment state
+.env
+.env*.local
+.vercel/
+
+# local runtime output
+.tmp/
+tmp/
+*.log
+*.err.log
+*.out.log
+*.stderr.log
+*.stdout.log
+
+# packaged exports / local screenshots
+*.zip
+verification-*.png
+ventureos-self-*.png
+v01-*.png

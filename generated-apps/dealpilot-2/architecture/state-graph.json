@@ -1,0 +1,50 @@
+{
+  "initialStates": [
+    "Proposal",
+    "Renewal risk",
+    "Closing"
+  ],
+  "transitions": [
+    {
+      "from": "Lead",
+      "to": "In Progress",
+      "terminal": false,
+      "triggeredBy": "Advance stage"
+    },
+    {
+      "from": "In Progress",
+      "to": "Review",
+      "terminal": false,
+      "triggeredBy": "Advance stage"
+    },
+    {
+      "from": "Review",
+      "to": "Done",
+      "terminal": false,
+      "triggeredBy": "Advance stage"
+    },
+    {
+      "from": "Done",
+      "to": "Done",
+      "terminal": true,
+      "triggeredBy": "Advance stage"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Create deal",
+      "changes": "Adds a deal to the first pipeline stage",
+      "target": "Deal"
+    },
+    {
+      "action": "Advance stage",
+      "changes": "Moves Lead -> In Progress -> Review -> Done",
+      "target": "Deal"
+    },
+    {
+      "action": "Delete task",
+      "changes": "Removes completed task from the deal",
+      "target": "Task"
+    }
+  ]
+}

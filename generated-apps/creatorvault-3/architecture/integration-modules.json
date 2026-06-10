@@ -1,0 +1,50 @@
+{
+  "mode": "module-assisted",
+  "modules": [
+    {
+      "name": "Booking-Calendar",
+      "category": "booking",
+      "description": "Availability matrix, ICS file generation, Google Calendar sync boundary, and recurring rule parser.",
+      "validationScore": 98,
+      "dependencies": [],
+      "files": [
+        "integrations/booking-calendar/availability.ts",
+        "integrations/booking-calendar/ics.ts",
+        "integrations/booking-calendar/google-sync.ts",
+        "integrations/booking-calendar/recurrence.ts"
+      ]
+    },
+    {
+      "name": "Video-Streaming",
+      "category": "video",
+      "description": "Multipart upload endpoint, FFmpeg transcoding job, HLS playlist generation, and CDN URL delivery.",
+      "validationScore": 96,
+      "dependencies": [
+        "bullmq@^5.77.3"
+      ],
+      "files": [
+        "app/api/video/upload/route.ts",
+        "integrations/video-streaming/transcode-job.ts",
+        "integrations/video-streaming/hls-playlist.ts"
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "input": "slot capacity 5 booked 4",
+      "expectedOutput": "slot is available"
+    },
+    {
+      "input": "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE",
+      "expectedOutput": "weekly interval two on Monday and Wednesday"
+    },
+    {
+      "input": "mp4 upload",
+      "expectedOutput": "asset queued for transcoding"
+    },
+    {
+      "input": "three renditions",
+      "expectedOutput": "master playlist includes three streams"
+    }
+  ]
+}

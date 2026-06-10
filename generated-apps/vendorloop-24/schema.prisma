@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MarketplaceRuntime24 {
+  id        String   @id @default(cuid())
+  marketplace24Name String
+  marketplace24Owner String
+  marketplace24State String
+  marketplace24Score String
+  MarketplaceEvent24 MarketplaceEvent24[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MarketplaceEvent24 {
+  id        String   @id @default(cuid())
+  marketplace24RecordId String
+  marketplace24Action String
+  marketplace24Actor String
+  marketplace24Result String
+  MarketplaceAudit24 MarketplaceAudit24[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MarketplaceAudit24 {
+  id        String   @id @default(cuid())
+  marketplace24EventId String
+  marketplace24Reviewer String
+  marketplace24Decision String
+  marketplace24CreatedAt String
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

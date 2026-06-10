@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name String
+  owner String
+  health String
+  renewalDate String
+  notes String
+  Deal Deal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Deal {
+  id        String   @id @default(cuid())
+  clientId String
+  stage String
+  value String
+  probability String
+  nextStep String
+  Task Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  dealId String
+  title String
+  status String
+  createdAt String
+  completedAt String
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

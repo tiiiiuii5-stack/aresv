@@ -1,0 +1,36 @@
+{
+  "asyncNeeded": true,
+  "queuePolicy": "Use queued job for long-running generation, publishing, checkout, export, alerting, or AI work.",
+  "jobs": [
+    {
+      "name": "AnalyticsCreateJob",
+      "trigger": "Create alert",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "analytics:create:Alert:recordId"
+    },
+    {
+      "name": "AnalyticsTransitionJob",
+      "trigger": "Resolve alert",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "analytics:transition:Alert:recordId"
+    },
+    {
+      "name": "AnalyticsDeleteJob",
+      "trigger": "Delete cohort",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "analytics:delete:Cohort:recordId"
+    }
+  ]
+}

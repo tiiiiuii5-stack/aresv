@@ -1,0 +1,347 @@
+{
+  "kind": "project-export",
+  "version": 1,
+  "generatedAt": "2026-05-31T13:12:28.568Z",
+  "project": {
+    "id": "76f27e60-d146-48eb-8c8b-766880216ba8",
+    "name": "DealPilot 30",
+    "slug": "dealpilot-30",
+    "category": "crm",
+    "status": "ready",
+    "createdAt": "2026-05-31T13:12:28.487Z",
+    "updatedAt": "2026-05-31T13:12:28.487Z",
+    "problem": "Build preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history. unique architecture variant 30",
+    "audience": "founders, agencies, and customer-facing teams",
+    "uiDirection": "dense B2B console with kanban lanes, account health, and compact deal tables",
+    "monetization": "seat-based CRM plan with pipeline automation upgrades",
+    "prompt": "Build preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history."
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# DealPilot 30\n\nBuild preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history. unique architecture variant 30\n\nThis is an isolated crm application. It does not depend on a shared app shell.\n\n## Classification\n- App type: SaaS dashboard\n- Real users: yes\n- Real actions: yes\n- Real data: yes\n- Real state changes: yes\n\n## Runtime behavior\n- Component: PipelineCommandCenter\n- State engine: lib/pipeline-engine.ts\n- Primary API: /api/clients\n- Interaction: move deal\n\n## Routes\n- /: DealPilot 30 command center\n- /crm-30-queue: Variant 30 work queue and approvals\n- /crm-30-rules: Variant 30 automation rules\n- /crm-30-insights: Variant 30 performance insights\n\n## Schema\n- CrmRuntime30: crm-30Name, crm-30Owner, crm-30State, crm-30Score\n- CrmEvent30: crm-30RecordId, crm-30Action, crm-30Actor, crm-30Result\n- CrmAudit30: crm-30EventId, crm-30Reviewer, crm-30Decision, crm-30CreatedAt\n\n## Relationships\n- CrmRuntime30 one-to-many CrmEvent30 via crm-30RecordId\n- CrmEvent30 one-to-many CrmAudit30 via crm-30EventId\n\n## Functional interactions\n- Create variant 30 event: Adds event to DealPilot 30 runtime queue\n- Advance variant 30 state: Moves Queued -> Active -> Reviewed -> Done\n- Remove variant 30 audit: Removes audit and dependent runtime rows\n\n## Architecture maps\n- architecture/database-schema.json: relational model graph\n- architecture/api-map.json: action-to-backend endpoint map\n- architecture/state-graph.json: state transition graph\n- architecture/event-system.json: event trigger map\n- architecture/job-system.json: async/background job policy\n- architecture/execution-binding.json: UI action to API to data to state to UI proof\n- architecture/runtime-factory.json: build, boot, interaction, preview, heal, and deploy gates\n"
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"dealpilot-30\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"start\": \"next start\"\n  },\n  \"dependencies\": {\n    \"next\": \"16.2.6\",\n    \"react\": \"19.2.6\",\n    \"react-dom\": \"19.2.6\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^6.0.3\",\n    \"@types/node\": \"20.14.10\",\n    \"@types/react\": \"^19.2.15\",\n    \"@types/react-dom\": \"^19.2.3\"\n  }\n}"
+    },
+    {
+      "path": "tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },\n  \"include\": [\n    \"**/*.ts\",\n    \"**/*.tsx\"\n  ],\n  \"exclude\": [\n    \"node_modules\"\n  ]\n}"
+    },
+    {
+      "path": "next.config.js",
+      "content": "const nextConfig = {};\nmodule.exports = nextConfig;\n"
+    },
+    {
+      "path": ".env.example",
+      "content": "DATABASE_URL=\nNEXT_PUBLIC_APP_URL=\n"
+    },
+    {
+      "path": "schema.prisma",
+      "content": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel CrmRuntime30 {\n  id        String   @id @default(cuid())\n  crm30Name String\n  crm30Owner String\n  crm30State String\n  crm30Score String\n  CrmEvent30 CrmEvent30[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel CrmEvent30 {\n  id        String   @id @default(cuid())\n  crm30RecordId String\n  crm30Action String\n  crm30Actor String\n  crm30Result String\n  CrmAudit30 CrmAudit30[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel CrmAudit30 {\n  id        String   @id @default(cuid())\n  crm30EventId String\n  crm30Reviewer String\n  crm30Decision String\n  crm30CreatedAt String\n\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n"
+    },
+    {
+      "path": "app/layout.tsx",
+      "content": "import \"./globals.css\";\n\nexport const metadata = {\n  title: \"DealPilot 30\",\n  description: \"Build preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history. unique architecture variant 30\",\n};\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return <html lang=\"en\"><body>{children}</body></html>;\n}\n"
+    },
+    {
+      "path": "app/globals.css",
+      "content": ":root{--surface:#f6f8fb;--primary:#155e75;--accent:#22c55e;--ink:#0f172a}\n*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}\nbutton,input,textarea{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #e2e8f0}\n.wrap{max-width:1180px;margin:0 auto;padding:18px 20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 18px 45px rgba(15,23,42,.08)}\n.kanban-board{display:grid;gap:12px;grid-template-columns:repeat(4,minmax(0,1fr));}.card{border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:16px}.primary{border:0;border-radius:12px;background:var(--primary);color:white;padding:12px 14px;font-weight:800;cursor:pointer}\n@media(max-width:840px){.hero{grid-template-columns:1fr}.kanban-board{grid-template-columns:1fr!important}}\n"
+    },
+    {
+      "path": "app/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function Page() {\n  return <PipelineCommandCenter />;\n}\n"
+    },
+    {
+      "path": "components/PipelineCommandCenter.tsx",
+      "content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\n\nconst initialRecords = [\n  {\n    \"id\": \"crm-1\",\n    \"label\": \"DealPilot 30 queue item\",\n    \"value\": \"90 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 30 command queue\"\n  },\n  {\n    \"id\": \"crm-2\",\n    \"label\": \"DealPilot 30 rule set\",\n    \"value\": \"34 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 30 rule builder\",\n    \"parentId\": \"crm-1\"\n  },\n  {\n    \"id\": \"crm-3\",\n    \"label\": \"DealPilot 30 insight\",\n    \"value\": \"120%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 30 event timeline\",\n    \"parentId\": \"crm-1\"\n  }\n];\nconst views = [\"Command\",\"Queue\",\"Rules\",\"Insights\"];\nconst transitions = [\"Lead\",\"In Progress\",\"Review\",\"Done\"];\n\nexport function PipelineCommandCenter({ initialView = views[0] }: { initialView?: string }) {\n  const [view, setView] = useState(initialView);\n  const [records, setRecords] = useState(initialRecords);\n  const [input, setInput] = useState(\"\");\n  const [events, setEvents] = useState<string[]>([\"DealPilot 30 ready\"]);\n  const visible = useMemo(() => records.filter((record) => view === views[0] || record.status.toLowerCase().includes(view.toLowerCase()) || record.meta.toLowerCase().includes(view.toLowerCase())), [records, view]);\n  async function mutate(payload: { action: \"create\" | \"transition\" | \"delete\"; id?: string; label?: string; value?: string; status?: string }) {\n    const response = await fetch(\"/api/clients\", {\n      method: \"POST\",\n      headers: { \"content-type\": \"application/json\" },\n      body: JSON.stringify(payload),\n    });\n    if (!response.ok) {\n      setEvents((current) => [\"Backend mutation failed\", ...current]);\n      return;\n    }\n    const data = await response.json() as { records: typeof initialRecords; record?: (typeof initialRecords)[number] };\n    setRecords(data.records);\n    setEvents((current) => [payload.action + \" persisted through /api/clients\", ...current]);\n    if (payload.action === \"create\") setInput(\"\");\n  }\n  return (\n    <main className=\"app\">\n      <header className=\"top\"><div className=\"wrap\" style={{display:\"flex\",justifyContent:\"space-between\",gap:12,alignItems:\"center\"}}><strong>DealPilot 30</strong><nav style={{display:\"flex\",gap:8,overflowX:\"auto\"}}>{views.map((item) => <a key={item} href={\"#\"+item} onClick={(event) => { event.preventDefault(); setView(item); }} className=\"primary\" style={{background:item===view?\"var(--primary)\":\"#e2e8f0\",color:item===view?\"white\":\"#0f172a\",textDecoration:\"none\"}}>{item}</a>)}</nav></div></header>\n      <section className=\"wrap hero\">\n        <div className=\"panel\">\n          <p style={{fontWeight:900,textTransform:\"uppercase\",letterSpacing:\".16em\",fontSize:12,color:\"var(--primary)\"}}>crm</p>\n          <h1 style={{fontSize:48,lineHeight:1,margin:\"10px 0\"}}>DealPilot 30</h1>\n          <p style={{lineHeight:1.7,color:\"#475569\"}}>Build preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history. unique architecture variant 30</p>\n          <div className=\"kanban-board\" style={{marginTop:18}}>{visible.map((record) => <article key={record.id || record.label} className=\"card\"><strong>{record.label}</strong><p style={{fontSize:28,fontWeight:850,margin:\"8px 0\"}}>{record.value}</p><span>{record.status}</span><div style={{display:\"flex\",gap:8,marginTop:12}}><button data-action=\"transition\" data-api=\"/api/clients\" data-db-change=\"update-status\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"transition\", id: record.id })} className=\"primary\" style={{padding:\"8px 10px\"}}>Advance variant 30 state</button><button data-action=\"delete\" data-api=\"/api/clients\" data-db-change=\"delete-record\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"delete\", id: record.id })} className=\"primary\" style={{padding:\"8px 10px\",background:\"#fee2e2\",color:\"#991b1b\"}}>Remove variant 30 audit</button></div></article>)}</div>\n        </div>\n        <aside className=\"panel\">\n          <h2>Create crm event</h2>\n          <p>Adds variant 30 event to isolated runtime</p>\n          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder=\"Name, Owner, State, Score\" style={{width:\"100%\",minHeight:110,border:\"1px solid #cbd5e1\",borderRadius:12,padding:12}} />\n          <button data-action=\"create\" data-api=\"/api/clients\" data-db-change=\"insert-record\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"create\", label: input || \"Create crm event\", value: \"New\", status: transitions[0] || \"Created\" })} className=\"primary\" style={{width:\"100%\",marginTop:10}}>move deal</button>\n          <div style={{display:\"grid\",gap:8,marginTop:16}}>{events.map((event) => <div key={event} className=\"card\">{event}</div>)}</div>\n        </aside>\n      </section>\n    </main>\n  );\n}\n"
+    },
+    {
+      "path": "features/clients/interactions.ts",
+      "content": "export const interactionMap = [\n  {\n    \"label\": \"Create variant 30 event\",\n    \"type\": \"create\",\n    \"target\": \"CrmEvent30\",\n    \"result\": \"Adds event to DealPilot 30 runtime queue\"\n  },\n  {\n    \"label\": \"Advance variant 30 state\",\n    \"type\": \"transition\",\n    \"target\": \"CrmRuntime30\",\n    \"result\": \"Moves Queued -> Active -> Reviewed -> Done\"\n  },\n  {\n    \"label\": \"Remove variant 30 audit\",\n    \"type\": \"delete\",\n    \"target\": \"CrmAudit30\",\n    \"result\": \"Removes audit and dependent runtime rows\"\n  }\n] as const;\nexport const relationshipMap = [\n  {\n    \"from\": \"CrmRuntime30\",\n    \"to\": \"CrmEvent30\",\n    \"type\": \"one-to-many\",\n    \"via\": \"crm-30RecordId\"\n  },\n  {\n    \"from\": \"CrmEvent30\",\n    \"to\": \"CrmAudit30\",\n    \"type\": \"one-to-many\",\n    \"via\": \"crm-30EventId\"\n  }\n] as const;\n\nexport function validateClientsRelationships(record: { parentId?: string }, existingIds: string[]) {\n  if (!relationshipMap.length) throw new Error(\"Generated app requires relational data models.\");\n  return !record.parentId || existingIds.includes(record.parentId);\n}\n"
+    },
+    {
+      "path": "db/crm-schema.ts",
+      "content": "export const models = [\n  {\n    \"name\": \"CrmRuntime30\",\n    \"fields\": [\n      \"crm-30Name\",\n      \"crm-30Owner\",\n      \"crm-30State\",\n      \"crm-30Score\"\n    ]\n  },\n  {\n    \"name\": \"CrmEvent30\",\n    \"fields\": [\n      \"crm-30RecordId\",\n      \"crm-30Action\",\n      \"crm-30Actor\",\n      \"crm-30Result\"\n    ]\n  },\n  {\n    \"name\": \"CrmAudit30\",\n    \"fields\": [\n      \"crm-30EventId\",\n      \"crm-30Reviewer\",\n      \"crm-30Decision\",\n      \"crm-30CreatedAt\"\n    ]\n  }\n] as const;\nexport const relationships = [\n  {\n    \"from\": \"CrmRuntime30\",\n    \"to\": \"CrmEvent30\",\n    \"type\": \"one-to-many\",\n    \"via\": \"crm-30RecordId\"\n  },\n  {\n    \"from\": \"CrmEvent30\",\n    \"to\": \"CrmAudit30\",\n    \"type\": \"one-to-many\",\n    \"via\": \"crm-30EventId\"\n  }\n] as const;\n\nexport function assertRelationalSchema() {\n  if (relationships.length < 2) throw new Error(\"Relational schema is required.\");\n  return relationships.map((relation) => relation.from + \" -> \" + relation.to);\n}\n"
+    },
+    {
+      "path": "api/clients/handlers.ts",
+      "content": "import { applyClientsMutation, removeClientsRecord, transitionClientsRecord } from \"@/lib/pipeline-engine\";\n\nexport const statusFlow = [\n  \"Lead\",\n  \"In Progress\",\n  \"Review\",\n  \"Done\"\n] as const;\n\nexport function handleClientsAction(records: Array<{ id: string; label: string; value: string; status: string; meta?: string; parentId?: string }>, body: { action?: string; id?: string; label?: string; value?: string; status?: string }) {\n  if (body.action === \"transition\" && body.id) return transitionClientsRecord(records, body.id, [...statusFlow]);\n  if (body.action === \"delete\" && body.id) return removeClientsRecord(records, body.id);\n  return applyClientsMutation(records, { label: body.label || \"Create crm event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\" });\n}\n"
+    },
+    {
+      "path": "architecture/database-schema.json",
+      "content": "{\n  \"appType\": \"SaaS dashboard\",\n  \"models\": [\n    {\n      \"name\": \"CrmRuntime30\",\n      \"fields\": [\n        \"crm-30Name\",\n        \"crm-30Owner\",\n        \"crm-30State\",\n        \"crm-30Score\"\n      ],\n      \"owns\": [\n        {\n          \"model\": \"CrmEvent30\",\n          \"via\": \"crm-30RecordId\",\n          \"type\": \"one-to-many\"\n        }\n      ],\n      \"belongsTo\": []\n    },\n    {\n      \"name\": \"CrmEvent30\",\n      \"fields\": [\n        \"crm-30RecordId\",\n        \"crm-30Action\",\n        \"crm-30Actor\",\n        \"crm-30Result\"\n      ],\n      \"owns\": [\n        {\n          \"model\": \"CrmAudit30\",\n          \"via\": \"crm-30EventId\",\n          \"type\": \"one-to-many\"\n        }\n      ],\n      \"belongsTo\": [\n        {\n          \"model\": \"CrmRuntime30\",\n          \"via\": \"crm-30RecordId\",\n          \"type\": \"one-to-many\"\n        }\n      ]\n    },\n    {\n      \"name\": \"CrmAudit30\",\n      \"fields\": [\n        \"crm-30EventId\",\n        \"crm-30Reviewer\",\n        \"crm-30Decision\",\n        \"crm-30CreatedAt\"\n      ],\n      \"owns\": [],\n      \"belongsTo\": [\n        {\n          \"model\": \"CrmEvent30\",\n          \"via\": \"crm-30EventId\",\n          \"type\": \"one-to-many\"\n        }\n      ]\n    }\n  ],\n  \"relationships\": [\n    {\n      \"from\": \"CrmRuntime30\",\n      \"to\": \"CrmEvent30\",\n      \"type\": \"one-to-many\",\n      \"via\": \"crm-30RecordId\"\n    },\n    {\n      \"from\": \"CrmEvent30\",\n      \"to\": \"CrmAudit30\",\n      \"type\": \"one-to-many\",\n      \"via\": \"crm-30EventId\"\n    }\n  ],\n  \"invariants\": [\n    \"Every generated app has at least two relational links.\",\n    \"Child records carry a foreign key defined by relationship.via.\",\n    \"Deletes cascade dependent runtime rows through parentId in preview runtime.\"\n  ]\n}"
+    },
+    {
+      "path": "architecture/api-map.json",
+      "content": "{\n  \"backendRequired\": true,\n  \"endpoints\": [\n    {\n      \"method\": \"GET\",\n      \"path\": \"/api/crm-30-runtime\",\n      \"purpose\": \"List variant 30 runtime records\",\n      \"hitsBackend\": true,\n      \"requestBody\": null,\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    },\n    {\n      \"method\": \"POST\",\n      \"path\": \"/api/crm-30-events\",\n      \"purpose\": \"Create variant 30 runtime event\",\n      \"hitsBackend\": true,\n      \"requestBody\": {\n        \"action\": \"create | transition | delete\",\n        \"id\": \"optional record id\",\n        \"label\": \"optional user value\"\n      },\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    },\n    {\n      \"method\": \"PATCH\",\n      \"path\": \"/api/crm-30-events/[id]\",\n      \"purpose\": \"Resolve variant 30 event\",\n      \"hitsBackend\": true,\n      \"requestBody\": {\n        \"action\": \"create | transition | delete\",\n        \"id\": \"optional record id\",\n        \"label\": \"optional user value\"\n      },\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    }\n  ],\n  \"actionBindings\": [\n    {\n      \"action\": \"Create variant 30 event\",\n      \"type\": \"create\",\n      \"target\": \"CrmEvent30\",\n      \"backend\": {\n        \"method\": \"GET\",\n        \"path\": \"/api/crm-30-runtime\",\n        \"purpose\": \"List variant 30 runtime records\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    },\n    {\n      \"action\": \"Advance variant 30 state\",\n      \"type\": \"transition\",\n      \"target\": \"CrmRuntime30\",\n      \"backend\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/crm-30-events\",\n        \"purpose\": \"Create variant 30 runtime event\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    },\n    {\n      \"action\": \"Remove variant 30 audit\",\n      \"type\": \"delete\",\n      \"target\": \"CrmAudit30\",\n      \"backend\": {\n        \"method\": \"PATCH\",\n        \"path\": \"/api/crm-30-events/[id]\",\n        \"purpose\": \"Resolve variant 30 event\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/state-graph.json",
+      "content": "{\n  \"initialStates\": [\n    \"Queued\",\n    \"Active\",\n    \"Healthy\"\n  ],\n  \"transitions\": [\n    {\n      \"from\": \"Lead\",\n      \"to\": \"In Progress\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance variant 30 state\"\n    },\n    {\n      \"from\": \"In Progress\",\n      \"to\": \"Review\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance variant 30 state\"\n    },\n    {\n      \"from\": \"Review\",\n      \"to\": \"Done\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance variant 30 state\"\n    },\n    {\n      \"from\": \"Done\",\n      \"to\": \"Done\",\n      \"terminal\": true,\n      \"triggeredBy\": \"Advance variant 30 state\"\n    }\n  ],\n  \"mutations\": [\n    {\n      \"action\": \"Create variant 30 event\",\n      \"changes\": \"Adds event to DealPilot 30 runtime queue\",\n      \"target\": \"CrmEvent30\"\n    },\n    {\n      \"action\": \"Advance variant 30 state\",\n      \"changes\": \"Moves Queued -> Active -> Reviewed -> Done\",\n      \"target\": \"CrmRuntime30\"\n    },\n    {\n      \"action\": \"Remove variant 30 audit\",\n      \"changes\": \"Removes audit and dependent runtime rows\",\n      \"target\": \"CrmAudit30\"\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/event-system.json",
+      "content": "{\n  \"events\": [\n    {\n      \"name\": \"CrmCreateCrmEvent30\",\n      \"trigger\": \"Create variant 30 event\",\n      \"payload\": {\n        \"target\": \"CrmEvent30\",\n        \"result\": \"Adds event to DealPilot 30 runtime queue\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"append record\",\n        \"prepend audit event\"\n      ]\n    },\n    {\n      \"name\": \"CrmTransitionCrmRuntime30\",\n      \"trigger\": \"Advance variant 30 state\",\n      \"payload\": {\n        \"target\": \"CrmRuntime30\",\n        \"result\": \"Moves Queued -> Active -> Reviewed -> Done\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"update record status\",\n        \"prepend audit event\"\n      ]\n    },\n    {\n      \"name\": \"CrmDeleteCrmAudit30\",\n      \"trigger\": \"Remove variant 30 audit\",\n      \"payload\": {\n        \"target\": \"CrmAudit30\",\n        \"result\": \"Removes audit and dependent runtime rows\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"remove record and dependents\",\n        \"prepend audit event\"\n      ]\n    }\n  ],\n  \"delivery\": \"in-process runtime event log plus API response payload\"\n}"
+    },
+    {
+      "path": "architecture/job-system.json",
+      "content": "{\n  \"asyncNeeded\": false,\n  \"queuePolicy\": \"Handle request-time mutations only; enqueue if action exceeds serverless timeout budget.\",\n  \"jobs\": []\n}"
+    },
+    {
+      "path": "architecture/execution-binding.json",
+      "content": "{\n  \"rule\": \"UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH\",\n  \"blockBuildIfAnyStepMissing\": true,\n  \"apiRoute\": \"/api/clients\",\n  \"bindings\": [\n    {\n      \"uiAction\": {\n        \"label\": \"Create variant 30 event\",\n        \"selector\": \"[data-action=\\\"create\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/clients\",\n        \"requestAction\": \"create\"\n      },\n      \"databaseChange\": {\n        \"target\": \"CrmEvent30\",\n        \"operation\": \"insert\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    },\n    {\n      \"uiAction\": {\n        \"label\": \"Advance variant 30 state\",\n        \"selector\": \"[data-action=\\\"transition\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/clients\",\n        \"requestAction\": \"transition\"\n      },\n      \"databaseChange\": {\n        \"target\": \"CrmRuntime30\",\n        \"operation\": \"update\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    },\n    {\n      \"uiAction\": {\n        \"label\": \"Remove variant 30 audit\",\n        \"selector\": \"[data-action=\\\"delete\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/clients\",\n        \"requestAction\": \"delete\"\n      },\n      \"databaseChange\": {\n        \"target\": \"CrmAudit30\",\n        \"operation\": \"delete\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/runtime-factory.json",
+      "content": "{\n  \"pipeline\": \"REAL RUNTIME APPLICATION FACTORY\",\n  \"runtimeType\": \"fullstack\",\n  \"phases\": {\n    \"intentToSpec\": {\n      \"appType\": \"SaaS dashboard\",\n      \"structuredSpec\": true,\n      \"routes\": [\n        {\n          \"path\": \"/\",\n          \"label\": \"Command\",\n          \"purpose\": \"DealPilot 30 command center\"\n        },\n        {\n          \"path\": \"/crm-30-queue\",\n          \"label\": \"Queue\",\n          \"purpose\": \"Variant 30 work queue and approvals\"\n        },\n        {\n          \"path\": \"/crm-30-rules\",\n          \"label\": \"Rules\",\n          \"purpose\": \"Variant 30 automation rules\"\n        },\n        {\n          \"path\": \"/crm-30-insights\",\n          \"label\": \"Insights\",\n          \"purpose\": \"Variant 30 performance insights\"\n        }\n      ],\n      \"databaseSchema\": [\n        {\n          \"name\": \"CrmRuntime30\",\n          \"fields\": [\n            \"crm-30Name\",\n            \"crm-30Owner\",\n            \"crm-30State\",\n            \"crm-30Score\"\n          ]\n        },\n        {\n          \"name\": \"CrmEvent30\",\n          \"fields\": [\n            \"crm-30RecordId\",\n            \"crm-30Action\",\n            \"crm-30Actor\",\n            \"crm-30Result\"\n          ]\n        },\n        {\n          \"name\": \"CrmAudit30\",\n          \"fields\": [\n            \"crm-30EventId\",\n            \"crm-30Reviewer\",\n            \"crm-30Decision\",\n            \"crm-30CreatedAt\"\n          ]\n        }\n      ],\n      \"uiScreens\": [\n        {\n          \"path\": \"/\",\n          \"screen\": \"Command\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/crm-30-queue\",\n          \"screen\": \"Queue\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/crm-30-rules\",\n          \"screen\": \"Rules\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/crm-30-insights\",\n          \"screen\": \"Insights\",\n          \"wiredToBackend\": true\n        }\n      ],\n      \"requiredIntegrations\": [\n        \"database\",\n        \"project runtime API\"\n      ],\n      \"unclearSpecPolicy\": \"block generation and ask questions\"\n    },\n    \"codeGeneration\": {\n      \"realFileTree\": true,\n      \"backendRoutes\": [\n        \"/api/crm-30-runtime\",\n        \"/api/crm-30-events\",\n        \"/api/crm-30-events/[id]\"\n      ],\n      \"frontendPages\": [\n        \"/\",\n        \"/crm-30-queue\",\n        \"/crm-30-rules\",\n        \"/crm-30-insights\"\n      ],\n      \"databaseSchema\": \"schema.prisma\",\n      \"environmentVariables\": [\n        \".env.example\"\n      ],\n      \"noPlaceholderButtons\": true,\n      \"noStaticMockDataUnlessMarkedMock\": true\n    },\n    \"buildInstall\": {\n      \"requiredCommands\": [\n        \"npm install\",\n        \"npm run build\",\n        \"npm run type-check\",\n        \"npm run lint\"\n      ],\n      \"maxRepairLoops\": 3,\n      \"invalidIfBuildFails\": true\n    },\n    \"runtimeBootstrap\": {\n      \"startCommand\": \"npm run start\",\n      \"healthChecks\": [\n        \"GET /\",\n        \"GET /api/clients\"\n      ],\n      \"databaseCheck\": \"assertRelationalSchema\",\n      \"brokenIfAnyFail\": true\n    },\n    \"interactionTesting\": {\n      \"clickEveryButton\": true,\n      \"submitEveryForm\": true,\n      \"navigateEveryRoute\": true,\n      \"testApiEndpoints\": true,\n      \"blockFakeUi\": true\n    },\n    \"previewGeneration\": {\n      \"realOnly\": true,\n      \"requiresServerRunning\": true,\n      \"requiresRoutesRespond\": true,\n      \"requiresJsExecuting\": true,\n      \"requiresBackendAlive\": true,\n      \"requiresDatabaseConnected\": true,\n      \"noStaticPreviewModeEver\": true\n    },\n    \"selfHeal\": {\n      \"loop\": \"build -> run -> test -> fail -> fix -> rebuild\",\n      \"maxLoops\": 5,\n      \"stopOnlyWhen\": [\n        \"zero runtime errors\",\n        \"all routes respond\",\n        \"UI is interactive\",\n        \"backend is connected\"\n      ]\n    },\n    \"deploymentGate\": {\n      \"buildSuccess\": true,\n      \"runtimeSuccess\": true,\n      \"testSuccess\": true,\n      \"noFakeUiDetected\": true\n    }\n  }\n}"
+    },
+    {
+      "path": "architecture/README.md",
+      "content": "# DealPilot 30 Architecture\n\n## Database schema\nSee `database-schema.json` for models and real relationships.\n\n## API map\nSee `api-map.json`. Every listed action is bound to a backend endpoint and must persist state.\n\n## State graph\nSee `state-graph.json`. Transitions define what changes what.\n\n## Event system\nSee `event-system.json`. Events describe trigger, payload, and side effects.\n\n## Job system\nSee `job-system.json`. Async work is queued when the action is long-running or externally dependent.\n\n## Execution binding\nSee `execution-binding.json`. Every button must complete: UI action -> API route -> database change -> state update -> UI refresh.\n\n## Runtime factory\nSee `runtime-factory.json`. Preview and deployment are blocked unless build, runtime, interaction, and fake-UI checks pass.\n"
+    },
+    {
+      "path": "lib/pipeline-engine.ts",
+      "content": "type RecordItem = { id: string; label: string; value: string; status: string; meta?: string; parentId?: string };\n\nexport function applyClientsMutation(records: RecordItem[], input: Pick<RecordItem, \"label\" | \"value\" | \"status\">) {\n  const created = { id: crypto.randomUUID?.() || String(Date.now()), ...input, meta: \"move deal\", parentId: records[0]?.id };\n  return {\n    records: [created, ...records],\n    event: \"move deal: \" + created.label,\n  };\n}\n\nexport function transitionClientsRecord(records: RecordItem[], id: string, flow: string[]) {\n  let changed = \"No record changed\";\n  const nextRecords = records.map((record) => {\n    if (record.id !== id) return record;\n    const index = flow.indexOf(record.status);\n    const status = flow[Math.min(index + 1, flow.length - 1)] || \"Done\";\n    changed = record.label + \" moved to \" + status;\n    return { ...record, status };\n  });\n  return { records: nextRecords, event: changed };\n}\n\nexport function removeClientsRecord(records: RecordItem[], id: string) {\n  const target = records.find((record) => record.id === id);\n  return {\n    records: records.filter((record) => record.id !== id && record.parentId !== id),\n    event: target ? \"Removed \" + target.label : \"Removed record\",\n  };\n}\n"
+    },
+    {
+      "path": "app/api/clients/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"crm-1\",\n    \"label\": \"DealPilot 30 queue item\",\n    \"value\": \"90 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 30 command queue\"\n  },\n  {\n    \"id\": \"crm-2\",\n    \"label\": \"DealPilot 30 rule set\",\n    \"value\": \"34 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 30 rule builder\",\n    \"parentId\": \"crm-1\"\n  },\n  {\n    \"id\": \"crm-3\",\n    \"label\": \"DealPilot 30 insight\",\n    \"value\": \"120%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 30 event timeline\",\n    \"parentId\": \"crm-1\"\n  }\n];\nconst statusFlow = [\"Lead\",\"In Progress\",\"Review\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"clients\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create crm event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"move deal\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "preview/index.html",
+      "content": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>DealPilot 30</title><style>:root{--surface:#f6f8fb;--primary:#155e75;--accent:#22c55e;--ink:#0f172a}*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,system-ui,sans-serif}header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 20px;background:rgba(255,255,255,.92);border-bottom:1px solid #e2e8f0;backdrop-filter:blur(14px)}nav{display:flex;gap:8px;overflow:auto}button,nav a{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;text-decoration:none}nav a{background:#e2e8f0;color:#334155}.active,#submit{background:var(--primary)!important;color:white}.hero{max-width:1180px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:minmax(0,1fr)340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:22px;box-shadow:0 18px 45px rgba(15,23,42,.08)}h1{font-size:clamp(34px,5vw,58px);line-height:1;margin:8px 0}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:900;color:var(--primary)}.kanban-board{display:grid;gap:12px;grid-template-columns:repeat(4,minmax(0,1fr));}.card,.event{background:#f8fafc;border:1px solid #e2e8f0;border-radius:13px;padding:14px}.value{font-size:28px;font-weight:850;margin:8px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button:first-child{background:var(--primary);color:white}.actions button:last-child{background:#fee2e2;color:#991b1b}textarea{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit}#submit{width:100%;margin-top:10px}.event{margin-top:10px;color:#047857}@media(max-width:840px){.hero{grid-template-columns:1fr}.kanban-board{grid-template-columns:1fr!important}header{align-items:flex-start;flex-direction:column}}</style></head>\n<body><main class=\"app\"><header><strong>DealPilot 30</strong><nav id=\"nav\"></nav></header><section class=\"hero\"><div class=\"panel\"><p class=\"eyebrow\">crm runtime</p><h1>DealPilot 30</h1><p>Build preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history. unique architecture variant 30</p><div id=\"records\" class=\"kanban-board\"></div></div><aside class=\"panel\"><h2>Create crm event</h2><textarea id=\"input\" placeholder=\"Name, Owner, State, Score\"></textarea><button id=\"submit\" data-action=\"create\" data-api=\"/api/projects/76f27e60-d146-48eb-8c8b-766880216ba8/runtime\" data-db-change=\"insert-record\" data-state-update=\"records=data.state.records\" data-ui-refresh=\"render\">move deal</button><div id=\"events\"></div></aside></section></main>\n<script>\nconst projectId=\"76f27e60-d146-48eb-8c8b-766880216ba8\";const views=[\"Command\",\"Queue\",\"Rules\",\"Insights\"];const statusFlow=[\"Lead\",\"In Progress\",\"Review\",\"Done\"];const transitionLabel=\"Advance variant 30 state\";const deleteLabel=\"Remove variant 30 audit\";let records=[{\"id\":\"crm-1\",\"label\":\"DealPilot 30 queue item\",\"value\":\"90 open\",\"status\":\"Queued\",\"meta\":\"Variant 30 command queue\"},{\"id\":\"crm-2\",\"label\":\"DealPilot 30 rule set\",\"value\":\"34 rules\",\"status\":\"Active\",\"meta\":\"Variant 30 rule builder\",\"parentId\":\"crm-1\"},{\"id\":\"crm-3\",\"label\":\"DealPilot 30 insight\",\"value\":\"120%\",\"status\":\"Healthy\",\"meta\":\"Variant 30 event timeline\",\"parentId\":\"crm-1\"}];let active=views[0];const nav=document.getElementById(\"nav\");const root=document.getElementById(\"records\");const events=document.getElementById(\"events\");const input=document.getElementById(\"input\");\nasync function load(){try{const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\");if(res.ok){const data=await res.json();records=data.state.records||records;log(\"Loaded isolated runtime state\");}}catch(error){log(\"Runtime API unavailable; using bundled state\");}render();}\nfunction render(){nav.innerHTML=\"\";views.forEach(view=>{const b=document.createElement(\"a\");b.href=\"#\"+view;b.textContent=view;b.className=view===active?\"active\":\"\";b.onclick=(event)=>{event.preventDefault();active=view;log(\"Opened \"+view);render();};nav.appendChild(b)});root.innerHTML=\"\";records.forEach(record=>{const card=document.createElement(\"article\");card.className=\"card\";card.innerHTML=\"<strong>\"+record.label+\"</strong><div class='value'>\"+record.value+\"</div><span>\"+record.status+\"</span><div class='actions'><button data-action='transition' data-api='/api/projects/\"+projectId+\"/runtime' data-db-change='update-status' data-state-update='records=data.state.records' data-ui-refresh='render' data-id='\"+record.id+\"'>\"+transitionLabel+\"</button><button data-action='delete' data-api='/api/projects/\"+projectId+\"/runtime' data-db-change='delete-record' data-state-update='records=data.state.records' data-ui-refresh='render' data-id='\"+record.id+\"'>\"+deleteLabel+\"</button></div>\";card.onclick=()=>log(\"Selected \"+record.label);card.querySelector(\"[data-action='transition']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"transition\",id:record.id});};card.querySelector(\"[data-action='delete']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"delete\",id:record.id});};root.appendChild(card);});}\nfunction log(message){const item=document.createElement(\"div\");item.className=\"event\";item.textContent=message;events.prepend(item);}\nasync function mutate(payload){const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\",{method:\"POST\",headers:{\"content-type\":\"application/json\"},body:JSON.stringify({type:\"move deal\",...payload})});if(res.ok){const data=await res.json();records=data.state.records;log(\"Runtime mutation persisted: \"+(payload.action||\"create\"));render();}else if(payload.action===\"transition\"){records=records.map(record=>record.id===payload.id?{...record,status:statusFlow[Math.min(statusFlow.indexOf(record.status)+1,statusFlow.length-1)]||\"Done\"}:record);log(\"Transition saved locally\");render();}else if(payload.action===\"delete\"){records=records.filter(record=>record.id!==payload.id&&record.parentId!==payload.id);log(\"Delete saved locally\");render();}}\ndocument.getElementById(\"submit\").onclick=async()=>{const label=input.value.trim()||\"move deal\";await mutate({action:\"create\",label,value:\"New\",status:statusFlow[0]||\"Created\"});input.value=\"\";};\nload();\n</script></body></html>"
+    },
+    {
+      "path": "app/clients/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function ClientsPage() {\n  return <PipelineCommandCenter initialView=\"clients\" />;\n}\n"
+    },
+    {
+      "path": "app/pipeline/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function PipelinePage() {\n  return <PipelineCommandCenter initialView=\"pipeline\" />;\n}\n"
+    },
+    {
+      "path": "app/analytics/page.tsx",
+      "content": "import { PipelineCommandCenter } from \"@/components/PipelineCommandCenter\";\n\nexport default function AnalyticsPage() {\n  return <PipelineCommandCenter initialView=\"analytics\" />;\n}\n"
+    },
+    {
+      "path": "app/api/crm-30-runtime/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"crm-1\",\n    \"label\": \"DealPilot 30 queue item\",\n    \"value\": \"90 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 30 command queue\"\n  },\n  {\n    \"id\": \"crm-2\",\n    \"label\": \"DealPilot 30 rule set\",\n    \"value\": \"34 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 30 rule builder\",\n    \"parentId\": \"crm-1\"\n  },\n  {\n    \"id\": \"crm-3\",\n    \"label\": \"DealPilot 30 insight\",\n    \"value\": \"120%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 30 event timeline\",\n    \"parentId\": \"crm-1\"\n  }\n];\nconst statusFlow = [\"Lead\",\"In Progress\",\"Review\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/crm-30-runtime\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create crm event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"move deal\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "app/api/crm-30-events/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"crm-1\",\n    \"label\": \"DealPilot 30 queue item\",\n    \"value\": \"90 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 30 command queue\"\n  },\n  {\n    \"id\": \"crm-2\",\n    \"label\": \"DealPilot 30 rule set\",\n    \"value\": \"34 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 30 rule builder\",\n    \"parentId\": \"crm-1\"\n  },\n  {\n    \"id\": \"crm-3\",\n    \"label\": \"DealPilot 30 insight\",\n    \"value\": \"120%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 30 event timeline\",\n    \"parentId\": \"crm-1\"\n  }\n];\nconst statusFlow = [\"Lead\",\"In Progress\",\"Review\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/crm-30-events\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create crm event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"move deal\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    }
+  ],
+  "metadata": {
+    "fileCount": 29,
+    "featureCount": 5,
+    "onboardingSteps": 5,
+    "archived": false
+  },
+  "appPlan": {
+    "category": "crm",
+    "productNames": [
+      "DealPilot",
+      "ClientGrid",
+      "PipelineOS"
+    ],
+    "signals": [
+      "crm",
+      "client",
+      "lead",
+      "pipeline",
+      "sales",
+      "account"
+    ],
+    "problemTemplate": "Turns scattered client follow-up into a focused revenue pipeline with visible next actions.",
+    "audience": "founders, agencies, and customer-facing teams",
+    "monetization": "seat-based CRM plan with pipeline automation upgrades",
+    "visualDirection": "dense B2B console with kanban lanes, account health, and compact deal tables",
+    "layout": "kanban",
+    "palette": {
+      "surface": "#f6f8fb",
+      "primary": "#155e75",
+      "secondary": "#0f172a",
+      "accent": "#22c55e",
+      "ink": "#0f172a"
+    },
+    "routes": [
+      {
+        "path": "/",
+        "label": "Command",
+        "purpose": "DealPilot 30 command center"
+      },
+      {
+        "path": "/crm-30-queue",
+        "label": "Queue",
+        "purpose": "Variant 30 work queue and approvals"
+      },
+      {
+        "path": "/crm-30-rules",
+        "label": "Rules",
+        "purpose": "Variant 30 automation rules"
+      },
+      {
+        "path": "/crm-30-insights",
+        "label": "Insights",
+        "purpose": "Variant 30 performance insights"
+      }
+    ],
+    "dataModels": [
+      {
+        "name": "CrmRuntime30",
+        "fields": [
+          "crm-30Name",
+          "crm-30Owner",
+          "crm-30State",
+          "crm-30Score"
+        ]
+      },
+      {
+        "name": "CrmEvent30",
+        "fields": [
+          "crm-30RecordId",
+          "crm-30Action",
+          "crm-30Actor",
+          "crm-30Result"
+        ]
+      },
+      {
+        "name": "CrmAudit30",
+        "fields": [
+          "crm-30EventId",
+          "crm-30Reviewer",
+          "crm-30Decision",
+          "crm-30CreatedAt"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "CrmRuntime30",
+        "to": "CrmEvent30",
+        "type": "one-to-many",
+        "via": "crm-30RecordId"
+      },
+      {
+        "from": "CrmEvent30",
+        "to": "CrmAudit30",
+        "type": "one-to-many",
+        "via": "crm-30EventId"
+      }
+    ],
+    "apiEndpoints": [
+      {
+        "method": "GET",
+        "path": "/api/crm-30-runtime",
+        "purpose": "List variant 30 runtime records"
+      },
+      {
+        "method": "POST",
+        "path": "/api/crm-30-events",
+        "purpose": "Create variant 30 runtime event"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/crm-30-events/[id]",
+        "purpose": "Resolve variant 30 event"
+      }
+    ],
+    "navigation": [
+      "Command",
+      "Queue",
+      "Rules",
+      "Insights"
+    ],
+    "features": [
+      "Variant 30 command queue",
+      "Variant 30 rule builder",
+      "Variant 30 event timeline",
+      "Variant 30 insight scoring",
+      "Variant 30 export workflow"
+    ],
+    "interactions": [
+      {
+        "label": "Create variant 30 event",
+        "type": "create",
+        "target": "CrmEvent30",
+        "result": "Adds event to DealPilot 30 runtime queue"
+      },
+      {
+        "label": "Advance variant 30 state",
+        "type": "transition",
+        "target": "CrmRuntime30",
+        "result": "Moves Queued -> Active -> Reviewed -> Done"
+      },
+      {
+        "label": "Remove variant 30 audit",
+        "type": "delete",
+        "target": "CrmAudit30",
+        "result": "Removes audit and dependent runtime rows"
+      }
+    ],
+    "forms": [
+      {
+        "name": "Create crm event",
+        "fields": [
+          "Name",
+          "Owner",
+          "State",
+          "Score"
+        ],
+        "action": "Adds variant 30 event to isolated runtime"
+      }
+    ],
+    "seedData": [
+      {
+        "label": "DealPilot 30 queue item",
+        "value": "90 open",
+        "status": "Queued"
+      },
+      {
+        "label": "DealPilot 30 rule set",
+        "value": "34 rules",
+        "status": "Active"
+      },
+      {
+        "label": "DealPilot 30 insight",
+        "value": "120%",
+        "status": "Healthy"
+      }
+    ],
+    "appType": "SaaS dashboard",
+    "productName": "DealPilot 30",
+    "problem": "Build preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history. unique architecture variant 30",
+    "truthSpec": {
+      "realUsers": true,
+      "realActions": true,
+      "realData": true,
+      "realStateChanges": true,
+      "blocksShallowMode": false,
+      "rejectionReasons": []
+    }
+  },
+  "uniqueness": {
+    "score": 96,
+    "signature": "crm::kanban::app/analytics/page.tsx|app/clients/page.tsx|app/page.tsx|app/pipeline/page.tsx::app/api/clients/route.ts|app/api/crm-30-events/route.ts|app/api/crm-30-runtime/route.ts::components/PipelineCommandCenter.tsx::CrmRuntime30:crm-30Name,crm-30Owner,crm-30State,crm-30Score|CrmEvent30:crm-30RecordId,crm-30Action,crm-30Actor,crm-30Result|CrmAudit30:crm-30EventId,crm-30Reviewer,crm-30Decision,crm-30CreatedAt::CrmRuntime30->CrmEvent30:crm-30RecordId|CrmEvent30->CrmAudit30:crm-30EventId::create:CrmEvent30:Adds event to DealPilot 30 runtime queue|transition:CrmRuntime30:Moves Queued -> Active -> Reviewed -> Done|delete:CrmAudit30:Removes audit and dependent runtime rows",
+    "routeSignature": "/|/crm-30-queue|/crm-30-rules|/crm-30-insights",
+    "featureSignature": "Variant 30 command queue|Variant 30 rule builder|Variant 30 event timeline|Variant 30 insight scoring|Variant 30 export workflow",
+    "schemaSignature": "CrmRuntime30:crm-30Name,crm-30Owner,crm-30State,crm-30Score|CrmEvent30:crm-30RecordId,crm-30Action,crm-30Actor,crm-30Result|CrmAudit30:crm-30EventId,crm-30Reviewer,crm-30Decision,crm-30CreatedAt",
+    "relationshipSignature": "CrmRuntime30->CrmEvent30:crm-30RecordId|CrmEvent30->CrmAudit30:crm-30EventId",
+    "componentSignature": "components/PipelineCommandCenter.tsx"
+  },
+  "buildValidation": {
+    "status": "passed",
+    "checkedAt": "2026-05-31T13:12:28.497Z",
+    "fileCount": 29,
+    "routeCount": 4,
+    "apiCount": 3,
+    "logs": [
+      "Static build validation passed",
+      "Isolated source tree present",
+      "Project-specific runtime API is wired"
+    ]
+  }
+}

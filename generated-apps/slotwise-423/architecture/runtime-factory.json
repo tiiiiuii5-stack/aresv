@@ -1,0 +1,192 @@
+{
+  "pipeline": "REAL RUNTIME APPLICATION FACTORY",
+  "runtimeType": "fullstack",
+  "phases": {
+    "intentToSpec": {
+      "appType": "internal tool",
+      "structuredSpec": true,
+      "routes": [
+        {
+          "path": "/",
+          "label": "Command",
+          "purpose": "SlotWise 423 command center"
+        },
+        {
+          "path": "/booking-423-queue",
+          "label": "Queue",
+          "purpose": "Variant 423 work queue and approvals"
+        },
+        {
+          "path": "/booking-423-rules",
+          "label": "Rules",
+          "purpose": "Variant 423 automation rules"
+        },
+        {
+          "path": "/booking-423-insights",
+          "label": "Insights",
+          "purpose": "Variant 423 performance insights"
+        }
+      ],
+      "databaseSchema": [
+        {
+          "name": "BookingRuntime423",
+          "fields": [
+            "booking-423Name",
+            "booking-423Owner",
+            "booking-423State",
+            "booking-423Score"
+          ]
+        },
+        {
+          "name": "BookingEvent423",
+          "fields": [
+            "booking-423RecordId",
+            "booking-423Action",
+            "booking-423Actor",
+            "booking-423Result"
+          ]
+        },
+        {
+          "name": "BookingAudit423",
+          "fields": [
+            "booking-423EventId",
+            "booking-423Reviewer",
+            "booking-423Decision",
+            "booking-423CreatedAt"
+          ]
+        }
+      ],
+      "uiScreens": [
+        {
+          "path": "/",
+          "screen": "Command",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/booking-423-queue",
+          "screen": "Queue",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/booking-423-rules",
+          "screen": "Rules",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/booking-423-insights",
+          "screen": "Insights",
+          "wiredToBackend": true
+        }
+      ],
+      "requiredIntegrations": [
+        "database",
+        "project runtime API"
+      ],
+      "unclearSpecPolicy": "block generation and ask questions"
+    },
+    "codeGeneration": {
+      "realFileTree": true,
+      "backendRoutes": [
+        "/api/booking-423-runtime",
+        "/api/booking-423-events",
+        "/api/booking-423-events/[id]"
+      ],
+      "frontendPages": [
+        "/",
+        "/booking-423-queue",
+        "/booking-423-rules",
+        "/booking-423-insights"
+      ],
+      "databaseSchema": "schema.prisma",
+      "environmentVariables": [
+        ".env.example"
+      ],
+      "noPlaceholderButtons": true,
+      "noStaticMockDataUnlessMarkedMock": true
+    },
+    "buildInstall": {
+      "requiredCommands": [
+        "npm install",
+        "npm run build",
+        "npm run type-check",
+        "npm run lint"
+      ],
+      "maxRepairLoops": 3,
+      "invalidIfBuildFails": true
+    },
+    "runtimeBootstrap": {
+      "startCommand": "npm run start",
+      "healthChecks": [
+        "GET /",
+        "GET /api/bookings"
+      ],
+      "databaseCheck": "assertRelationalSchema",
+      "brokenIfAnyFail": true
+    },
+    "interactionTesting": {
+      "clickEveryButton": true,
+      "submitEveryForm": true,
+      "navigateEveryRoute": true,
+      "testApiEndpoints": true,
+      "blockFakeUi": true
+    },
+    "previewGeneration": {
+      "realOnly": true,
+      "requiresServerRunning": true,
+      "requiresRoutesRespond": true,
+      "requiresJsExecuting": true,
+      "requiresBackendAlive": true,
+      "requiresDatabaseConnected": true,
+      "noStaticPreviewModeEver": true
+    },
+    "selfHeal": {
+      "loop": "build -> run -> test -> fail -> fix -> rebuild",
+      "maxLoops": 5,
+      "stopOnlyWhen": [
+        "zero runtime errors",
+        "all routes respond",
+        "UI is interactive",
+        "backend is connected"
+      ]
+    },
+    "deploymentGate": {
+      "buildSuccess": true,
+      "runtimeSuccess": true,
+      "testSuccess": true,
+      "noFakeUiDetected": true
+    }
+  },
+  "generationMode": "module-assisted",
+  "integrationModules": [
+    {
+      "name": "Booking-Calendar",
+      "category": "booking",
+      "description": "Availability matrix, ICS file generation, Google Calendar sync boundary, and recurring rule parser.",
+      "validationScore": 98,
+      "dependencies": [],
+      "files": [
+        "integrations/booking-calendar/availability.ts",
+        "integrations/booking-calendar/ics.ts",
+        "integrations/booking-calendar/google-sync.ts",
+        "integrations/booking-calendar/recurrence.ts"
+      ]
+    },
+    {
+      "name": "Project-Gantt",
+      "category": "project",
+      "description": "Task dependency graph, date calculation engine, canvas renderer, and drag-and-drop rescheduling.",
+      "validationScore": 95,
+      "dependencies": [],
+      "files": [
+        "integrations/project-gantt/dependency-graph.ts",
+        "integrations/project-gantt/date-engine.ts",
+        "integrations/project-gantt/canvas-renderer.ts",
+        "integrations/project-gantt/reschedule.ts"
+      ]
+    }
+  ],
+  "moduleInjection": {
+    "stage": "before-generation",
+    "rule": "Detected category modules are injected into the isolated runtime factory before code validation."
+  }
+}

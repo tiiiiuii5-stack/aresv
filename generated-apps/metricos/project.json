@@ -1,0 +1,359 @@
+{
+  "id": "7674e874-0fc6-40ce-b261-75076e3d78fb",
+  "name": "MetricOS",
+  "slug": "metricos",
+  "category": "analytics",
+  "problem": "Build a SaaS analytics dashboard with metrics, alerts, cohorts, funnels, and retention workflows.",
+  "audience": "SaaS founders and revenue teams",
+  "uiDirection": "executive analytics dashboard with dense KPI bands and alert tables",
+  "monetization": "seat-based CRM plan with pipeline automation upgrades",
+  "prompt": "Build a SaaS analytics dashboard with metrics, alerts, cohorts, funnels, and retention workflows.",
+  "status": "ready",
+  "createdAt": "2026-05-31T03:52:50.871Z",
+  "updatedAt": "2026-05-31T03:52:50.871Z",
+  "onboarding": [
+    "Review generated plan",
+    "Open interactive preview",
+    "Edit source files",
+    "Run QA",
+    "Export or deploy"
+  ],
+  "features": [
+    "KPI bands",
+    "Funnel analysis",
+    "Retention cohorts",
+    "Alert queue",
+    "Executive export"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# MetricOS\n\nBuild a SaaS analytics dashboard with metrics, alerts, cohorts, funnels, and retention workflows.\n\nThis is an isolated analytics application. It does not depend on a shared app shell.\n\n## Runtime behavior\n- Component: MetricsWarRoom\n- State engine: lib/metric-engine.ts\n- Primary API: /api/metrics\n- Interaction: create alert\n\n## Routes\n- /: Executive KPI summary\n- /funnels: Activation and conversion analysis\n- /retention: Cohorts and churn risk\n- /alerts: Operational warnings\n\n## Schema\n- Metric: name, value, delta, segment, period\n- Alert: metricId, severity, message, owner\n- Cohort: metricId, name, period, retention\n\n## Relationships\n- Metric one-to-many Alert via metricId\n- Metric one-to-many Cohort via metricId\n\n## Functional interactions\n- Create alert: Adds metric alert to owner queue\n- Resolve alert: Moves Open -> Investigating -> Resolved\n- Delete cohort: Removes stale cohort analysis\n"
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"metricos\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"start\": \"next start\"\n  },\n  \"dependencies\": {\n    \"next\": \"16.2.6\",\n    \"react\": \"19.2.6\",\n    \"react-dom\": \"19.2.6\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^6.0.3\",\n    \"@types/node\": \"20.14.10\",\n    \"@types/react\": \"^19.2.15\",\n    \"@types/react-dom\": \"^19.2.3\"\n  }\n}"
+    },
+    {
+      "path": "tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },\n  \"include\": [\n    \"**/*.ts\",\n    \"**/*.tsx\"\n  ],\n  \"exclude\": [\n    \"node_modules\"\n  ]\n}"
+    },
+    {
+      "path": "next.config.js",
+      "content": "const nextConfig = {};\nmodule.exports = nextConfig;\n"
+    },
+    {
+      "path": ".env.example",
+      "content": "DATABASE_URL=\nNEXT_PUBLIC_APP_URL=http://localhost:3000\n"
+    },
+    {
+      "path": "schema.prisma",
+      "content": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Metric {\n  id        String   @id @default(cuid())\n  name String\n  value String\n  delta String\n  segment String\n  period String\n  Alert Alert[]\n  Cohort Cohort[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel Alert {\n  id        String   @id @default(cuid())\n  metricId String\n  severity String\n  message String\n  owner String\n\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel Cohort {\n  id        String   @id @default(cuid())\n  metricId String\n  name String\n  period String\n  retention String\n\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n"
+    },
+    {
+      "path": "app/layout.tsx",
+      "content": "import \"./globals.css\";\n\nexport const metadata = {\n  title: \"MetricOS\",\n  description: \"Build a SaaS analytics dashboard with metrics, alerts, cohorts, funnels, and retention workflows.\",\n};\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return <html lang=\"en\"><body>{children}</body></html>;\n}\n"
+    },
+    {
+      "path": "app/globals.css",
+      "content": ":root{--surface:#f6f8fb;--primary:#155e75;--accent:#22c55e;--ink:#0f172a}\n*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}\nbutton,input,textarea{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #e2e8f0}\n.wrap{max-width:1180px;margin:0 auto;padding:18px 20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 18px 45px rgba(15,23,42,.08)}\n.metric-deck{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));}.card{border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:16px}.primary{border:0;border-radius:12px;background:var(--primary);color:white;padding:12px 14px;font-weight:800;cursor:pointer}\n@media(max-width:840px){.hero{grid-template-columns:1fr}.metric-deck{grid-template-columns:1fr!important}}\n"
+    },
+    {
+      "path": "app/page.tsx",
+      "content": "import { MetricsWarRoom } from \"@/components/MetricsWarRoom\";\n\nexport default function Page() {\n  return <MetricsWarRoom />;\n}\n"
+    },
+    {
+      "path": "components/MetricsWarRoom.tsx",
+      "content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\nimport { applyMetricsMutation, removeMetricsRecord, transitionMetricsRecord } from \"@/lib/metric-engine\";\n\nconst initialRecords = [\n  {\n    \"id\": \"analytics-1\",\n    \"label\": \"Activation\",\n    \"value\": \"64%\",\n    \"status\": \"+8%\",\n    \"meta\": \"KPI bands\"\n  },\n  {\n    \"id\": \"analytics-2\",\n    \"label\": \"Net retention\",\n    \"value\": \"112%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Funnel analysis\",\n    \"parentId\": \"analytics-1\"\n  },\n  {\n    \"id\": \"analytics-3\",\n    \"label\": \"Churn risk\",\n    \"value\": \"17\",\n    \"status\": \"Watch\",\n    \"meta\": \"Retention cohorts\",\n    \"parentId\": \"analytics-1\"\n  }\n];\nconst views = [\"Overview\",\"Funnels\",\"Retention\",\"Alerts\"];\nconst transitions = [\"Open\",\"Investigating\",\"Resolved\"];\n\nexport function MetricsWarRoom({ initialView = views[0] }: { initialView?: string }) {\n  const [view, setView] = useState(initialView);\n  const [records, setRecords] = useState(initialRecords);\n  const [input, setInput] = useState(\"\");\n  const [events, setEvents] = useState<string[]>([\"MetricOS ready\"]);\n  const visible = useMemo(() => records.filter((record) => view === views[0] || record.status.toLowerCase().includes(view.toLowerCase()) || record.meta.toLowerCase().includes(view.toLowerCase())), [records, view]);\n  function submit() {\n    const next = applyMetricsMutation(records, { label: input || \"Create alert\", value: \"New\", status: \"Created\" });\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n    setInput(\"\");\n  }\n  function advance(id: string) {\n    const next = transitionMetricsRecord(records, id, transitions);\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n  }\n  function remove(id: string) {\n    const next = removeMetricsRecord(records, id);\n    setRecords(next.records);\n    setEvents((current) => [next.event, ...current]);\n  }\n  return (\n    <main className=\"app\">\n      <header className=\"top\"><div className=\"wrap\" style={{display:\"flex\",justifyContent:\"space-between\",gap:12,alignItems:\"center\"}}><strong>MetricOS</strong><nav style={{display:\"flex\",gap:8,overflowX:\"auto\"}}>{views.map((item) => <button key={item} onClick={() => setView(item)} className=\"primary\" style={{background:item===view?\"var(--primary)\":\"#e2e8f0\",color:item===view?\"white\":\"#0f172a\"}}>{item}</button>)}</nav></div></header>\n      <section className=\"wrap hero\">\n        <div className=\"panel\">\n          <p style={{fontWeight:900,textTransform:\"uppercase\",letterSpacing:\".16em\",fontSize:12,color:\"var(--primary)\"}}>analytics</p>\n          <h1 style={{fontSize:48,lineHeight:1,margin:\"10px 0\"}}>MetricOS</h1>\n          <p style={{lineHeight:1.7,color:\"#475569\"}}>Build a SaaS analytics dashboard with metrics, alerts, cohorts, funnels, and retention workflows.</p>\n          <div className=\"metric-deck\" style={{marginTop:18}}>{visible.map((record) => <article key={record.id || record.label} className=\"card\"><strong>{record.label}</strong><p style={{fontSize:28,fontWeight:850,margin:\"8px 0\"}}>{record.value}</p><span>{record.status}</span><div style={{display:\"flex\",gap:8,marginTop:12}}><button data-action=\"transition\" onClick={() => advance(record.id)} className=\"primary\" style={{padding:\"8px 10px\"}}>Resolve alert</button><button data-action=\"delete\" onClick={() => remove(record.id)} className=\"primary\" style={{padding:\"8px 10px\",background:\"#fee2e2\",color:\"#991b1b\"}}>Delete cohort</button></div></article>)}</div>\n        </div>\n        <aside className=\"panel\">\n          <h2>Create alert</h2>\n          <p>Adds alert to monitoring queue</p>\n          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder=\"Metric, Threshold, Owner\" style={{width:\"100%\",minHeight:110,border:\"1px solid #cbd5e1\",borderRadius:12,padding:12}} />\n          <button onClick={submit} className=\"primary\" style={{width:\"100%\",marginTop:10}}>create alert</button>\n          <div style={{display:\"grid\",gap:8,marginTop:16}}>{events.map((event) => <div key={event} className=\"card\">{event}</div>)}</div>\n        </aside>\n      </section>\n    </main>\n  );\n}\n"
+    },
+    {
+      "path": "features/metrics/interactions.ts",
+      "content": "export const interactionMap = [\n  {\n    \"label\": \"Create alert\",\n    \"type\": \"create\",\n    \"target\": \"Alert\",\n    \"result\": \"Adds metric alert to owner queue\"\n  },\n  {\n    \"label\": \"Resolve alert\",\n    \"type\": \"transition\",\n    \"target\": \"Alert\",\n    \"result\": \"Moves Open -> Investigating -> Resolved\"\n  },\n  {\n    \"label\": \"Delete cohort\",\n    \"type\": \"delete\",\n    \"target\": \"Cohort\",\n    \"result\": \"Removes stale cohort analysis\"\n  }\n] as const;\nexport const relationshipMap = [\n  {\n    \"from\": \"Metric\",\n    \"to\": \"Alert\",\n    \"type\": \"one-to-many\",\n    \"via\": \"metricId\"\n  },\n  {\n    \"from\": \"Metric\",\n    \"to\": \"Cohort\",\n    \"type\": \"one-to-many\",\n    \"via\": \"metricId\"\n  }\n] as const;\n\nexport function validateMetricsRelationships(record: { parentId?: string }, existingIds: string[]) {\n  if (!relationshipMap.length) throw new Error(\"Generated app requires relational data models.\");\n  return !record.parentId || existingIds.includes(record.parentId);\n}\n"
+    },
+    {
+      "path": "db/analytics-schema.ts",
+      "content": "export const models = [\n  {\n    \"name\": \"Metric\",\n    \"fields\": [\n      \"name\",\n      \"value\",\n      \"delta\",\n      \"segment\",\n      \"period\"\n    ]\n  },\n  {\n    \"name\": \"Alert\",\n    \"fields\": [\n      \"metricId\",\n      \"severity\",\n      \"message\",\n      \"owner\"\n    ]\n  },\n  {\n    \"name\": \"Cohort\",\n    \"fields\": [\n      \"metricId\",\n      \"name\",\n      \"period\",\n      \"retention\"\n    ]\n  }\n] as const;\nexport const relationships = [\n  {\n    \"from\": \"Metric\",\n    \"to\": \"Alert\",\n    \"type\": \"one-to-many\",\n    \"via\": \"metricId\"\n  },\n  {\n    \"from\": \"Metric\",\n    \"to\": \"Cohort\",\n    \"type\": \"one-to-many\",\n    \"via\": \"metricId\"\n  }\n] as const;\n\nexport function assertRelationalSchema() {\n  if (relationships.length < 2) throw new Error(\"Relational schema is required.\");\n  return relationships.map((relation) => relation.from + \" -> \" + relation.to);\n}\n"
+    },
+    {
+      "path": "api/metrics/handlers.ts",
+      "content": "import { applyMetricsMutation, removeMetricsRecord, transitionMetricsRecord } from \"@/lib/metric-engine\";\n\nexport const statusFlow = [\n  \"Open\",\n  \"Investigating\",\n  \"Resolved\"\n] as const;\n\nexport function handleMetricsAction(records: Array<{ id: string; label: string; value: string; status: string; meta?: string; parentId?: string }>, body: { action?: string; id?: string; label?: string; value?: string; status?: string }) {\n  if (body.action === \"transition\" && body.id) return transitionMetricsRecord(records, body.id, [...statusFlow]);\n  if (body.action === \"delete\" && body.id) return removeMetricsRecord(records, body.id);\n  return applyMetricsMutation(records, { label: body.label || \"Create alert\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\" });\n}\n"
+    },
+    {
+      "path": "lib/metric-engine.ts",
+      "content": "type RecordItem = { id: string; label: string; value: string; status: string; meta?: string; parentId?: string };\n\nexport function applyMetricsMutation(records: RecordItem[], input: Pick<RecordItem, \"label\" | \"value\" | \"status\">) {\n  const created = { id: crypto.randomUUID?.() || String(Date.now()), ...input, meta: \"create alert\", parentId: records[0]?.id };\n  return {\n    records: [created, ...records],\n    event: \"create alert: \" + created.label,\n  };\n}\n\nexport function transitionMetricsRecord(records: RecordItem[], id: string, flow: string[]) {\n  let changed = \"No record changed\";\n  const nextRecords = records.map((record) => {\n    if (record.id !== id) return record;\n    const index = flow.indexOf(record.status);\n    const status = flow[Math.min(index + 1, flow.length - 1)] || \"Done\";\n    changed = record.label + \" moved to \" + status;\n    return { ...record, status };\n  });\n  return { records: nextRecords, event: changed };\n}\n\nexport function removeMetricsRecord(records: RecordItem[], id: string) {\n  const target = records.find((record) => record.id === id);\n  return {\n    records: records.filter((record) => record.id !== id && record.parentId !== id),\n    event: target ? \"Removed \" + target.label : \"Removed record\",\n  };\n}\n"
+    },
+    {
+      "path": "app/api/metrics/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"analytics-1\",\n    \"label\": \"Activation\",\n    \"value\": \"64%\",\n    \"status\": \"+8%\",\n    \"meta\": \"KPI bands\"\n  },\n  {\n    \"id\": \"analytics-2\",\n    \"label\": \"Net retention\",\n    \"value\": \"112%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Funnel analysis\",\n    \"parentId\": \"analytics-1\"\n  },\n  {\n    \"id\": \"analytics-3\",\n    \"label\": \"Churn risk\",\n    \"value\": \"17\",\n    \"status\": \"Watch\",\n    \"meta\": \"Retention cohorts\",\n    \"parentId\": \"analytics-1\"\n  }\n];\nconst statusFlow = [\"Open\",\"Investigating\",\"Resolved\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"metrics\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create alert\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"create alert\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "preview/index.html",
+      "content": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>MetricOS</title><style>:root{--surface:#f6f8fb;--primary:#155e75;--accent:#22c55e;--ink:#0f172a}*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,system-ui,sans-serif}header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 20px;background:rgba(255,255,255,.92);border-bottom:1px solid #e2e8f0;backdrop-filter:blur(14px)}nav{display:flex;gap:8px;overflow:auto}button{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}nav button{background:#e2e8f0}.active,#submit{background:var(--primary)!important;color:white}.hero{max-width:1180px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:minmax(0,1fr)340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:22px;box-shadow:0 18px 45px rgba(15,23,42,.08)}h1{font-size:clamp(34px,5vw,58px);line-height:1;margin:8px 0}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:900;color:var(--primary)}.metric-deck{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));}.card,.event{background:#f8fafc;border:1px solid #e2e8f0;border-radius:13px;padding:14px}.value{font-size:28px;font-weight:850;margin:8px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button:first-child{background:var(--primary);color:white}.actions button:last-child{background:#fee2e2;color:#991b1b}textarea{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit}#submit{width:100%;margin-top:10px}.event{margin-top:10px;color:#047857}@media(max-width:840px){.hero{grid-template-columns:1fr}.metric-deck{grid-template-columns:1fr!important}header{align-items:flex-start;flex-direction:column}}</style></head>\n<body><main class=\"app\"><header><strong>MetricOS</strong><nav id=\"nav\"></nav></header><section class=\"hero\"><div class=\"panel\"><p class=\"eyebrow\">analytics runtime</p><h1>MetricOS</h1><p>Build a SaaS analytics dashboard with metrics, alerts, cohorts, funnels, and retention workflows.</p><div id=\"records\" class=\"metric-deck\"></div></div><aside class=\"panel\"><h2>Create alert</h2><textarea id=\"input\" placeholder=\"Metric, Threshold, Owner\"></textarea><button id=\"submit\">create alert</button><div id=\"events\"></div></aside></section></main>\n<script>\nconst projectId=\"7674e874-0fc6-40ce-b261-75076e3d78fb\";const views=[\"Overview\",\"Funnels\",\"Retention\",\"Alerts\"];const statusFlow=[\"Open\",\"Investigating\",\"Resolved\"];const transitionLabel=\"Resolve alert\";const deleteLabel=\"Delete cohort\";let records=[{\"id\":\"analytics-1\",\"label\":\"Activation\",\"value\":\"64%\",\"status\":\"+8%\",\"meta\":\"KPI bands\"},{\"id\":\"analytics-2\",\"label\":\"Net retention\",\"value\":\"112%\",\"status\":\"Healthy\",\"meta\":\"Funnel analysis\",\"parentId\":\"analytics-1\"},{\"id\":\"analytics-3\",\"label\":\"Churn risk\",\"value\":\"17\",\"status\":\"Watch\",\"meta\":\"Retention cohorts\",\"parentId\":\"analytics-1\"}];let active=views[0];const nav=document.getElementById(\"nav\");const root=document.getElementById(\"records\");const events=document.getElementById(\"events\");const input=document.getElementById(\"input\");\nasync function load(){try{const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\");if(res.ok){const data=await res.json();records=data.state.records||records;log(\"Loaded isolated runtime state\");}}catch(error){log(\"Runtime API unavailable; using bundled state\");}render();}\nfunction render(){nav.innerHTML=\"\";views.forEach(view=>{const b=document.createElement(\"button\");b.textContent=view;b.className=view===active?\"active\":\"\";b.onclick=()=>{active=view;log(\"Opened \"+view);render();};nav.appendChild(b)});root.innerHTML=\"\";records.forEach(record=>{const card=document.createElement(\"article\");card.className=\"card\";card.innerHTML=\"<strong>\"+record.label+\"</strong><div class='value'>\"+record.value+\"</div><span>\"+record.status+\"</span><div class='actions'><button data-action='transition' data-id='\"+record.id+\"'>\"+transitionLabel+\"</button><button data-action='delete' data-id='\"+record.id+\"'>\"+deleteLabel+\"</button></div>\";card.onclick=()=>log(\"Selected \"+record.label);card.querySelector(\"[data-action='transition']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"transition\",id:record.id});};card.querySelector(\"[data-action='delete']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"delete\",id:record.id});};root.appendChild(card);});}\nfunction log(message){const item=document.createElement(\"div\");item.className=\"event\";item.textContent=message;events.prepend(item);}\nasync function mutate(payload){const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\",{method:\"POST\",headers:{\"content-type\":\"application/json\"},body:JSON.stringify({type:\"create alert\",...payload})});if(res.ok){const data=await res.json();records=data.state.records;log(\"Runtime mutation persisted: \"+(payload.action||\"create\"));render();}else if(payload.action===\"transition\"){records=records.map(record=>record.id===payload.id?{...record,status:statusFlow[Math.min(statusFlow.indexOf(record.status)+1,statusFlow.length-1)]||\"Done\"}:record);log(\"Transition saved locally\");render();}else if(payload.action===\"delete\"){records=records.filter(record=>record.id!==payload.id&&record.parentId!==payload.id);log(\"Delete saved locally\");render();}}\ndocument.getElementById(\"submit\").onclick=async()=>{const label=input.value.trim()||\"create alert\";await mutate({action:\"create\",label,value:\"New\",status:statusFlow[0]||\"Created\"});input.value=\"\";};\nload();\n</script></body></html>"
+    },
+    {
+      "path": "app/funnels/page.tsx",
+      "content": "import { MetricsWarRoom } from \"@/components/MetricsWarRoom\";\n\nexport default function FunnelsPage() {\n  return <MetricsWarRoom initialView=\"Funnels\" />;\n}\n"
+    },
+    {
+      "path": "app/retention/page.tsx",
+      "content": "import { MetricsWarRoom } from \"@/components/MetricsWarRoom\";\n\nexport default function RetentionPage() {\n  return <MetricsWarRoom initialView=\"Retention\" />;\n}\n"
+    },
+    {
+      "path": "app/alerts/page.tsx",
+      "content": "import { MetricsWarRoom } from \"@/components/MetricsWarRoom\";\n\nexport default function AlertsPage() {\n  return <MetricsWarRoom initialView=\"Alerts\" />;\n}\n"
+    },
+    {
+      "path": "app/api/alerts/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"analytics-1\",\n    \"label\": \"Activation\",\n    \"value\": \"64%\",\n    \"status\": \"+8%\",\n    \"meta\": \"KPI bands\"\n  },\n  {\n    \"id\": \"analytics-2\",\n    \"label\": \"Net retention\",\n    \"value\": \"112%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Funnel analysis\",\n    \"parentId\": \"analytics-1\"\n  },\n  {\n    \"id\": \"analytics-3\",\n    \"label\": \"Churn risk\",\n    \"value\": \"17\",\n    \"status\": \"Watch\",\n    \"meta\": \"Retention cohorts\",\n    \"parentId\": \"analytics-1\"\n  }\n];\nconst statusFlow = [\"Open\",\"Investigating\",\"Resolved\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/alerts\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create alert\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"create alert\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    }
+  ],
+  "appPlan": {
+    "category": "analytics",
+    "productNames": [
+      "MetricOS",
+      "SignalBoard",
+      "SaaSIntel"
+    ],
+    "signals": [
+      "crm",
+      "client",
+      "lead",
+      "pipeline",
+      "sales",
+      "account"
+    ],
+    "problemTemplate": "Turns SaaS product signals into executive metrics, alerts, and retention insights.",
+    "audience": "SaaS founders and revenue teams",
+    "monetization": "seat-based CRM plan with pipeline automation upgrades",
+    "visualDirection": "executive analytics dashboard with dense KPI bands and alert tables",
+    "layout": "metrics",
+    "palette": {
+      "surface": "#f6f8fb",
+      "primary": "#155e75",
+      "secondary": "#0f172a",
+      "accent": "#22c55e",
+      "ink": "#0f172a"
+    },
+    "routes": [
+      {
+        "path": "/",
+        "label": "Overview",
+        "purpose": "Executive KPI summary"
+      },
+      {
+        "path": "/funnels",
+        "label": "Funnels",
+        "purpose": "Activation and conversion analysis"
+      },
+      {
+        "path": "/retention",
+        "label": "Retention",
+        "purpose": "Cohorts and churn risk"
+      },
+      {
+        "path": "/alerts",
+        "label": "Alerts",
+        "purpose": "Operational warnings"
+      }
+    ],
+    "dataModels": [
+      {
+        "name": "Metric",
+        "fields": [
+          "name",
+          "value",
+          "delta",
+          "segment",
+          "period"
+        ]
+      },
+      {
+        "name": "Alert",
+        "fields": [
+          "metricId",
+          "severity",
+          "message",
+          "owner"
+        ]
+      },
+      {
+        "name": "Cohort",
+        "fields": [
+          "metricId",
+          "name",
+          "period",
+          "retention"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "Metric",
+        "to": "Alert",
+        "type": "one-to-many",
+        "via": "metricId"
+      },
+      {
+        "from": "Metric",
+        "to": "Cohort",
+        "type": "one-to-many",
+        "via": "metricId"
+      }
+    ],
+    "apiEndpoints": [
+      {
+        "method": "GET",
+        "path": "/api/metrics",
+        "purpose": "List KPI metrics"
+      },
+      {
+        "method": "POST",
+        "path": "/api/alerts",
+        "purpose": "Create metric alert"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/alerts/[id]",
+        "purpose": "Acknowledge alert"
+      }
+    ],
+    "navigation": [
+      "Overview",
+      "Funnels",
+      "Retention",
+      "Alerts"
+    ],
+    "features": [
+      "KPI bands",
+      "Funnel analysis",
+      "Retention cohorts",
+      "Alert queue",
+      "Executive export"
+    ],
+    "interactions": [
+      {
+        "label": "Create alert",
+        "type": "create",
+        "target": "Alert",
+        "result": "Adds metric alert to owner queue"
+      },
+      {
+        "label": "Resolve alert",
+        "type": "transition",
+        "target": "Alert",
+        "result": "Moves Open -> Investigating -> Resolved"
+      },
+      {
+        "label": "Delete cohort",
+        "type": "delete",
+        "target": "Cohort",
+        "result": "Removes stale cohort analysis"
+      }
+    ],
+    "forms": [
+      {
+        "name": "Create alert",
+        "fields": [
+          "Metric",
+          "Threshold",
+          "Owner"
+        ],
+        "action": "Adds alert to monitoring queue"
+      }
+    ],
+    "seedData": [
+      {
+        "label": "Activation",
+        "value": "64%",
+        "status": "+8%"
+      },
+      {
+        "label": "Net retention",
+        "value": "112%",
+        "status": "Healthy"
+      },
+      {
+        "label": "Churn risk",
+        "value": "17",
+        "status": "Watch"
+      }
+    ],
+    "productName": "MetricOS",
+    "problem": "Build a SaaS analytics dashboard with metrics, alerts, cohorts, funnels, and retention workflows."
+  },
+  "uniqueness": {
+    "score": 96,
+    "signature": "analytics::metrics::app/alerts/page.tsx|app/funnels/page.tsx|app/page.tsx|app/retention/page.tsx::app/api/alerts/route.ts|app/api/metrics/route.ts::components/MetricsWarRoom.tsx::Metric:name,value,delta,segment,period|Alert:metricId,severity,message,owner|Cohort:metricId,name,period,retention::Metric->Alert:metricId|Metric->Cohort:metricId::create:Alert:Adds metric alert to owner queue|transition:Alert:Moves Open -> Investigating -> Resolved|delete:Cohort:Removes stale cohort analysis",
+    "routeSignature": "/|/funnels|/retention|/alerts",
+    "featureSignature": "KPI bands|Funnel analysis|Retention cohorts|Alert queue|Executive export",
+    "schemaSignature": "Metric:name,value,delta,segment,period|Alert:metricId,severity,message,owner|Cohort:metricId,name,period,retention",
+    "relationshipSignature": "Metric->Alert:metricId|Metric->Cohort:metricId",
+    "componentSignature": "components/MetricsWarRoom.tsx"
+  },
+  "buildValidation": {
+    "status": "passed",
+    "checkedAt": "2026-05-31T03:52:50.872Z",
+    "fileCount": 20,
+    "routeCount": 4,
+    "apiCount": 3,
+    "logs": [
+      "Static build validation passed",
+      "Isolated source tree present",
+      "Project-specific runtime API is wired"
+    ]
+  },
+  "memory": {
+    "architecture": "metrics analytics application with 4 routes and 3 data models",
+    "routes": [
+      "/",
+      "/funnels",
+      "/retention",
+      "/alerts"
+    ],
+    "decisions": [
+      "Selected metrics layout for analytics",
+      "Generated 20 source files",
+      "Uniqueness score 96"
+    ],
+    "edits": []
+  },
+  "runtimeState": {
+    "records": [
+      {
+        "id": "analytics-1",
+        "label": "Activation",
+        "value": "64%",
+        "status": "+8%",
+        "meta": "KPI bands"
+      },
+      {
+        "id": "analytics-2",
+        "label": "Net retention",
+        "value": "112%",
+        "status": "Healthy",
+        "meta": "Funnel analysis",
+        "parentId": "analytics-1"
+      },
+      {
+        "id": "analytics-3",
+        "label": "Churn risk",
+        "value": "17",
+        "status": "Watch",
+        "meta": "Retention cohorts",
+        "parentId": "analytics-1"
+      }
+    ],
+    "events": [
+      {
+        "message": "MetricOS runtime initialized",
+        "createdAt": "2026-05-31T03:52:50.872Z"
+      }
+    ],
+    "env": {
+      "PROJECT_ID": "7674e874-0fc6-40ce-b261-75076e3d78fb",
+      "PROJECT_SLUG": "metricos",
+      "RUNTIME_MODE": "isolated-project"
+    },
+    "updatedAt": "2026-05-31T03:52:50.871Z"
+  }
+}

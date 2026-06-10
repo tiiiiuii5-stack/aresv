@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "name": "CrmCreateCrmEvent32",
+      "trigger": "Create variant 32 event",
+      "payload": {
+        "target": "CrmEvent32",
+        "result": "Adds event to DealPilot 32 runtime queue",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "append record",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "CrmTransitionCrmRuntime32",
+      "trigger": "Advance variant 32 state",
+      "payload": {
+        "target": "CrmRuntime32",
+        "result": "Moves Queued -> Active -> Reviewed -> Done",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "update record status",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "CrmDeleteCrmAudit32",
+      "trigger": "Remove variant 32 audit",
+      "payload": {
+        "target": "CrmAudit32",
+        "result": "Removes audit and dependent runtime rows",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "remove record and dependents",
+        "prepend audit event"
+      ]
+    }
+  ],
+  "delivery": "in-process runtime event log plus API response payload"
+}

@@ -1,0 +1,364 @@
+{
+  "kind": "project-export",
+  "version": 1,
+  "generatedAt": "2026-05-31T15:08:58.675Z",
+  "project": {
+    "id": "a6717287-3c6c-4e2b-a7fb-119b2d5dff30",
+    "name": "TableFlow",
+    "slug": "tableflow-3",
+    "category": "restaurant",
+    "status": "ready",
+    "createdAt": "2026-05-31T15:08:58.220Z",
+    "updatedAt": "2026-05-31T15:08:58.220Z",
+    "problem": "Build an ecommerce store for boutique owners, inventory managers, and shoppers. Real users: store owner, inventory manager, shopper. Real actions: create products, add to cart, checkout with Stripe, receive webhook payment confirmation, reduce inventory, send order confirmation email. Real data: products, carts, orders, payments, inventory events. Real state changes: cart totals update, checkout creates order, payment webhook marks paid, stock decreases, refresh keeps saved state.",
+    "audience": "restaurants, food trucks, and ghost kitchens",
+    "uiDirection": "ordering-first interface with menu cards, kitchen queue, and status updates",
+    "monetization": "monthly restaurant SaaS plus online ordering fee",
+    "prompt": "Build an ecommerce store for boutique owners, inventory managers, and shoppers. Real users: store owner, inventory manager, shopper. Real actions: create products, add to cart, checkout with Stripe, receive webhook payment confirmation, reduce inventory, send order confirmation email. Real data: products, carts, orders, payments, inventory events. Real state changes: cart totals update, checkout creates order, payment webhook marks paid, stock decreases, refresh keeps saved state."
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# TableFlow\n\nBuild an ecommerce store for boutique owners, inventory managers, and shoppers. Real users: store owner, inventory manager, shopper. Real actions: create products, add to cart, checkout with Stripe, receive webhook payment confirmation, reduce inventory, send order confirmation email. Real data: products, carts, orders, payments, inventory events. Real state changes: cart totals update, checkout creates order, payment webhook marks paid, stock decreases, refresh keeps saved state.\n\nThis is an isolated restaurant application. It does not depend on a shared app shell.\n\n## Classification\n- App type: internal tool\n- Real users: yes\n- Real actions: yes\n- Real data: yes\n- Real state changes: yes\n\n## Runtime behavior\n- Component: KitchenOrderBoard\n- State engine: lib/kitchen-engine.ts\n- Primary API: /api/orders\n- Interaction: send order\n\n## Routes\n- /: Browse menu and featured bundles\n- /order: Build a cart and submit order\n- /kitchen: Track prep queue\n- /admin: Update menu and fulfillment status\n\n## Schema\n- MenuItem: name, price, station, available, prepTime\n- KitchenTicket: items, customerName, status, pickupTime\n- OrderLine: ticketId, menuItemId, quantity, notes\n\n## Relationships\n- KitchenTicket one-to-many OrderLine via ticketId\n- MenuItem one-to-many OrderLine via menuItemId\n\n## Functional interactions\n- Send order: Adds order to kitchen queue\n- Advance prep: Moves New -> Prep -> Ready -> Picked up\n- Remove line: Removes item from order\n\n## Architecture maps\n- architecture/database-schema.json: relational model graph\n- architecture/api-map.json: action-to-backend endpoint map\n- architecture/state-graph.json: state transition graph\n- architecture/event-system.json: event trigger map\n- architecture/job-system.json: async/background job policy\n- architecture/execution-binding.json: UI action to API to data to state to UI proof\n- architecture/runtime-factory.json: build, boot, interaction, preview, heal, and deploy gates\n"
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"tableflow\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"start\": \"next start\"\n  },\n  \"dependencies\": {\n    \"next\": \"16.2.6\",\n    \"react\": \"19.2.6\",\n    \"react-dom\": \"19.2.6\",\n    \"stripe\": \"^22.2.0\",\n    \"zustand\": \"^5.0.13\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^6.0.3\",\n    \"@types/node\": \"20.14.10\",\n    \"@types/react\": \"^19.2.15\",\n    \"@types/react-dom\": \"^19.2.3\"\n  }\n}"
+    },
+    {
+      "path": "tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },\n  \"include\": [\n    \"**/*.ts\",\n    \"**/*.tsx\"\n  ],\n  \"exclude\": [\n    \"node_modules\"\n  ]\n}"
+    },
+    {
+      "path": "next.config.js",
+      "content": "const nextConfig = {};\nmodule.exports = nextConfig;\n"
+    },
+    {
+      "path": ".env.example",
+      "content": "DATABASE_URL=\nNEXT_PUBLIC_APP_URL=\n"
+    },
+    {
+      "path": "schema.prisma",
+      "content": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel MenuItem {\n  id        String   @id @default(cuid())\n  name String\n  price String\n  station String\n  available String\n  prepTime String\n  OrderLine OrderLine[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel KitchenTicket {\n  id        String   @id @default(cuid())\n  items String\n  customerName String\n  status String\n  pickupTime String\n  OrderLine OrderLine[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel OrderLine {\n  id        String   @id @default(cuid())\n  ticketId String\n  menuItemId String\n  quantity String\n  notes String\n\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n"
+    },
+    {
+      "path": "app/layout.tsx",
+      "content": "import \"./globals.css\";\n\nexport const metadata = {\n  title: \"TableFlow\",\n  description: \"Build an ecommerce store for boutique owners, inventory managers, and shoppers. Real users: store owner, inventory manager, shopper. Real actions: create products, add to cart, checkout with Stripe, receive webhook payment confirmation, reduce inventory, send order confirmation email. Real data: products, carts, orders, payments, inventory events. Real state changes: cart totals update, checkout creates order, payment webhook marks paid, stock decreases, refresh keeps saved state.\",\n};\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return <html lang=\"en\"><body>{children}</body></html>;\n}\n"
+    },
+    {
+      "path": "app/globals.css",
+      "content": ":root{--surface:#f7fee7;--primary:#3f6212;--accent:#06b6d4;--ink:#172554}\n*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}\nbutton,input,textarea{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #e2e8f0}\n.wrap{max-width:1180px;margin:0 auto;padding:18px 20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 18px 45px rgba(15,23,42,.08)}\n.ordering-board{display:grid;gap:12px;grid-template-columns:1.2fr .8fr;}.card{border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:16px}.primary{border:0;border-radius:12px;background:var(--primary);color:white;padding:12px 14px;font-weight:800;cursor:pointer}\n@media(max-width:840px){.hero{grid-template-columns:1fr}.ordering-board{grid-template-columns:1fr!important}}\n"
+    },
+    {
+      "path": "app/page.tsx",
+      "content": "import { KitchenOrderBoard } from \"@/components/KitchenOrderBoard\";\n\nexport default function Page() {\n  return <KitchenOrderBoard />;\n}\n"
+    },
+    {
+      "path": "components/KitchenOrderBoard.tsx",
+      "content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\n\nconst initialRecords = [\n  {\n    \"id\": \"restaurant-1\",\n    \"label\": \"Spicy noodle bowl\",\n    \"value\": \"$14\",\n    \"status\": \"Hot station\",\n    \"meta\": \"Menu browsing\"\n  },\n  {\n    \"id\": \"restaurant-2\",\n    \"label\": \"Citrus salad\",\n    \"value\": \"$11\",\n    \"status\": \"Ready fast\",\n    \"meta\": \"Cart builder\",\n    \"parentId\": \"restaurant-1\"\n  },\n  {\n    \"id\": \"restaurant-3\",\n    \"label\": \"Family dinner pack\",\n    \"value\": \"$42\",\n    \"status\": \"Popular\",\n    \"meta\": \"Kitchen queue\",\n    \"parentId\": \"restaurant-1\"\n  }\n];\nconst views = [\"Menu\",\"Order\",\"Kitchen\",\"Admin\"];\nconst transitions = [\"Hot station\",\"Ready fast\",\"Popular\",\"In Progress\",\"Done\"];\n\nexport function KitchenOrderBoard({ initialView = views[0] }: { initialView?: string }) {\n  const [view, setView] = useState(initialView);\n  const [records, setRecords] = useState(initialRecords);\n  const [input, setInput] = useState(\"\");\n  const [events, setEvents] = useState<string[]>([\"TableFlow ready\"]);\n  const visible = useMemo(() => records.filter((record) => view === views[0] || record.status.toLowerCase().includes(view.toLowerCase()) || record.meta.toLowerCase().includes(view.toLowerCase())), [records, view]);\n  async function mutate(payload: { action: \"create\" | \"transition\" | \"delete\"; id?: string; label?: string; value?: string; status?: string }) {\n    const response = await fetch(\"/api/orders\", {\n      method: \"POST\",\n      headers: { \"content-type\": \"application/json\" },\n      body: JSON.stringify(payload),\n    });\n    if (!response.ok) {\n      setEvents((current) => [\"Backend mutation failed\", ...current]);\n      return;\n    }\n    const data = await response.json() as { records: typeof initialRecords; record?: (typeof initialRecords)[number] };\n    setRecords(data.records);\n    setEvents((current) => [payload.action + \" persisted through /api/orders\", ...current]);\n    if (payload.action === \"create\") setInput(\"\");\n  }\n  return (\n    <main className=\"app\">\n      <header className=\"top\"><div className=\"wrap\" style={{display:\"flex\",justifyContent:\"space-between\",gap:12,alignItems:\"center\"}}><strong>TableFlow</strong><nav style={{display:\"flex\",gap:8,overflowX:\"auto\"}}>{views.map((item) => <a key={item} href={\"#\"+item} onClick={(event) => { event.preventDefault(); setView(item); }} className=\"primary\" style={{background:item===view?\"var(--primary)\":\"#e2e8f0\",color:item===view?\"white\":\"#0f172a\",textDecoration:\"none\"}}>{item}</a>)}</nav></div></header>\n      <section className=\"wrap hero\">\n        <div className=\"panel\">\n          <p style={{fontWeight:900,textTransform:\"uppercase\",letterSpacing:\".16em\",fontSize:12,color:\"var(--primary)\"}}>restaurant</p>\n          <h1 style={{fontSize:48,lineHeight:1,margin:\"10px 0\"}}>TableFlow</h1>\n          <p style={{lineHeight:1.7,color:\"#475569\"}}>Build an ecommerce store for boutique owners, inventory managers, and shoppers. Real users: store owner, inventory manager, shopper. Real actions: create products, add to cart, checkout with Stripe, receive webhook payment confirmation, reduce inventory, send order confirmation email. Real data: products, carts, orders, payments, inventory events. Real state changes: cart totals update, checkout creates order, payment webhook marks paid, stock decreases, refresh keeps saved state.</p>\n          <div className=\"ordering-board\" style={{marginTop:18}}>{visible.map((record) => <article key={record.id || record.label} className=\"card\"><strong>{record.label}</strong><p style={{fontSize:28,fontWeight:850,margin:\"8px 0\"}}>{record.value}</p><span>{record.status}</span><div style={{display:\"flex\",gap:8,marginTop:12}}><button data-action=\"transition\" data-api=\"/api/orders\" data-db-change=\"update-status\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"transition\", id: record.id })} className=\"primary\" style={{padding:\"8px 10px\"}}>Advance prep</button><button data-action=\"delete\" data-api=\"/api/orders\" data-db-change=\"delete-record\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"delete\", id: record.id })} className=\"primary\" style={{padding:\"8px 10px\",background:\"#fee2e2\",color:\"#991b1b\"}}>Remove line</button></div></article>)}</div>\n        </div>\n        <aside className=\"panel\">\n          <h2>Order item</h2>\n          <p>Adds ticket to kitchen queue</p>\n          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder=\"Customer, Item, Pickup time, Notes\" style={{width:\"100%\",minHeight:110,border:\"1px solid #cbd5e1\",borderRadius:12,padding:12}} />\n          <button data-action=\"create\" data-api=\"/api/orders\" data-db-change=\"insert-record\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"create\", label: input || \"Order item\", value: \"New\", status: transitions[0] || \"Created\" })} className=\"primary\" style={{width:\"100%\",marginTop:10}}>send order</button>\n          <div style={{display:\"grid\",gap:8,marginTop:16}}>{events.map((event) => <div key={event} className=\"card\">{event}</div>)}</div>\n        </aside>\n      </section>\n    </main>\n  );\n}\n"
+    },
+    {
+      "path": "features/orders/interactions.ts",
+      "content": "export const interactionMap = [\n  {\n    \"label\": \"Send order\",\n    \"type\": \"create\",\n    \"target\": \"KitchenTicket\",\n    \"result\": \"Adds order to kitchen queue\"\n  },\n  {\n    \"label\": \"Advance prep\",\n    \"type\": \"transition\",\n    \"target\": \"KitchenTicket\",\n    \"result\": \"Moves New -> Prep -> Ready -> Picked up\"\n  },\n  {\n    \"label\": \"Remove line\",\n    \"type\": \"delete\",\n    \"target\": \"OrderLine\",\n    \"result\": \"Removes item from order\"\n  }\n] as const;\nexport const relationshipMap = [\n  {\n    \"from\": \"KitchenTicket\",\n    \"to\": \"OrderLine\",\n    \"type\": \"one-to-many\",\n    \"via\": \"ticketId\"\n  },\n  {\n    \"from\": \"MenuItem\",\n    \"to\": \"OrderLine\",\n    \"type\": \"one-to-many\",\n    \"via\": \"menuItemId\"\n  }\n] as const;\n\nexport function validateOrdersRelationships(record: { parentId?: string }, existingIds: string[]) {\n  if (!relationshipMap.length) throw new Error(\"Generated app requires relational data models.\");\n  return !record.parentId || existingIds.includes(record.parentId);\n}\n"
+    },
+    {
+      "path": "db/restaurant-schema.ts",
+      "content": "export const models = [\n  {\n    \"name\": \"MenuItem\",\n    \"fields\": [\n      \"name\",\n      \"price\",\n      \"station\",\n      \"available\",\n      \"prepTime\"\n    ]\n  },\n  {\n    \"name\": \"KitchenTicket\",\n    \"fields\": [\n      \"items\",\n      \"customerName\",\n      \"status\",\n      \"pickupTime\"\n    ]\n  },\n  {\n    \"name\": \"OrderLine\",\n    \"fields\": [\n      \"ticketId\",\n      \"menuItemId\",\n      \"quantity\",\n      \"notes\"\n    ]\n  }\n] as const;\nexport const relationships = [\n  {\n    \"from\": \"KitchenTicket\",\n    \"to\": \"OrderLine\",\n    \"type\": \"one-to-many\",\n    \"via\": \"ticketId\"\n  },\n  {\n    \"from\": \"MenuItem\",\n    \"to\": \"OrderLine\",\n    \"type\": \"one-to-many\",\n    \"via\": \"menuItemId\"\n  }\n] as const;\n\nexport function assertRelationalSchema() {\n  if (relationships.length < 2) throw new Error(\"Relational schema is required.\");\n  return relationships.map((relation) => relation.from + \" -> \" + relation.to);\n}\n"
+    },
+    {
+      "path": "api/orders/handlers.ts",
+      "content": "import { applyOrdersMutation, removeOrdersRecord, transitionOrdersRecord } from \"@/lib/kitchen-engine\";\n\nexport const statusFlow = [\n  \"Hot station\",\n  \"Ready fast\",\n  \"Popular\",\n  \"In Progress\",\n  \"Done\"\n] as const;\n\nexport function handleOrdersAction(records: Array<{ id: string; label: string; value: string; status: string; meta?: string; parentId?: string }>, body: { action?: string; id?: string; label?: string; value?: string; status?: string }) {\n  if (body.action === \"transition\" && body.id) return transitionOrdersRecord(records, body.id, [...statusFlow]);\n  if (body.action === \"delete\" && body.id) return removeOrdersRecord(records, body.id);\n  return applyOrdersMutation(records, { label: body.label || \"Order item\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\" });\n}\n"
+    },
+    {
+      "path": "architecture/database-schema.json",
+      "content": "{\n  \"appType\": \"internal tool\",\n  \"models\": [\n    {\n      \"name\": \"MenuItem\",\n      \"fields\": [\n        \"name\",\n        \"price\",\n        \"station\",\n        \"available\",\n        \"prepTime\"\n      ],\n      \"owns\": [\n        {\n          \"model\": \"OrderLine\",\n          \"via\": \"menuItemId\",\n          \"type\": \"one-to-many\"\n        }\n      ],\n      \"belongsTo\": []\n    },\n    {\n      \"name\": \"KitchenTicket\",\n      \"fields\": [\n        \"items\",\n        \"customerName\",\n        \"status\",\n        \"pickupTime\"\n      ],\n      \"owns\": [\n        {\n          \"model\": \"OrderLine\",\n          \"via\": \"ticketId\",\n          \"type\": \"one-to-many\"\n        }\n      ],\n      \"belongsTo\": []\n    },\n    {\n      \"name\": \"OrderLine\",\n      \"fields\": [\n        \"ticketId\",\n        \"menuItemId\",\n        \"quantity\",\n        \"notes\"\n      ],\n      \"owns\": [],\n      \"belongsTo\": [\n        {\n          \"model\": \"KitchenTicket\",\n          \"via\": \"ticketId\",\n          \"type\": \"one-to-many\"\n        },\n        {\n          \"model\": \"MenuItem\",\n          \"via\": \"menuItemId\",\n          \"type\": \"one-to-many\"\n        }\n      ]\n    }\n  ],\n  \"relationships\": [\n    {\n      \"from\": \"KitchenTicket\",\n      \"to\": \"OrderLine\",\n      \"type\": \"one-to-many\",\n      \"via\": \"ticketId\"\n    },\n    {\n      \"from\": \"MenuItem\",\n      \"to\": \"OrderLine\",\n      \"type\": \"one-to-many\",\n      \"via\": \"menuItemId\"\n    }\n  ],\n  \"invariants\": [\n    \"Every generated app has at least two relational links.\",\n    \"Child records carry a foreign key defined by relationship.via.\",\n    \"Deletes cascade dependent runtime rows through parentId in preview runtime.\"\n  ]\n}"
+    },
+    {
+      "path": "architecture/api-map.json",
+      "content": "{\n  \"backendRequired\": true,\n  \"endpoints\": [\n    {\n      \"method\": \"GET\",\n      \"path\": \"/api/menu\",\n      \"purpose\": \"List menu items\",\n      \"hitsBackend\": true,\n      \"requestBody\": null,\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    },\n    {\n      \"method\": \"POST\",\n      \"path\": \"/api/orders\",\n      \"purpose\": \"Submit order\",\n      \"hitsBackend\": true,\n      \"requestBody\": {\n        \"action\": \"create | transition | delete\",\n        \"id\": \"optional record id\",\n        \"label\": \"optional user value\"\n      },\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    },\n    {\n      \"method\": \"PATCH\",\n      \"path\": \"/api/kitchen/[id]\",\n      \"purpose\": \"Update prep status\",\n      \"hitsBackend\": true,\n      \"requestBody\": {\n        \"action\": \"create | transition | delete\",\n        \"id\": \"optional record id\",\n        \"label\": \"optional user value\"\n      },\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    }\n  ],\n  \"actionBindings\": [\n    {\n      \"action\": \"Send order\",\n      \"type\": \"create\",\n      \"target\": \"KitchenTicket\",\n      \"backend\": {\n        \"method\": \"GET\",\n        \"path\": \"/api/menu\",\n        \"purpose\": \"List menu items\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    },\n    {\n      \"action\": \"Advance prep\",\n      \"type\": \"transition\",\n      \"target\": \"KitchenTicket\",\n      \"backend\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/orders\",\n        \"purpose\": \"Submit order\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    },\n    {\n      \"action\": \"Remove line\",\n      \"type\": \"delete\",\n      \"target\": \"OrderLine\",\n      \"backend\": {\n        \"method\": \"PATCH\",\n        \"path\": \"/api/kitchen/[id]\",\n        \"purpose\": \"Update prep status\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/state-graph.json",
+      "content": "{\n  \"initialStates\": [\n    \"Hot station\",\n    \"Ready fast\",\n    \"Popular\"\n  ],\n  \"transitions\": [\n    {\n      \"from\": \"Hot station\",\n      \"to\": \"Ready fast\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance prep\"\n    },\n    {\n      \"from\": \"Ready fast\",\n      \"to\": \"Popular\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance prep\"\n    },\n    {\n      \"from\": \"Popular\",\n      \"to\": \"In Progress\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance prep\"\n    },\n    {\n      \"from\": \"In Progress\",\n      \"to\": \"Done\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance prep\"\n    },\n    {\n      \"from\": \"Done\",\n      \"to\": \"Done\",\n      \"terminal\": true,\n      \"triggeredBy\": \"Advance prep\"\n    }\n  ],\n  \"mutations\": [\n    {\n      \"action\": \"Send order\",\n      \"changes\": \"Adds order to kitchen queue\",\n      \"target\": \"KitchenTicket\"\n    },\n    {\n      \"action\": \"Advance prep\",\n      \"changes\": \"Moves New -> Prep -> Ready -> Picked up\",\n      \"target\": \"KitchenTicket\"\n    },\n    {\n      \"action\": \"Remove line\",\n      \"changes\": \"Removes item from order\",\n      \"target\": \"OrderLine\"\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/event-system.json",
+      "content": "{\n  \"events\": [\n    {\n      \"name\": \"RestaurantCreateKitchenTicket\",\n      \"trigger\": \"Send order\",\n      \"payload\": {\n        \"target\": \"KitchenTicket\",\n        \"result\": \"Adds order to kitchen queue\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"append record\",\n        \"prepend audit event\"\n      ]\n    },\n    {\n      \"name\": \"RestaurantTransitionKitchenTicket\",\n      \"trigger\": \"Advance prep\",\n      \"payload\": {\n        \"target\": \"KitchenTicket\",\n        \"result\": \"Moves New -> Prep -> Ready -> Picked up\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"update record status\",\n        \"prepend audit event\"\n      ]\n    },\n    {\n      \"name\": \"RestaurantDeleteOrderLine\",\n      \"trigger\": \"Remove line\",\n      \"payload\": {\n        \"target\": \"OrderLine\",\n        \"result\": \"Removes item from order\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"remove record and dependents\",\n        \"prepend audit event\"\n      ]\n    }\n  ],\n  \"delivery\": \"in-process runtime event log plus API response payload\"\n}"
+    },
+    {
+      "path": "architecture/job-system.json",
+      "content": "{\n  \"asyncNeeded\": false,\n  \"queuePolicy\": \"Handle request-time mutations only; enqueue if action exceeds serverless timeout budget.\",\n  \"jobs\": []\n}"
+    },
+    {
+      "path": "architecture/execution-binding.json",
+      "content": "{\n  \"rule\": \"UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH\",\n  \"blockBuildIfAnyStepMissing\": true,\n  \"apiRoute\": \"/api/orders\",\n  \"bindings\": [\n    {\n      \"uiAction\": {\n        \"label\": \"Send order\",\n        \"selector\": \"[data-action=\\\"create\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/orders\",\n        \"requestAction\": \"create\"\n      },\n      \"databaseChange\": {\n        \"target\": \"KitchenTicket\",\n        \"operation\": \"insert\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    },\n    {\n      \"uiAction\": {\n        \"label\": \"Advance prep\",\n        \"selector\": \"[data-action=\\\"transition\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/orders\",\n        \"requestAction\": \"transition\"\n      },\n      \"databaseChange\": {\n        \"target\": \"KitchenTicket\",\n        \"operation\": \"update\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    },\n    {\n      \"uiAction\": {\n        \"label\": \"Remove line\",\n        \"selector\": \"[data-action=\\\"delete\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/orders\",\n        \"requestAction\": \"delete\"\n      },\n      \"databaseChange\": {\n        \"target\": \"OrderLine\",\n        \"operation\": \"delete\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/runtime-factory.json",
+      "content": "{\n  \"pipeline\": \"REAL RUNTIME APPLICATION FACTORY\",\n  \"runtimeType\": \"fullstack\",\n  \"phases\": {\n    \"intentToSpec\": {\n      \"appType\": \"internal tool\",\n      \"structuredSpec\": true,\n      \"routes\": [\n        {\n          \"path\": \"/\",\n          \"label\": \"Menu\",\n          \"purpose\": \"Browse menu and featured bundles\"\n        },\n        {\n          \"path\": \"/order\",\n          \"label\": \"Order\",\n          \"purpose\": \"Build a cart and submit order\"\n        },\n        {\n          \"path\": \"/kitchen\",\n          \"label\": \"Kitchen\",\n          \"purpose\": \"Track prep queue\"\n        },\n        {\n          \"path\": \"/admin\",\n          \"label\": \"Admin\",\n          \"purpose\": \"Update menu and fulfillment status\"\n        }\n      ],\n      \"databaseSchema\": [\n        {\n          \"name\": \"MenuItem\",\n          \"fields\": [\n            \"name\",\n            \"price\",\n            \"station\",\n            \"available\",\n            \"prepTime\"\n          ]\n        },\n        {\n          \"name\": \"KitchenTicket\",\n          \"fields\": [\n            \"items\",\n            \"customerName\",\n            \"status\",\n            \"pickupTime\"\n          ]\n        },\n        {\n          \"name\": \"OrderLine\",\n          \"fields\": [\n            \"ticketId\",\n            \"menuItemId\",\n            \"quantity\",\n            \"notes\"\n          ]\n        }\n      ],\n      \"uiScreens\": [\n        {\n          \"path\": \"/\",\n          \"screen\": \"Menu\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/order\",\n          \"screen\": \"Order\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/kitchen\",\n          \"screen\": \"Kitchen\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/admin\",\n          \"screen\": \"Admin\",\n          \"wiredToBackend\": true\n        }\n      ],\n      \"requiredIntegrations\": [\n        \"database\",\n        \"project runtime API\",\n        \"auth-ready protected routes\"\n      ],\n      \"unclearSpecPolicy\": \"block generation and ask questions\"\n    },\n    \"codeGeneration\": {\n      \"realFileTree\": true,\n      \"backendRoutes\": [\n        \"/api/menu\",\n        \"/api/orders\",\n        \"/api/kitchen/[id]\"\n      ],\n      \"frontendPages\": [\n        \"/\",\n        \"/order\",\n        \"/kitchen\",\n        \"/admin\"\n      ],\n      \"databaseSchema\": \"schema.prisma\",\n      \"environmentVariables\": [\n        \".env.example\"\n      ],\n      \"noPlaceholderButtons\": true,\n      \"noStaticMockDataUnlessMarkedMock\": true\n    },\n    \"buildInstall\": {\n      \"requiredCommands\": [\n        \"npm install\",\n        \"npm run build\",\n        \"npm run type-check\",\n        \"npm run lint\"\n      ],\n      \"maxRepairLoops\": 3,\n      \"invalidIfBuildFails\": true\n    },\n    \"runtimeBootstrap\": {\n      \"startCommand\": \"npm run start\",\n      \"healthChecks\": [\n        \"GET /\",\n        \"GET /api/orders\"\n      ],\n      \"databaseCheck\": \"assertRelationalSchema\",\n      \"brokenIfAnyFail\": true\n    },\n    \"interactionTesting\": {\n      \"clickEveryButton\": true,\n      \"submitEveryForm\": true,\n      \"navigateEveryRoute\": true,\n      \"testApiEndpoints\": true,\n      \"blockFakeUi\": true\n    },\n    \"previewGeneration\": {\n      \"realOnly\": true,\n      \"requiresServerRunning\": true,\n      \"requiresRoutesRespond\": true,\n      \"requiresJsExecuting\": true,\n      \"requiresBackendAlive\": true,\n      \"requiresDatabaseConnected\": true,\n      \"noStaticPreviewModeEver\": true\n    },\n    \"selfHeal\": {\n      \"loop\": \"build -> run -> test -> fail -> fix -> rebuild\",\n      \"maxLoops\": 5,\n      \"stopOnlyWhen\": [\n        \"zero runtime errors\",\n        \"all routes respond\",\n        \"UI is interactive\",\n        \"backend is connected\"\n      ]\n    },\n    \"deploymentGate\": {\n      \"buildSuccess\": true,\n      \"runtimeSuccess\": true,\n      \"testSuccess\": true,\n      \"noFakeUiDetected\": true\n    }\n  },\n  \"generationMode\": \"module-assisted\",\n  \"integrationModules\": [\n    {\n      \"name\": \"Ecommerce-Stripe\",\n      \"category\": \"ecommerce\",\n      \"description\": \"Stripe checkout session, webhook payment confirmation, cart state, and order confirmation email.\",\n      \"validationScore\": 97,\n      \"dependencies\": [\n        \"stripe@^22.2.0\",\n        \"zustand@^5.0.13\"\n      ],\n      \"files\": [\n        \"integrations/ecommerce-stripe/checkout.ts\",\n        \"app/api/stripe/webhook/route.ts\",\n        \"integrations/ecommerce-stripe/cart-store.ts\",\n        \"integrations/ecommerce-stripe/order-email.ts\"\n      ]\n    }\n  ],\n  \"moduleInjection\": {\n    \"stage\": \"before-generation\",\n    \"rule\": \"Detected category modules are injected into the isolated runtime factory before code validation.\"\n  }\n}"
+    },
+    {
+      "path": "architecture/README.md",
+      "content": "# TableFlow Architecture\n\n## Database schema\nSee `database-schema.json` for models and real relationships.\n\n## API map\nSee `api-map.json`. Every listed action is bound to a backend endpoint and must persist state.\n\n## State graph\nSee `state-graph.json`. Transitions define what changes what.\n\n## Event system\nSee `event-system.json`. Events describe trigger, payload, and side effects.\n\n## Job system\nSee `job-system.json`. Async work is queued when the action is long-running or externally dependent.\n\n## Execution binding\nSee `execution-binding.json`. Every button must complete: UI action -> API route -> database change -> state update -> UI refresh.\n\n## Runtime factory\nSee `runtime-factory.json`. Preview and deployment are blocked unless build, runtime, interaction, and fake-UI checks pass.\n"
+    },
+    {
+      "path": "lib/kitchen-engine.ts",
+      "content": "type RecordItem = { id: string; label: string; value: string; status: string; meta?: string; parentId?: string };\n\nexport function applyOrdersMutation(records: RecordItem[], input: Pick<RecordItem, \"label\" | \"value\" | \"status\">) {\n  const created = { id: crypto.randomUUID?.() || String(Date.now()), ...input, meta: \"send order\", parentId: records[0]?.id };\n  return {\n    records: [created, ...records],\n    event: \"send order: \" + created.label,\n  };\n}\n\nexport function transitionOrdersRecord(records: RecordItem[], id: string, flow: string[]) {\n  let changed = \"No record changed\";\n  const nextRecords = records.map((record) => {\n    if (record.id !== id) return record;\n    const index = flow.indexOf(record.status);\n    const status = flow[Math.min(index + 1, flow.length - 1)] || \"Done\";\n    changed = record.label + \" moved to \" + status;\n    return { ...record, status };\n  });\n  return { records: nextRecords, event: changed };\n}\n\nexport function removeOrdersRecord(records: RecordItem[], id: string) {\n  const target = records.find((record) => record.id === id);\n  return {\n    records: records.filter((record) => record.id !== id && record.parentId !== id),\n    event: target ? \"Removed \" + target.label : \"Removed record\",\n  };\n}\n"
+    },
+    {
+      "path": "app/api/orders/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"restaurant-1\",\n    \"label\": \"Spicy noodle bowl\",\n    \"value\": \"$14\",\n    \"status\": \"Hot station\",\n    \"meta\": \"Menu browsing\"\n  },\n  {\n    \"id\": \"restaurant-2\",\n    \"label\": \"Citrus salad\",\n    \"value\": \"$11\",\n    \"status\": \"Ready fast\",\n    \"meta\": \"Cart builder\",\n    \"parentId\": \"restaurant-1\"\n  },\n  {\n    \"id\": \"restaurant-3\",\n    \"label\": \"Family dinner pack\",\n    \"value\": \"$42\",\n    \"status\": \"Popular\",\n    \"meta\": \"Kitchen queue\",\n    \"parentId\": \"restaurant-1\"\n  }\n];\nconst statusFlow = [\"Hot station\",\"Ready fast\",\"Popular\",\"In Progress\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"orders\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Order item\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"send order\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "preview/index.html",
+      "content": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>TableFlow</title><style>:root{--surface:#f7fee7;--primary:#3f6212;--accent:#06b6d4;--ink:#172554}*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,system-ui,sans-serif}header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 20px;background:rgba(255,255,255,.92);border-bottom:1px solid #e2e8f0;backdrop-filter:blur(14px)}nav{display:flex;gap:8px;overflow:auto}button,nav a{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;text-decoration:none}nav a{background:#e2e8f0;color:#334155}.active,#submit{background:var(--primary)!important;color:white}.hero{max-width:1180px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:minmax(0,1fr)340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:22px;box-shadow:0 18px 45px rgba(15,23,42,.08)}h1{font-size:clamp(34px,5vw,58px);line-height:1;margin:8px 0}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:900;color:var(--primary)}.ordering-board{display:grid;gap:12px;grid-template-columns:1.2fr .8fr;}.card,.event{background:#f8fafc;border:1px solid #e2e8f0;border-radius:13px;padding:14px}.value{font-size:28px;font-weight:850;margin:8px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button:first-child{background:var(--primary);color:white}.actions button:last-child{background:#fee2e2;color:#991b1b}textarea{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit}#submit{width:100%;margin-top:10px}.event{margin-top:10px;color:#047857}@media(max-width:840px){.hero{grid-template-columns:1fr}.ordering-board{grid-template-columns:1fr!important}header{align-items:flex-start;flex-direction:column}}</style></head>\n<body><main class=\"app\"><header><strong>TableFlow</strong><nav id=\"nav\"></nav></header><section class=\"hero\"><div class=\"panel\"><p class=\"eyebrow\">restaurant runtime</p><h1>TableFlow</h1><p>Build an ecommerce store for boutique owners, inventory managers, and shoppers. Real users: store owner, inventory manager, shopper. Real actions: create products, add to cart, checkout with Stripe, receive webhook payment confirmation, reduce inventory, send order confirmation email. Real data: products, carts, orders, payments, inventory events. Real state changes: cart totals update, checkout creates order, payment webhook marks paid, stock decreases, refresh keeps saved state.</p><div id=\"records\" class=\"ordering-board\"></div></div><aside class=\"panel\"><h2>Order item</h2><textarea id=\"input\" placeholder=\"Customer, Item, Pickup time, Notes\"></textarea><button id=\"submit\" data-action=\"create\" data-api=\"/api/projects/a6717287-3c6c-4e2b-a7fb-119b2d5dff30/runtime\" data-db-change=\"insert-record\" data-state-update=\"records=data.state.records\" data-ui-refresh=\"render\">send order</button><div id=\"events\"></div></aside></section></main>\n<script>\nconst projectId=\"a6717287-3c6c-4e2b-a7fb-119b2d5dff30\";const views=[\"Menu\",\"Order\",\"Kitchen\",\"Admin\"];const statusFlow=[\"Hot station\",\"Ready fast\",\"Popular\",\"In Progress\",\"Done\"];const transitionLabel=\"Advance prep\";const deleteLabel=\"Remove line\";let records=[{\"id\":\"restaurant-1\",\"label\":\"Spicy noodle bowl\",\"value\":\"$14\",\"status\":\"Hot station\",\"meta\":\"Menu browsing\"},{\"id\":\"restaurant-2\",\"label\":\"Citrus salad\",\"value\":\"$11\",\"status\":\"Ready fast\",\"meta\":\"Cart builder\",\"parentId\":\"restaurant-1\"},{\"id\":\"restaurant-3\",\"label\":\"Family dinner pack\",\"value\":\"$42\",\"status\":\"Popular\",\"meta\":\"Kitchen queue\",\"parentId\":\"restaurant-1\"}];let active=views[0];const nav=document.getElementById(\"nav\");const root=document.getElementById(\"records\");const events=document.getElementById(\"events\");const input=document.getElementById(\"input\");\nasync function load(){try{const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\");if(res.ok){const data=await res.json();records=data.state.records||records;log(\"Loaded isolated runtime state\");}}catch(error){log(\"Runtime API unavailable; using bundled state\");}render();}\nfunction render(){nav.innerHTML=\"\";views.forEach(view=>{const b=document.createElement(\"a\");b.href=\"#\"+view;b.textContent=view;b.className=view===active?\"active\":\"\";b.onclick=(event)=>{event.preventDefault();active=view;log(\"Opened \"+view);render();};nav.appendChild(b)});root.innerHTML=\"\";records.forEach(record=>{const card=document.createElement(\"article\");card.className=\"card\";card.innerHTML=\"<strong>\"+record.label+\"</strong><div class='value'>\"+record.value+\"</div><span>\"+record.status+\"</span><div class='actions'><button data-action='transition' data-api='/api/projects/\"+projectId+\"/runtime' data-db-change='update-status' data-state-update='records=data.state.records' data-ui-refresh='render' data-id='\"+record.id+\"'>\"+transitionLabel+\"</button><button data-action='delete' data-api='/api/projects/\"+projectId+\"/runtime' data-db-change='delete-record' data-state-update='records=data.state.records' data-ui-refresh='render' data-id='\"+record.id+\"'>\"+deleteLabel+\"</button></div>\";card.onclick=()=>log(\"Selected \"+record.label);card.querySelector(\"[data-action='transition']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"transition\",id:record.id});};card.querySelector(\"[data-action='delete']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"delete\",id:record.id});};root.appendChild(card);});}\nfunction log(message){const item=document.createElement(\"div\");item.className=\"event\";item.textContent=message;events.prepend(item);}\nasync function mutate(payload){const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\",{method:\"POST\",headers:{\"content-type\":\"application/json\"},body:JSON.stringify({type:\"send order\",...payload})});if(res.ok){const data=await res.json();records=data.state.records;log(\"Runtime mutation persisted: \"+(payload.action||\"create\"));render();}else if(payload.action===\"transition\"){records=records.map(record=>record.id===payload.id?{...record,status:statusFlow[Math.min(statusFlow.indexOf(record.status)+1,statusFlow.length-1)]||\"Done\"}:record);log(\"Transition saved locally\");render();}else if(payload.action===\"delete\"){records=records.filter(record=>record.id!==payload.id&&record.parentId!==payload.id);log(\"Delete saved locally\");render();}}\ndocument.getElementById(\"submit\").onclick=async()=>{const label=input.value.trim()||\"send order\";await mutate({action:\"create\",label,value:\"New\",status:statusFlow[0]||\"Created\"});input.value=\"\";};\nload();\n</script></body></html>"
+    },
+    {
+      "path": "app/order/page.tsx",
+      "content": "import { KitchenOrderBoard } from \"@/components/KitchenOrderBoard\";\n\nexport default function OrderPage() {\n  return <KitchenOrderBoard initialView=\"Order\" />;\n}\n"
+    },
+    {
+      "path": "app/kitchen/page.tsx",
+      "content": "import { KitchenOrderBoard } from \"@/components/KitchenOrderBoard\";\n\nexport default function KitchenPage() {\n  return <KitchenOrderBoard initialView=\"Kitchen\" />;\n}\n"
+    },
+    {
+      "path": "app/admin/page.tsx",
+      "content": "import { KitchenOrderBoard } from \"@/components/KitchenOrderBoard\";\n\nexport default function AdminPage() {\n  return <KitchenOrderBoard initialView=\"Admin\" />;\n}\n"
+    },
+    {
+      "path": "app/api/menu/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"restaurant-1\",\n    \"label\": \"Spicy noodle bowl\",\n    \"value\": \"$14\",\n    \"status\": \"Hot station\",\n    \"meta\": \"Menu browsing\"\n  },\n  {\n    \"id\": \"restaurant-2\",\n    \"label\": \"Citrus salad\",\n    \"value\": \"$11\",\n    \"status\": \"Ready fast\",\n    \"meta\": \"Cart builder\",\n    \"parentId\": \"restaurant-1\"\n  },\n  {\n    \"id\": \"restaurant-3\",\n    \"label\": \"Family dinner pack\",\n    \"value\": \"$42\",\n    \"status\": \"Popular\",\n    \"meta\": \"Kitchen queue\",\n    \"parentId\": \"restaurant-1\"\n  }\n];\nconst statusFlow = [\"Hot station\",\"Ready fast\",\"Popular\",\"In Progress\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/menu\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Order item\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"send order\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "integrations/ecommerce-stripe/checkout.ts",
+      "content": "// Integration module: Ecommerce-Stripe\nimport Stripe from \"stripe\";\n\nexport type CartLine = { productId: string; name: string; quantity: number; unitAmount: number };\n\nexport async function createStripeCheckoutSession(lines: CartLine[], orderId: string) {\n  const stripe = new Stripe(requiredEnv(\"STRIPE_SECRET_KEY\"));\n  return stripe.checkout.sessions.create({\n    mode: \"payment\",\n    metadata: { orderId },\n    success_url: `${requiredEnv(\"NEXT_PUBLIC_APP_URL\")}/checkout/success?order=${orderId}`,\n    cancel_url: `${requiredEnv(\"NEXT_PUBLIC_APP_URL\")}/cart`,\n    line_items: lines.map((line) => ({\n      quantity: line.quantity,\n      price_data: {\n        currency: \"usd\",\n        unit_amount: line.unitAmount,\n        product_data: { name: line.name },\n      },\n    })),\n  });\n}\n\nfunction requiredEnv(key: string) {\n  const value = process.env[key];\n  if (!value) throw new Error(`Missing required env var: ${key}`);\n  return value;\n}\n"
+    },
+    {
+      "path": "app/api/stripe/webhook/route.ts",
+      "content": "// Integration module: Ecommerce-Stripe\nimport { NextRequest, NextResponse } from \"next/server\";\nimport Stripe from \"stripe\";\n\nexport async function POST(request: NextRequest) {\n  const stripe = new Stripe(requiredEnv(\"STRIPE_SECRET_KEY\"));\n  const signature = request.headers.get(\"stripe-signature\");\n  if (!signature) return NextResponse.json({ error: \"Missing Stripe signature\" }, { status: 400 });\n  const event = stripe.webhooks.constructEvent(await request.text(), signature, requiredEnv(\"STRIPE_WEBHOOK_SECRET\"));\n  if (event.type === \"payment_intent.succeeded\") {\n    const payment = event.data.object as Stripe.PaymentIntent;\n    return NextResponse.json({ ok: true, orderStatus: \"paid\", paymentId: payment.id });\n  }\n  return NextResponse.json({ ok: true, ignored: event.type });\n}\n\nfunction requiredEnv(key: string) {\n  const value = process.env[key];\n  if (!value) throw new Error(`Missing required env var: ${key}`);\n  return value;\n}\n"
+    },
+    {
+      "path": "integrations/ecommerce-stripe/cart-store.ts",
+      "content": "// Integration module: Ecommerce-Stripe\nimport { create } from \"zustand\";\n\nexport type CartItem = { productId: string; name: string; quantity: number; unitAmount: number };\n\nexport const useCartStore = create<{\n  items: CartItem[];\n  addItem: (item: CartItem) => void;\n  updateQuantity: (productId: string, quantity: number) => void;\n  clear: () => void;\n}>((set) => ({\n  items: [],\n  addItem: (item) => set((state) => ({ items: mergeItem(state.items, item) })),\n  updateQuantity: (productId, quantity) =>\n    set((state) => ({ items: state.items.map((item) => (item.productId === productId ? { ...item, quantity } : item)).filter((item) => item.quantity > 0) })),\n  clear: () => set({ items: [] }),\n}));\n\nfunction mergeItem(items: CartItem[], next: CartItem) {\n  const existing = items.find((item) => item.productId === next.productId);\n  if (!existing) return [...items, next];\n  return items.map((item) => (item.productId === next.productId ? { ...item, quantity: item.quantity + next.quantity } : item));\n}\n"
+    },
+    {
+      "path": "integrations/ecommerce-stripe/order-email.ts",
+      "content": "// Integration module: Ecommerce-Stripe\nexport function orderConfirmationEmail(input: { orderId: string; customerName: string; total: string }) {\n  return {\n    subject: `Order ${input.orderId} confirmed`,\n    text: `Hi ${input.customerName}, your order total ${input.total} is confirmed and is now being prepared.`,\n  };\n}\n"
+    },
+    {
+      "path": "architecture/integration-modules.json",
+      "content": "{\n  \"mode\": \"module-assisted\",\n  \"modules\": [\n    {\n      \"name\": \"Ecommerce-Stripe\",\n      \"category\": \"ecommerce\",\n      \"description\": \"Stripe checkout session, webhook payment confirmation, cart state, and order confirmation email.\",\n      \"validationScore\": 97,\n      \"dependencies\": [\n        \"stripe@^22.2.0\",\n        \"zustand@^5.0.13\"\n      ],\n      \"files\": [\n        \"integrations/ecommerce-stripe/checkout.ts\",\n        \"app/api/stripe/webhook/route.ts\",\n        \"integrations/ecommerce-stripe/cart-store.ts\",\n        \"integrations/ecommerce-stripe/order-email.ts\"\n      ]\n    }\n  ],\n  \"validation\": [\n    {\n      \"input\": \"cart with two line items\",\n      \"expectedOutput\": \"checkout session contains two Stripe line_items\"\n    },\n    {\n      \"input\": \"payment_intent.succeeded webhook\",\n      \"expectedOutput\": \"orderStatus is paid\"\n    }\n  ]\n}"
+    }
+  ],
+  "metadata": {
+    "fileCount": 33,
+    "featureCount": 5,
+    "onboardingSteps": 5,
+    "archived": false
+  },
+  "appPlan": {
+    "category": "restaurant",
+    "productNames": [
+      "TableFlow",
+      "MenuPilot",
+      "OrderNest"
+    ],
+    "signals": [
+      "booking",
+      "calendar",
+      "appointment",
+      "availability",
+      "schedule",
+      "reservation"
+    ],
+    "problemTemplate": "Runs menu browsing, order intake, kitchen queue, and pickup readiness from one ordering app.",
+    "audience": "restaurants, food trucks, and ghost kitchens",
+    "monetization": "monthly restaurant SaaS plus online ordering fee",
+    "visualDirection": "ordering-first interface with menu cards, kitchen queue, and status updates",
+    "layout": "ordering",
+    "palette": {
+      "surface": "#f7fee7",
+      "primary": "#3f6212",
+      "secondary": "#1f2937",
+      "accent": "#06b6d4",
+      "ink": "#172554"
+    },
+    "routes": [
+      {
+        "path": "/",
+        "label": "Menu",
+        "purpose": "Browse menu and featured bundles"
+      },
+      {
+        "path": "/order",
+        "label": "Order",
+        "purpose": "Build a cart and submit order"
+      },
+      {
+        "path": "/kitchen",
+        "label": "Kitchen",
+        "purpose": "Track prep queue"
+      },
+      {
+        "path": "/admin",
+        "label": "Admin",
+        "purpose": "Update menu and fulfillment status"
+      }
+    ],
+    "dataModels": [
+      {
+        "name": "MenuItem",
+        "fields": [
+          "name",
+          "price",
+          "station",
+          "available",
+          "prepTime"
+        ]
+      },
+      {
+        "name": "KitchenTicket",
+        "fields": [
+          "items",
+          "customerName",
+          "status",
+          "pickupTime"
+        ]
+      },
+      {
+        "name": "OrderLine",
+        "fields": [
+          "ticketId",
+          "menuItemId",
+          "quantity",
+          "notes"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "KitchenTicket",
+        "to": "OrderLine",
+        "type": "one-to-many",
+        "via": "ticketId"
+      },
+      {
+        "from": "MenuItem",
+        "to": "OrderLine",
+        "type": "one-to-many",
+        "via": "menuItemId"
+      }
+    ],
+    "apiEndpoints": [
+      {
+        "method": "GET",
+        "path": "/api/menu",
+        "purpose": "List menu items"
+      },
+      {
+        "method": "POST",
+        "path": "/api/orders",
+        "purpose": "Submit order"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/kitchen/[id]",
+        "purpose": "Update prep status"
+      }
+    ],
+    "navigation": [
+      "Menu",
+      "Order",
+      "Kitchen",
+      "Admin"
+    ],
+    "features": [
+      "Menu browsing",
+      "Cart builder",
+      "Kitchen queue",
+      "Pickup status",
+      "Menu admin"
+    ],
+    "interactions": [
+      {
+        "label": "Send order",
+        "type": "create",
+        "target": "KitchenTicket",
+        "result": "Adds order to kitchen queue"
+      },
+      {
+        "label": "Advance prep",
+        "type": "transition",
+        "target": "KitchenTicket",
+        "result": "Moves New -> Prep -> Ready -> Picked up"
+      },
+      {
+        "label": "Remove line",
+        "type": "delete",
+        "target": "OrderLine",
+        "result": "Removes item from order"
+      }
+    ],
+    "forms": [
+      {
+        "name": "Order item",
+        "fields": [
+          "Customer",
+          "Item",
+          "Pickup time",
+          "Notes"
+        ],
+        "action": "Adds ticket to kitchen queue"
+      }
+    ],
+    "seedData": [
+      {
+        "label": "Spicy noodle bowl",
+        "value": "$14",
+        "status": "Hot station"
+      },
+      {
+        "label": "Citrus salad",
+        "value": "$11",
+        "status": "Ready fast"
+      },
+      {
+        "label": "Family dinner pack",
+        "value": "$42",
+        "status": "Popular"
+      }
+    ],
+    "appType": "internal tool",
+    "productName": "TableFlow",
+    "problem": "Build an ecommerce store for boutique owners, inventory managers, and shoppers. Real users: store owner, inventory manager, shopper. Real actions: create products, add to cart, checkout with Stripe, receive webhook payment confirmation, reduce inventory, send order confirmation email. Real data: products, carts, orders, payments, inventory events. Real state changes: cart totals update, checkout creates order, payment webhook marks paid, stock decreases, refresh keeps saved state.",
+    "truthSpec": {
+      "realUsers": true,
+      "realActions": true,
+      "realData": true,
+      "realStateChanges": true,
+      "blocksShallowMode": false,
+      "rejectionReasons": []
+    }
+  },
+  "uniqueness": {
+    "score": 96,
+    "signature": "restaurant::ordering::app/admin/page.tsx|app/kitchen/page.tsx|app/order/page.tsx|app/page.tsx::app/api/menu/route.ts|app/api/orders/route.ts|app/api/stripe/webhook/route.ts::components/KitchenOrderBoard.tsx::MenuItem:name,price,station,available,prepTime|KitchenTicket:items,customerName,status,pickupTime|OrderLine:ticketId,menuItemId,quantity,notes::KitchenTicket->OrderLine:ticketId|MenuItem->OrderLine:menuItemId::create:KitchenTicket:Adds order to kitchen queue|transition:KitchenTicket:Moves New -> Prep -> Ready -> Picked up|delete:OrderLine:Removes item from order",
+    "routeSignature": "/|/order|/kitchen|/admin",
+    "featureSignature": "Menu browsing|Cart builder|Kitchen queue|Pickup status|Menu admin",
+    "schemaSignature": "MenuItem:name,price,station,available,prepTime|KitchenTicket:items,customerName,status,pickupTime|OrderLine:ticketId,menuItemId,quantity,notes",
+    "relationshipSignature": "KitchenTicket->OrderLine:ticketId|MenuItem->OrderLine:menuItemId",
+    "componentSignature": "components/KitchenOrderBoard.tsx"
+  },
+  "buildValidation": {
+    "status": "passed",
+    "checkedAt": "2026-05-31T15:08:58.585Z",
+    "fileCount": 33,
+    "routeCount": 4,
+    "apiCount": 3,
+    "logs": [
+      "Static build validation passed",
+      "Isolated source tree present",
+      "Project-specific runtime API is wired"
+    ]
+  }
+}

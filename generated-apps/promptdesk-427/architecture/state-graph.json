@@ -1,0 +1,56 @@
+{
+  "initialStates": [
+    "Queued",
+    "Active",
+    "Healthy"
+  ],
+  "transitions": [
+    {
+      "from": "Queued",
+      "to": "Active",
+      "terminal": false,
+      "triggeredBy": "Advance variant 427 state"
+    },
+    {
+      "from": "Active",
+      "to": "Healthy",
+      "terminal": false,
+      "triggeredBy": "Advance variant 427 state"
+    },
+    {
+      "from": "Healthy",
+      "to": "In Progress",
+      "terminal": false,
+      "triggeredBy": "Advance variant 427 state"
+    },
+    {
+      "from": "In Progress",
+      "to": "Done",
+      "terminal": false,
+      "triggeredBy": "Advance variant 427 state"
+    },
+    {
+      "from": "Done",
+      "to": "Done",
+      "terminal": true,
+      "triggeredBy": "Advance variant 427 state"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Create variant 427 event",
+      "changes": "Adds event to PromptDesk 427 runtime queue",
+      "target": "AiContentEvent427"
+    },
+    {
+      "action": "Advance variant 427 state",
+      "changes": "Moves Queued -> Active -> Reviewed -> Done",
+      "target": "AiContentRuntime427"
+    },
+    {
+      "action": "Remove variant 427 audit",
+      "changes": "Removes audit and dependent runtime rows",
+      "target": "AiContentAudit427"
+    }
+  ]
+}

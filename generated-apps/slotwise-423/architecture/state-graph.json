@@ -1,0 +1,44 @@
+{
+  "initialStates": [
+    "Queued",
+    "Active",
+    "Healthy"
+  ],
+  "transitions": [
+    {
+      "from": "Requested",
+      "to": "Confirmed",
+      "terminal": false,
+      "triggeredBy": "Advance variant 423 state"
+    },
+    {
+      "from": "Confirmed",
+      "to": "Completed",
+      "terminal": false,
+      "triggeredBy": "Advance variant 423 state"
+    },
+    {
+      "from": "Completed",
+      "to": "Completed",
+      "terminal": true,
+      "triggeredBy": "Advance variant 423 state"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Create variant 423 event",
+      "changes": "Adds event to SlotWise 423 runtime queue",
+      "target": "BookingEvent423"
+    },
+    {
+      "action": "Advance variant 423 state",
+      "changes": "Moves Queued -> Active -> Reviewed -> Done",
+      "target": "BookingRuntime423"
+    },
+    {
+      "action": "Remove variant 423 audit",
+      "changes": "Removes audit and dependent runtime rows",
+      "target": "BookingAudit423"
+    }
+  ]
+}

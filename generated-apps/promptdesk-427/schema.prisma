@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AiContentRuntime427 {
+  id        String   @id @default(cuid())
+  aicontent427Name String
+  aicontent427Owner String
+  aicontent427State String
+  aicontent427Score String
+  AiContentEvent427 AiContentEvent427[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AiContentEvent427 {
+  id        String   @id @default(cuid())
+  aicontent427RecordId String
+  aicontent427Action String
+  aicontent427Actor String
+  aicontent427Result String
+  AiContentAudit427 AiContentAudit427[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AiContentAudit427 {
+  id        String   @id @default(cuid())
+  aicontent427EventId String
+  aicontent427Reviewer String
+  aicontent427Decision String
+  aicontent427CreatedAt String
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

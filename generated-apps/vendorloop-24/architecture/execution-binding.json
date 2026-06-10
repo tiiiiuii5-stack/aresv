@@ -1,0 +1,82 @@
+{
+  "rule": "UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH",
+  "blockBuildIfAnyStepMissing": true,
+  "apiRoute": "/api/inquiries",
+  "bindings": [
+    {
+      "uiAction": {
+        "label": "Create variant 24 event",
+        "selector": "[data-action=\"create\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/inquiries",
+        "requestAction": "create"
+      },
+      "databaseChange": {
+        "target": "MarketplaceEvent24",
+        "operation": "insert",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Advance variant 24 state",
+        "selector": "[data-action=\"transition\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/inquiries",
+        "requestAction": "transition"
+      },
+      "databaseChange": {
+        "target": "MarketplaceRuntime24",
+        "operation": "update",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Remove variant 24 audit",
+        "selector": "[data-action=\"delete\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/inquiries",
+        "requestAction": "delete"
+      },
+      "databaseChange": {
+        "target": "MarketplaceAudit24",
+        "operation": "delete",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    }
+  ]
+}

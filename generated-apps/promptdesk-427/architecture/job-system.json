@@ -1,0 +1,36 @@
+{
+  "asyncNeeded": true,
+  "queuePolicy": "Use queued job for long-running generation, publishing, checkout, export, alerting, or AI work.",
+  "jobs": [
+    {
+      "name": "AiContentCreateJob",
+      "trigger": "Create variant 427 event",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "ai-content:create:AiContentEvent427:recordId"
+    },
+    {
+      "name": "AiContentTransitionJob",
+      "trigger": "Advance variant 427 state",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "ai-content:transition:AiContentRuntime427:recordId"
+    },
+    {
+      "name": "AiContentDeleteJob",
+      "trigger": "Remove variant 427 audit",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "ai-content:delete:AiContentAudit427:recordId"
+    }
+  ]
+}

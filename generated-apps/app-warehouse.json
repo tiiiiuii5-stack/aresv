@@ -1,0 +1,1277 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-30T06:22:28.808Z",
+  "apps": [
+    {
+      "id": "app-5e68c1fd-7d51-4b70-a2d3-52d6609077d5",
+      "projectId": "5e68c1fd-7d51-4b70-a2d3-52d6609077d5",
+      "appName": "SnackQuest",
+      "category": "playful/consumer",
+      "audience": "families, friend groups, and adventurous shoppers",
+      "problemSolved": "Makes snack discovery social through mini challenges, taste logs, and badges.",
+      "features": [
+        "Working onboarding",
+        "Persistent dashboard state",
+        "Search and filters",
+        "Action history",
+        "Export-ready project files"
+      ],
+      "onboarding": [
+        "Set goal",
+        "Choose workflow",
+        "Invite or import data",
+        "Launch dashboard"
+      ],
+      "layoutStructure": "Responsive grid with metric cards and primary workspace panels.",
+      "uxFlow": "Set goal -> Choose workflow -> Invite or import data -> Launch dashboard",
+      "monetizationLogic": "affiliate snack boxes and sponsored quests",
+      "componentChoices": [
+        "App shell",
+        "Metric cards",
+        "Primary actions",
+        "Search controls",
+        "Onboarding checklist",
+        "Export package"
+      ],
+      "designDirection": "bright playful mobile-first cards with lime accents and challenge chips",
+      "performedWell": [
+        "Premium visual polish",
+        "Responsive layout",
+        "Clean file architecture",
+        "Feature-complete workflow",
+        "Monetization path"
+      ],
+      "failed": [
+        "Quality threshold missed; auto-improvement required before promotion."
+      ],
+      "polishScore": 98,
+      "qualityScore": 88,
+      "scores": {
+        "polish": 98,
+        "usability": 88,
+        "uxClarity": 92,
+        "visualQuality": 86,
+        "responsiveness": 87,
+        "architectureQuality": 90,
+        "trustworthiness": 81,
+        "featureCompleteness": 88,
+        "launchReadiness": 84,
+        "monetizationReadiness": 86,
+        "overall": 88
+      },
+      "generatedFiles": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "architecture": "Next.js App Router project with persisted source files and exportable package metadata.",
+      "promptsUsed": [
+        "Makes snack discovery social through mini challenges, taste logs, and badges. Build a complete playful/consumer app for families, friend groups, and adventurous shoppers."
+      ],
+      "outputs": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "revisions": [],
+      "fixes": [
+        "Needs richer interactions, validation, or responsive polish."
+      ],
+      "actions": [
+        "duplicate",
+        "remix",
+        "evolve",
+        "fork",
+        "combine"
+      ],
+      "tags": [
+        "playful/consumer",
+        "working onboarding",
+        "persistent dashboard state",
+        "search and filters",
+        "action history",
+        "export-ready project files"
+      ],
+      "version": 1,
+      "updatedAt": "2026-05-30T00:04:00.013Z"
+    },
+    {
+      "id": "app-f1e8536e-f90f-40bc-b26c-88403639807b",
+      "projectId": "f1e8536e-f90f-40bc-b26c-88403639807b",
+      "appName": "OpsLedger",
+      "category": "business/SaaS",
+      "audience": "B2B service teams and customer success leaders",
+      "problemSolved": "Tracks client operations, renewals, SLA risk, and account health in one dashboard.",
+      "features": [
+        "Working onboarding",
+        "Persistent dashboard state",
+        "Search and filters",
+        "Action history",
+        "Export-ready project files"
+      ],
+      "onboarding": [
+        "Set goal",
+        "Choose workflow",
+        "Invite or import data",
+        "Launch dashboard"
+      ],
+      "layoutStructure": "Responsive grid with metric cards and primary workspace panels.",
+      "uxFlow": "Set goal -> Choose workflow -> Invite or import data -> Launch dashboard",
+      "monetizationLogic": "seat-based SaaS with premium workflow automation",
+      "componentChoices": [
+        "App shell",
+        "Metric cards",
+        "Primary actions",
+        "Search controls",
+        "Onboarding checklist",
+        "Export package"
+      ],
+      "designDirection": "executive SaaS console with blue analytics, compact tables, and risk signals",
+      "performedWell": [
+        "Premium visual polish",
+        "Responsive layout",
+        "Clean file architecture",
+        "Feature-complete workflow",
+        "Monetization path"
+      ],
+      "failed": [
+        "Quality threshold missed; auto-improvement required before promotion."
+      ],
+      "polishScore": 98,
+      "qualityScore": 88,
+      "scores": {
+        "polish": 98,
+        "usability": 88,
+        "uxClarity": 92,
+        "visualQuality": 86,
+        "responsiveness": 87,
+        "architectureQuality": 90,
+        "trustworthiness": 81,
+        "featureCompleteness": 88,
+        "launchReadiness": 84,
+        "monetizationReadiness": 86,
+        "overall": 88
+      },
+      "generatedFiles": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "architecture": "Next.js App Router project with persisted source files and exportable package metadata.",
+      "promptsUsed": [
+        "Tracks client operations, renewals, SLA risk, and account health in one dashboard. Build a complete business/SaaS app for B2B service teams and customer success leaders."
+      ],
+      "outputs": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "revisions": [],
+      "fixes": [
+        "Needs richer interactions, validation, or responsive polish."
+      ],
+      "actions": [
+        "duplicate",
+        "remix",
+        "evolve",
+        "fork",
+        "combine"
+      ],
+      "tags": [
+        "business/SaaS",
+        "working onboarding",
+        "persistent dashboard state",
+        "search and filters",
+        "action history",
+        "export-ready project files"
+      ],
+      "version": 1,
+      "updatedAt": "2026-05-30T00:03:59.983Z"
+    },
+    {
+      "id": "app-462f82ad-ead4-4f18-956a-3f85f69753d0",
+      "projectId": "462f82ad-ead4-4f18-956a-3f85f69753d0",
+      "appName": "DraftForge",
+      "category": "creator/productivity",
+      "audience": "newsletter writers, video creators, and solo founders",
+      "problemSolved": "Guides creators from raw ideas to a scheduled content pipeline.",
+      "features": [
+        "Working onboarding",
+        "Persistent dashboard state",
+        "Search and filters",
+        "Action history",
+        "Export-ready project files"
+      ],
+      "onboarding": [
+        "Set goal",
+        "Choose workflow",
+        "Invite or import data",
+        "Launch dashboard"
+      ],
+      "layoutStructure": "Responsive grid with metric cards and primary workspace panels.",
+      "uxFlow": "Set goal -> Choose workflow -> Invite or import data -> Launch dashboard",
+      "monetizationLogic": "creator pro plan with publishing calendar automation",
+      "componentChoices": [
+        "App shell",
+        "Metric cards",
+        "Primary actions",
+        "Search controls",
+        "Onboarding checklist",
+        "Export package"
+      ],
+      "designDirection": "editor-first studio with amber highlights, content stages, and performance notes",
+      "performedWell": [
+        "Premium visual polish",
+        "Responsive layout",
+        "Clean file architecture",
+        "Feature-complete workflow",
+        "Monetization path"
+      ],
+      "failed": [
+        "Quality threshold missed; auto-improvement required before promotion."
+      ],
+      "polishScore": 98,
+      "qualityScore": 88,
+      "scores": {
+        "polish": 98,
+        "usability": 88,
+        "uxClarity": 92,
+        "visualQuality": 86,
+        "responsiveness": 87,
+        "architectureQuality": 90,
+        "trustworthiness": 81,
+        "featureCompleteness": 88,
+        "launchReadiness": 84,
+        "monetizationReadiness": 86,
+        "overall": 88
+      },
+      "generatedFiles": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "architecture": "Next.js App Router project with persisted source files and exportable package metadata.",
+      "promptsUsed": [
+        "Guides creators from raw ideas to a scheduled content pipeline. Build a complete creator/productivity app for newsletter writers, video creators, and solo founders."
+      ],
+      "outputs": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "revisions": [],
+      "fixes": [
+        "Needs richer interactions, validation, or responsive polish."
+      ],
+      "actions": [
+        "duplicate",
+        "remix",
+        "evolve",
+        "fork",
+        "combine"
+      ],
+      "tags": [
+        "creator/productivity",
+        "working onboarding",
+        "persistent dashboard state",
+        "search and filters",
+        "action history",
+        "export-ready project files"
+      ],
+      "version": 1,
+      "updatedAt": "2026-05-30T00:03:59.952Z"
+    },
+    {
+      "id": "app-690ef78a-17b7-4d16-9ac9-81552e69bb81",
+      "projectId": "690ef78a-17b7-4d16-9ac9-81552e69bb81",
+      "appName": "CircleNest",
+      "category": "social/community",
+      "audience": "clubs, local groups, niche communities",
+      "problemSolved": "Helps small communities coordinate events, posts, and member rituals.",
+      "features": [
+        "Working onboarding",
+        "Persistent dashboard state",
+        "Search and filters",
+        "Action history",
+        "Export-ready project files"
+      ],
+      "onboarding": [
+        "Set goal",
+        "Choose workflow",
+        "Invite or import data",
+        "Launch dashboard"
+      ],
+      "layoutStructure": "Responsive grid with metric cards and primary workspace panels.",
+      "uxFlow": "Set goal -> Choose workflow -> Invite or import data -> Launch dashboard",
+      "monetizationLogic": "paid community upgrades and event promotion",
+      "componentChoices": [
+        "App shell",
+        "Metric cards",
+        "Primary actions",
+        "Search controls",
+        "Onboarding checklist",
+        "Export package"
+      ],
+      "designDirection": "warm community feed with member cards, event rail, and soft coral accents",
+      "performedWell": [
+        "Premium visual polish",
+        "Responsive layout",
+        "Clean file architecture",
+        "Feature-complete workflow",
+        "Monetization path"
+      ],
+      "failed": [
+        "Quality threshold missed; auto-improvement required before promotion."
+      ],
+      "polishScore": 98,
+      "qualityScore": 88,
+      "scores": {
+        "polish": 98,
+        "usability": 88,
+        "uxClarity": 92,
+        "visualQuality": 86,
+        "responsiveness": 87,
+        "architectureQuality": 90,
+        "trustworthiness": 81,
+        "featureCompleteness": 88,
+        "launchReadiness": 84,
+        "monetizationReadiness": 86,
+        "overall": 88
+      },
+      "generatedFiles": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "architecture": "Next.js App Router project with persisted source files and exportable package metadata.",
+      "promptsUsed": [
+        "Helps small communities coordinate events, posts, and member rituals. Build a complete social/community app for clubs, local groups, niche communities."
+      ],
+      "outputs": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "revisions": [],
+      "fixes": [
+        "Needs richer interactions, validation, or responsive polish."
+      ],
+      "actions": [
+        "duplicate",
+        "remix",
+        "evolve",
+        "fork",
+        "combine"
+      ],
+      "tags": [
+        "social/community",
+        "working onboarding",
+        "persistent dashboard state",
+        "search and filters",
+        "action history",
+        "export-ready project files"
+      ],
+      "version": 1,
+      "updatedAt": "2026-05-30T00:03:59.922Z"
+    },
+    {
+      "id": "app-3f202251-6e8b-4cd4-849c-0ac107fef53c",
+      "projectId": "3f202251-6e8b-4cd4-849c-0ac107fef53c",
+      "appName": "ClearSlate",
+      "category": "utility",
+      "audience": "busy professionals and households",
+      "problemSolved": "Turns messy personal tasks into a focused daily action board.",
+      "features": [
+        "Working onboarding",
+        "Persistent dashboard state",
+        "Search and filters",
+        "Action history",
+        "Export-ready project files"
+      ],
+      "onboarding": [
+        "Set goal",
+        "Choose workflow",
+        "Invite or import data",
+        "Launch dashboard"
+      ],
+      "layoutStructure": "Responsive grid with metric cards and primary workspace panels.",
+      "uxFlow": "Set goal -> Choose workflow -> Invite or import data -> Launch dashboard",
+      "monetizationLogic": "freemium utility with paid household sync",
+      "componentChoices": [
+        "App shell",
+        "Metric cards",
+        "Primary actions",
+        "Search controls",
+        "Onboarding checklist",
+        "Export package"
+      ],
+      "designDirection": "calm white workspace with green priority markers and dense task controls",
+      "performedWell": [
+        "Premium visual polish",
+        "Responsive layout",
+        "Clean file architecture",
+        "Feature-complete workflow",
+        "Monetization path"
+      ],
+      "failed": [
+        "Quality threshold missed; auto-improvement required before promotion."
+      ],
+      "polishScore": 98,
+      "qualityScore": 88,
+      "scores": {
+        "polish": 98,
+        "usability": 88,
+        "uxClarity": 92,
+        "visualQuality": 86,
+        "responsiveness": 87,
+        "architectureQuality": 90,
+        "trustworthiness": 81,
+        "featureCompleteness": 88,
+        "launchReadiness": 84,
+        "monetizationReadiness": 86,
+        "overall": 88
+      },
+      "generatedFiles": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "architecture": "Next.js App Router project with persisted source files and exportable package metadata.",
+      "promptsUsed": [
+        "Turns messy personal tasks into a focused daily action board. Build a complete utility app for busy professionals and households."
+      ],
+      "outputs": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json"
+      ],
+      "revisions": [],
+      "fixes": [
+        "Needs richer interactions, validation, or responsive polish."
+      ],
+      "actions": [
+        "duplicate",
+        "remix",
+        "evolve",
+        "fork",
+        "combine"
+      ],
+      "tags": [
+        "utility",
+        "working onboarding",
+        "persistent dashboard state",
+        "search and filters",
+        "action history",
+        "export-ready project files"
+      ],
+      "version": 1,
+      "updatedAt": "2026-05-30T00:03:59.858Z"
+    },
+    {
+      "id": "app-5a65ed6f-6899-4ddb-a528-834375605c10",
+      "projectId": "5a65ed6f-6899-4ddb-a528-834375605c10",
+      "appName": "Build a premium",
+      "category": "custom",
+      "audience": "target users",
+      "problemSolved": "Build a premium internal analytics dashboard for operations teams.",
+      "features": [
+        "Working onboarding",
+        "Persistent dashboard state",
+        "Search and filters",
+        "Action history",
+        "Export-ready source",
+        "Search and filters",
+        "Export-ready source",
+        "Working onboarding"
+      ],
+      "onboarding": [
+        "Set goal",
+        "Choose workflow",
+        "Launch dashboard"
+      ],
+      "layoutStructure": "Responsive product dashboard with onboarding, search, metrics, and action history.",
+      "uxFlow": "Set goal -> Choose workflow -> Launch dashboard",
+      "monetizationLogic": "subscription-ready",
+      "componentChoices": [
+        "App shell",
+        "Metric cards",
+        "Search controls",
+        "Onboarding checklist",
+        "Action history"
+      ],
+      "designDirection": "premium responsive dashboard with actionable empty states and compact metric cards",
+      "performedWell": [
+        "Passed warehouse quality threshold",
+        "Uses interactive controls",
+        "APP CEO approved release"
+      ],
+      "failed": [],
+      "polishScore": 94,
+      "qualityScore": 94,
+      "scores": {
+        "overall": 94
+      },
+      "orchestration": {
+        "mode": "multi-agent-builder",
+        "createdAt": "2026-05-30T06:22:28.784Z",
+        "warehouseInputs": {
+          "patterns": [
+            "Fork, remix, evolve actions",
+            "Promote or downgrade by evidence",
+            "Dense SaaS dashboard grid",
+            "Guided setup checklist",
+            "Actionable empty states"
+          ],
+          "features": [
+            "Search and filters",
+            "Export-ready source",
+            "Working onboarding"
+          ],
+          "bugRules": [
+            "Before generation, apply the rule: never generate buttons without action binding.",
+            "Score launch readiness below 85 when app/page.tsx or core content is missing."
+          ],
+          "components": [
+            "Command header",
+            "Metric card system",
+            "Warehouse memory card"
+          ]
+        },
+        "strategy": {
+          "category": "custom",
+          "marketType": "B2B SaaS",
+          "valueProp": "operational clarity and revenue protection",
+          "visualLanguage": "executive SaaS console",
+          "primaryWorkflow": "guided setup -> operational dashboard -> action history -> export/share",
+          "monetizationHypothesis": "seat-based plan with workflow automation upgrade"
+        },
+        "debate": {
+          "criteria": [
+            "usability",
+            "monetization",
+            "clarity",
+            "polish",
+            "performance",
+            "trust",
+            "implementation complexity"
+          ],
+          "options": [
+            {
+              "approach": "Dashboard-first command center",
+              "score": 94,
+              "rationale": "Best balance of clarity, premium feel, power-user utility, and monetization readiness."
+            },
+            {
+              "approach": "Marketing-style landing page first",
+              "score": 68,
+              "rationale": "Lower implementation risk but weaker daily-use credibility and less useful as generated software."
+            }
+          ],
+          "winner": "Dashboard-first command center",
+          "decision": "B2B SaaS apps should open on a usable product surface, not a static landing page."
+        },
+        "agents": [
+          {
+            "role": "Product Strategist",
+            "lane": "product",
+            "output": "Position Build a premium for target users with a clear operational clarity and revenue protection value proposition, activation checklist, retention loop, and subscription-ready path.",
+            "standards": [
+              "Define paid-worthy promise",
+              "Shape onboarding around first value",
+              "Reject shallow dashboard positioning"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "UX Architect",
+            "lane": "ux",
+            "output": "Use a dashboard-first flow with guided onboarding, searchable work area, resilient empty states, and low-friction recovery paths.",
+            "standards": [
+              "Reduce first-run ambiguity",
+              "Expose navigation and back states",
+              "Keep mobile hierarchy scannable"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "Visual Designer",
+            "lane": "design",
+            "output": "Create a non-generic executive SaaS console system with restrained surfaces, strong hierarchy, consistent spacing, and trust-forward status cues.",
+            "standards": [
+              "Avoid template feel",
+              "Use premium density",
+              "Keep contrast and typography clean"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "Frontend Engineer",
+            "lane": "frontend",
+            "output": "Build typed App Router pages with responsive grids, stateful interactions, accessible controls, and no dead buttons.",
+            "standards": [
+              "Bind all CTAs",
+              "Preserve keyboard access",
+              "Render real empty/loading states"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "Backend Engineer",
+            "lane": "backend",
+            "output": "Use safe local persistence and exportable project files; keep the architecture stable without depending on unavailable services.",
+            "standards": [
+              "Persist user progress",
+              "Avoid secret leakage",
+              "Keep file writes scoped"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "Feature Engineer",
+            "lane": "features",
+            "output": "Reuse warehouse systems: Search and filters, Export-ready source, Working onboarding.",
+            "standards": [
+              "Reuse before reinventing",
+              "Attach reusable feature metadata",
+              "Keep CRUD/search/export paths functional"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "QA Engineer",
+            "lane": "qa",
+            "output": "Attack routes, buttons, onboarding, empty states, persistence, responsiveness, and release claims before approval.",
+            "standards": [
+              "Block broken controls",
+              "Simulate five user profiles",
+              "Force repair loop on weak output"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "Performance Engineer",
+            "lane": "performance",
+            "output": "Keep the first screen light, use memoized filtering, avoid expensive render loops, and make status feedback immediate.",
+            "standards": [
+              "Use perceived performance cues",
+              "Minimize state churn",
+              "Keep mobile fast"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "Security Engineer",
+            "lane": "security",
+            "output": "Validate file paths, avoid unsafe secrets, use fail-safe persistence reads, and keep destructive actions explicit.",
+            "standards": [
+              "Guard inputs",
+              "Fail closed",
+              "Avoid leaking env values"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          },
+          {
+            "role": "Growth Engine",
+            "lane": "growth",
+            "output": "Add activation, habit, trust, and upgrade cues so Build a premium is commercially believable.",
+            "standards": [
+              "Tie onboarding to activation",
+              "Surface retention metrics",
+              "Make upgrade logic visible"
+            ],
+            "status": "approved-for-build",
+            "risks": []
+          }
+        ],
+        "critiques": [
+          {
+            "from": "QA Engineer",
+            "to": "UX Architect",
+            "issue": "Onboarding must prove first value in three steps or fewer.",
+            "resolution": "UX keeps setup checklist short and connected to dashboard readiness."
+          },
+          {
+            "from": "Visual Designer",
+            "to": "Frontend Engineer",
+            "issue": "Dashboard hierarchy cannot look like a generic template.",
+            "resolution": "Frontend uses compact cards, dark readiness panel, and distinct agent-plan surface."
+          },
+          {
+            "from": "Growth Engine",
+            "to": "Product Strategist",
+            "issue": "Activation and monetization need to appear in-product.",
+            "resolution": "Product plan includes upgrade logic and retention metrics."
+          },
+          {
+            "from": "Security Engineer",
+            "to": "Backend Engineer",
+            "issue": "Persistence must fail safely without breaking the UI.",
+            "resolution": "Backend pattern uses guarded local persistence and scoped file paths."
+          }
+        ],
+        "workflow": [
+          "CEO reads request",
+          "Warehouse memory consulted",
+          "Product strategy defined",
+          "UX structure selected",
+          "Visual language created",
+          "Frontend and backend built",
+          "Reusable features integrated",
+          "QA attacks app",
+          "Performance and growth optimized",
+          "CEO release review"
+        ],
+        "ceo": {
+          "role": "APP CEO",
+          "intent": "Build a premium internal analytics dashboard for operations teams.",
+          "decision": "Proceed with warehouse-informed premium app build.",
+          "iterationRequired": false,
+          "approval": "approved",
+          "releaseChecklist": {
+            "usersTrustThis": true,
+            "foundersLaunchThis": true,
+            "investorsBelieveThis": true,
+            "peoplePayForThis": true,
+            "competesWithModernSoftware": true
+          },
+          "finalReview": "APP CEO approved release at 94/100 after specialist review and QA simulation."
+        }
+      },
+      "launchOS": {
+        "brand": {
+          "productName": "InternalAnalyticsOS",
+          "tagline": "operational clarity and revenue protection without the busywork.",
+          "tone": "confident, plainspoken, premium, useful",
+          "trustLanguage": "Built around clear progress, recoverable actions, and transparent upgrade moments.",
+          "visualDirection": "executive SaaS console",
+          "designPersonality": "calm command center with crisp hierarchy and high-trust status cues",
+          "productStory": "InternalAnalyticsOS helps target users turn build a premium internal analytics dashboard for operations teams. into a repeatable operating rhythm."
+        },
+        "positioning": {
+          "for": "target users",
+          "strugglesWith": "Build a premium internal analytics dashboard for operations teams.",
+          "thisApp": "turns scattered work into guided setup -> operational dashboard -> action history -> export/share",
+          "unlike": "generic trackers, static dashboards, or one-off spreadsheets",
+          "advantage": "combines guided activation, measurable progress, and operational clarity and revenue protection",
+          "whyNow": "teams expect software to be useful on the first session and measurable from day one",
+          "valueProposition": "For target users who struggle with Build a premium internal analytics dashboard for operations teams., this app provides operational clarity and revenue protection unlike generic tools by guiding action, measuring progress, and surfacing upgrade-worthy moments."
+        },
+        "pricing": {
+          "model": "team subscription",
+          "tiers": [
+            {
+              "name": "Free",
+              "price": "$0",
+              "promise": "Start the workflow and prove first value.",
+              "gates": [
+                "limited saved workflows",
+                "basic analytics"
+              ]
+            },
+            {
+              "name": "Pro",
+              "price": "$19/mo",
+              "promise": "Automate recurring work and unlock deeper insight.",
+              "gates": [
+                "unlimited workflows",
+                "advanced analytics",
+                "exports"
+              ]
+            },
+            {
+              "name": "Team",
+              "price": "$49/mo",
+              "promise": "Coordinate across a team with shared accountability.",
+              "gates": [
+                "team seats",
+                "shared dashboards",
+                "priority support"
+              ]
+            }
+          ],
+          "upgradeLogic": "when users save repeated workflows and need automation",
+          "conversionPaths": [
+            "onboarding completion",
+            "export attempt",
+            "saved workflow limit",
+            "advanced insight click"
+          ]
+        },
+        "activation": {
+          "firstValueMoment": "user completes setup and sees launch readiness or workflow progress update immediately",
+          "steps": [
+            "Confirm goal",
+            "Choose workflow",
+            "Save first action",
+            "Review readiness score"
+          ],
+          "completionTarget": "under 3 minutes",
+          "confidenceSignals": [
+            "progress score",
+            "saved state",
+            "clear next action"
+          ]
+        },
+        "retention": {
+          "loops": [
+            "daily progress review",
+            "saved workflow revisit",
+            "weekly readiness summary",
+            "recommend next action"
+          ],
+          "returnReasons": [
+            "unfinished setup",
+            "new insight",
+            "recurring reminder",
+            "team/client update"
+          ],
+          "recommendationMoment": "after first successful export or completed workflow"
+        },
+        "conversion": {
+          "upgradePrompts": [
+            "unlock advanced analytics",
+            "export full report",
+            "invite team",
+            "save unlimited workflows"
+          ],
+          "trustSignals": [
+            "clear pricing",
+            "no surprise gates",
+            "saved progress",
+            "quality score"
+          ],
+          "checkoutUX": "low-friction plan selection after a value moment, not before activation"
+        },
+        "analytics": {
+          "activation": [
+            "onboarding_completion",
+            "time_to_first_value",
+            "first_success"
+          ],
+          "engagement": [
+            "return_session",
+            "feature_usage",
+            "search_usage"
+          ],
+          "retention": [
+            "repeat_usage",
+            "saved_workflow_reopen",
+            "dropoff_point"
+          ],
+          "conversion": [
+            "pricing_view",
+            "upgrade_click",
+            "premium_gate_hit"
+          ],
+          "quality": [
+            "rage_click",
+            "confusion_signal",
+            "broken_flow"
+          ]
+        },
+        "feedback": {
+          "collectionPoints": [
+            "empty state",
+            "after export",
+            "after failed search",
+            "settings"
+          ],
+          "fields": [
+            "feature request",
+            "bug",
+            "confusion",
+            "unmet expectation"
+          ],
+          "warehouseLearning": "feedback records update bug, feature, and pattern memory"
+        },
+        "launchAssets": {
+          "productDescription": "InternalAnalyticsOS is a premium B2B SaaS for target users that delivers operational clarity and revenue protection.",
+          "seoTitle": "InternalAnalyticsOS - operational clarity and revenue protection",
+          "emailSequence": [
+            "Welcome and first value",
+            "Complete your workflow",
+            "Unlock advanced insights",
+            "Invite or share"
+          ],
+          "faq": [
+            "Who is this for?",
+            "What is free?",
+            "When should I upgrade?",
+            "How is progress measured?"
+          ],
+          "changelogTemplate": "Added: [feature]. Improved: [workflow]. Fixed: [bug]."
+        },
+        "checklist": {
+          "brandingCoherent": true,
+          "onboardingWorks": true,
+          "analyticsConnected": true,
+          "pricingLogical": true,
+          "retentionLoopExists": true,
+          "conversionClear": true,
+          "feedbackReady": true,
+          "launchAssetsReady": true
+        }
+      },
+      "generatedFiles": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json",
+        "launch/launch-os.json"
+      ],
+      "architecture": "Next.js App Router project with persisted source files.",
+      "promptsUsed": [
+        "Build a premium internal analytics dashboard for operations teams."
+      ],
+      "outputs": [
+        "README.md",
+        "app/page.tsx",
+        "app/onboarding/page.tsx",
+        "package.json",
+        "launch/launch-os.json"
+      ],
+      "revisions": [],
+      "fixes": [
+        "Applied prevention rule: buttons require action binding.",
+        "Attached launch operating system."
+      ],
+      "actions": [
+        "duplicate",
+        "remix",
+        "evolve",
+        "fork",
+        "combine"
+      ],
+      "tags": [
+        "custom",
+        "working onboarding",
+        "persistent dashboard state",
+        "search and filters",
+        "action history",
+        "export-ready source",
+        "search and filters",
+        "export-ready source",
+        "working onboarding"
+      ],
+      "version": 1,
+      "updatedAt": "2026-05-30T06:22:28.773Z"
+    }
+  ],
+  "designMemory": [
+    {
+      "id": "design-dashboard-density",
+      "title": "Dense SaaS dashboard grid",
+      "summary": "Compact metrics, tables, and action rails create a premium operational feel.",
+      "tags": [
+        "dashboard",
+        "saas",
+        "layout"
+      ],
+      "score": 92,
+      "status": "promoted",
+      "evidence": [
+        "Used by OpsLedger style generations",
+        "Improves scan speed for business apps"
+      ],
+      "reusableAsset": "Metric cards + action table + risk rail",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "design-onboarding-steps",
+      "title": "Guided setup checklist",
+      "summary": "Short step-based onboarding increases clarity without a marketing landing page.",
+      "tags": [
+        "onboarding",
+        "activation"
+      ],
+      "score": 90,
+      "status": "promoted",
+      "evidence": [
+        "Keeps the first session action-oriented"
+      ],
+      "reusableAsset": "Goal -> workflow -> data -> dashboard",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "design-empty-states",
+      "title": "Actionable empty states",
+      "summary": "Empty states must explain the next action and include a working command.",
+      "tags": [
+        "empty-state",
+        "ux"
+      ],
+      "score": 88,
+      "status": "promoted",
+      "evidence": [
+        "Prevents dead screens"
+      ],
+      "reusableAsset": "Dashed panel with primary action",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    }
+  ],
+  "featureMemory": [
+    {
+      "id": "feature-search-filter",
+      "title": "Search and filters",
+      "summary": "Reusable search/filter controls for dashboards, lists, and warehouses.",
+      "tags": [
+        "search",
+        "dashboard",
+        "reuse"
+      ],
+      "score": 91,
+      "status": "promoted",
+      "evidence": [
+        "Appears across generated project management flows"
+      ],
+      "reusableAsset": "Controlled input + tag filter + result count",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "feature-export-source",
+      "title": "Export-ready source",
+      "summary": "Generated apps include package metadata and source files that can be downloaded.",
+      "tags": [
+        "export",
+        "files"
+      ],
+      "score": 89,
+      "status": "promoted",
+      "evidence": [
+        "Current builder download flow works"
+      ],
+      "reusableAsset": "Download route + persisted files",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "feature-onboarding",
+      "title": "Working onboarding",
+      "summary": "Generated products should include a short setup path connected to the main dashboard.",
+      "tags": [
+        "onboarding",
+        "activation"
+      ],
+      "score": 90,
+      "status": "promoted",
+      "evidence": [
+        "Common activation need"
+      ],
+      "reusableAsset": "Setup checklist + progress state",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    }
+  ],
+  "bugMemory": [
+    {
+      "id": "bug-buttons-without-actions",
+      "title": "Buttons without handlers",
+      "summary": "Static buttons make generated apps feel fake.",
+      "tags": [
+        "buttons",
+        "interaction",
+        "regression"
+      ],
+      "score": 100,
+      "status": "fixed",
+      "evidence": [
+        "Observed in early generated app shells"
+      ],
+      "reusableAsset": "Interaction validator",
+      "updatedAt": "2026-05-30T03:29:26.848Z",
+      "issue": "Generated buttons rendered but did not perform an action.",
+      "rootCause": "UI shell generation did not require event handlers or navigation targets.",
+      "fix": "Require every button to bind onClick, submit, href, or disabled loading state.",
+      "prevention": "Before generation, apply the rule: never generate buttons without action binding."
+    },
+    {
+      "id": "bug-blank-pages",
+      "title": "Blank generated pages",
+      "summary": "Pages without data, loading, and empty states fail launch readiness.",
+      "tags": [
+        "routing",
+        "quality"
+      ],
+      "score": 98,
+      "status": "fixed",
+      "evidence": [
+        "Prevented by required app/page.tsx checks"
+      ],
+      "reusableAsset": "Route completeness validator",
+      "updatedAt": "2026-05-30T03:29:26.848Z",
+      "issue": "Generated route existed but rendered an empty shell.",
+      "rootCause": "Missing default content and state wiring.",
+      "fix": "Require meaningful first screen, empty state, and action path.",
+      "prevention": "Score launch readiness below 85 when app/page.tsx or core content is missing."
+    }
+  ],
+  "generationMemory": [
+    {
+      "id": "generation-reuse-first",
+      "title": "Reuse before regenerate",
+      "summary": "Check warehouse winners, features, components, and bug rules before creating new files.",
+      "tags": [
+        "generation",
+        "memory"
+      ],
+      "score": 95,
+      "status": "promoted",
+      "evidence": [
+        "Matches self-improving factory objective"
+      ],
+      "reusableAsset": "Warehouse guidance block",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "generation-quality-loop",
+      "title": "85+ auto-improvement loop",
+      "summary": "Score outputs across ten quality dimensions and revise anything below threshold.",
+      "tags": [
+        "quality",
+        "qa"
+      ],
+      "score": 93,
+      "status": "promoted",
+      "evidence": [
+        "Prevents shallow MVP output"
+      ],
+      "reusableAsset": "Quality scoring engine",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    }
+  ],
+  "qualityMemory": [
+    {
+      "id": "quality-threshold",
+      "title": "Launch threshold 85",
+      "summary": "Apps under 85 are treated as needing improvement before promotion.",
+      "tags": [
+        "quality",
+        "launch"
+      ],
+      "score": 95,
+      "status": "promoted",
+      "evidence": [
+        "Codifies warehouse quality gate"
+      ],
+      "reusableAsset": "Ten-dimension scorecard",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "quality-action-binding",
+      "title": "Required interactions",
+      "summary": "Forms, buttons, filters, and exports need functional handlers or route targets.",
+      "tags": [
+        "qa",
+        "interaction"
+      ],
+      "score": 94,
+      "status": "promoted",
+      "evidence": [
+        "Prevents fake controls"
+      ],
+      "reusableAsset": "Interaction validator",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    }
+  ],
+  "componentMemory": [
+    {
+      "id": "component-command-header",
+      "title": "Command header",
+      "summary": "Primary navigation with builder, dashboard, generated apps, and warehouse links.",
+      "tags": [
+        "navigation",
+        "layout"
+      ],
+      "score": 88,
+      "status": "promoted",
+      "evidence": [
+        "Keeps factory areas discoverable"
+      ],
+      "reusableAsset": "Header nav system",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "component-metric-card",
+      "title": "Metric card system",
+      "summary": "Reusable compact cards for scores, counts, health, and readiness.",
+      "tags": [
+        "metrics",
+        "dashboard"
+      ],
+      "score": 91,
+      "status": "promoted",
+      "evidence": [
+        "Used by dashboard and warehouse"
+      ],
+      "reusableAsset": "Label + value + optional delta",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "component-warehouse-card",
+      "title": "Warehouse memory card",
+      "summary": "Reusable inventory card for apps, features, components, and patterns.",
+      "tags": [
+        "warehouse",
+        "cards"
+      ],
+      "score": 90,
+      "status": "promoted",
+      "evidence": [
+        "Supports search, compare, preview, and remix"
+      ],
+      "reusableAsset": "Score + status + evidence",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    }
+  ],
+  "patternMemory": [
+    {
+      "id": "pattern-fork-remix-evolve",
+      "title": "Fork, remix, evolve actions",
+      "summary": "Winning apps should become raw material for future generations.",
+      "tags": [
+        "remix",
+        "generation"
+      ],
+      "score": 94,
+      "status": "promoted",
+      "evidence": [
+        "Core app factory behavior"
+      ],
+      "reusableAsset": "Action model",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    },
+    {
+      "id": "pattern-promote-downgrade",
+      "title": "Promote or downgrade by evidence",
+      "summary": "Repeated success raises pattern rank; removals and failures lower it.",
+      "tags": [
+        "learning",
+        "evolution"
+      ],
+      "score": 93,
+      "status": "promoted",
+      "evidence": [
+        "Captures user edits and outcomes"
+      ],
+      "reusableAsset": "Pattern evolution rules",
+      "updatedAt": "2026-05-30T03:29:26.848Z"
+    }
+  ]
+}

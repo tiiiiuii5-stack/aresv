@@ -1,0 +1,193 @@
+{
+  "pipeline": "REAL RUNTIME APPLICATION FACTORY",
+  "runtimeType": "fullstack",
+  "phases": {
+    "intentToSpec": {
+      "appType": "AI tool",
+      "structuredSpec": true,
+      "routes": [
+        {
+          "path": "/",
+          "label": "Command",
+          "purpose": "PromptDesk 427 command center"
+        },
+        {
+          "path": "/ai-content-427-queue",
+          "label": "Queue",
+          "purpose": "Variant 427 work queue and approvals"
+        },
+        {
+          "path": "/ai-content-427-rules",
+          "label": "Rules",
+          "purpose": "Variant 427 automation rules"
+        },
+        {
+          "path": "/ai-content-427-insights",
+          "label": "Insights",
+          "purpose": "Variant 427 performance insights"
+        }
+      ],
+      "databaseSchema": [
+        {
+          "name": "AiContentRuntime427",
+          "fields": [
+            "ai-content-427Name",
+            "ai-content-427Owner",
+            "ai-content-427State",
+            "ai-content-427Score"
+          ]
+        },
+        {
+          "name": "AiContentEvent427",
+          "fields": [
+            "ai-content-427RecordId",
+            "ai-content-427Action",
+            "ai-content-427Actor",
+            "ai-content-427Result"
+          ]
+        },
+        {
+          "name": "AiContentAudit427",
+          "fields": [
+            "ai-content-427EventId",
+            "ai-content-427Reviewer",
+            "ai-content-427Decision",
+            "ai-content-427CreatedAt"
+          ]
+        }
+      ],
+      "uiScreens": [
+        {
+          "path": "/",
+          "screen": "Command",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/ai-content-427-queue",
+          "screen": "Queue",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/ai-content-427-rules",
+          "screen": "Rules",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/ai-content-427-insights",
+          "screen": "Insights",
+          "wiredToBackend": true
+        }
+      ],
+      "requiredIntegrations": [
+        "database",
+        "project runtime API",
+        "AI provider boundary"
+      ],
+      "unclearSpecPolicy": "block generation and ask questions"
+    },
+    "codeGeneration": {
+      "realFileTree": true,
+      "backendRoutes": [
+        "/api/ai-content-427-runtime",
+        "/api/ai-content-427-events",
+        "/api/ai-content-427-events/[id]"
+      ],
+      "frontendPages": [
+        "/",
+        "/ai-content-427-queue",
+        "/ai-content-427-rules",
+        "/ai-content-427-insights"
+      ],
+      "databaseSchema": "schema.prisma",
+      "environmentVariables": [
+        ".env.example"
+      ],
+      "noPlaceholderButtons": true,
+      "noStaticMockDataUnlessMarkedMock": true
+    },
+    "buildInstall": {
+      "requiredCommands": [
+        "npm install",
+        "npm run build",
+        "npm run type-check",
+        "npm run lint"
+      ],
+      "maxRepairLoops": 3,
+      "invalidIfBuildFails": true
+    },
+    "runtimeBootstrap": {
+      "startCommand": "npm run start",
+      "healthChecks": [
+        "GET /",
+        "GET /api/drafts"
+      ],
+      "databaseCheck": "assertRelationalSchema",
+      "brokenIfAnyFail": true
+    },
+    "interactionTesting": {
+      "clickEveryButton": true,
+      "submitEveryForm": true,
+      "navigateEveryRoute": true,
+      "testApiEndpoints": true,
+      "blockFakeUi": true
+    },
+    "previewGeneration": {
+      "realOnly": true,
+      "requiresServerRunning": true,
+      "requiresRoutesRespond": true,
+      "requiresJsExecuting": true,
+      "requiresBackendAlive": true,
+      "requiresDatabaseConnected": true,
+      "noStaticPreviewModeEver": true
+    },
+    "selfHeal": {
+      "loop": "build -> run -> test -> fail -> fix -> rebuild",
+      "maxLoops": 5,
+      "stopOnlyWhen": [
+        "zero runtime errors",
+        "all routes respond",
+        "UI is interactive",
+        "backend is connected"
+      ]
+    },
+    "deploymentGate": {
+      "buildSuccess": true,
+      "runtimeSuccess": true,
+      "testSuccess": true,
+      "noFakeUiDetected": true
+    }
+  },
+  "generationMode": "module-assisted",
+  "integrationModules": [
+    {
+      "name": "Booking-Calendar",
+      "category": "booking",
+      "description": "Availability matrix, ICS file generation, Google Calendar sync boundary, and recurring rule parser.",
+      "validationScore": 98,
+      "dependencies": [],
+      "files": [
+        "integrations/booking-calendar/availability.ts",
+        "integrations/booking-calendar/ics.ts",
+        "integrations/booking-calendar/google-sync.ts",
+        "integrations/booking-calendar/recurrence.ts"
+      ]
+    },
+    {
+      "name": "Project-Gantt",
+      "category": "project",
+      "description": "Task dependency graph, date calculation engine, canvas renderer, and drag-and-drop rescheduling.",
+      "validationScore": 95,
+      "dependencies": [],
+      "files": [
+        "integrations/project-gantt/dependency-graph.ts",
+        "integrations/project-gantt/date-engine.ts",
+        "integrations/project-gantt/canvas-renderer.ts",
+        "integrations/project-gantt/reschedule.ts"
+      ]
+    }
+  ],
+  "moduleInjection": {
+    "stage": "before-generation",
+    "rule": "Detected category modules are injected into the isolated runtime factory before code validation."
+  }
+}

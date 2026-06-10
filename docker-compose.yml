@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: app_builder
+      POSTGRES_USER: app_builder
+      POSTGRES_PASSWORD: app_builder
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_builder -d app_builder"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://app_builder:app_builder@postgres:5432/app_builder
+      REDIS_URL: redis://redis:6379
+      GENERATED_APPS_ROOT: /app/generated-apps
+    ports:
+      - "3000:3000"
+    volumes:
+      - generated-apps:/app/generated-apps
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://app_builder:app_builder@postgres:5432/app_builder
+      REDIS_URL: redis://redis:6379
+      API_INTERNAL_URL: http://api:3000
+      GENERATED_APPS_ROOT: /app/generated-apps
+    volumes:
+      - generated-apps:/app/generated-apps
+    depends_on:
+      api:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  generated-apps:

@@ -1,0 +1,32 @@
+{
+  "kind": "job-result",
+  "version": 1,
+  "jobId": "3c5d98ed-aa44-4efc-93fc-23b74fdb4db5",
+  "action": "deploy",
+  "generatedAt": "2026-05-31T06:06:45.625Z",
+  "metadata": {
+    "appName": "Mutation Cap Smoke 2",
+    "prompt": "Check mutation cap",
+    "model": "gemini-2.5-pro",
+    "mode": null,
+    "attempts": 1,
+    "maxAttempts": 5,
+    "createdAt": "2026-05-31T06:06:44.778Z",
+    "startedAt": "2026-05-31T06:06:45.542Z",
+    "finishedAt": "2026-05-31T06:06:45.625Z"
+  },
+  "status": "failed",
+  "stage": "failed",
+  "progress": 100,
+  "summary": "Runtime validation failed for deploy",
+  "outputFiles": [],
+  "runtimeStatus": "failed",
+  "executionLogs": [],
+  "executionError": "Runtime execution is disabled in production; queue deploy/preview work outside the request cycle.",
+  "result": {
+    "message": "Runtime validation failed for deploy",
+    "status": "failed",
+    "stage": "failed",
+    "progress": 100
+  }
+}

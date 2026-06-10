@@ -1,0 +1,81 @@
+{
+  "appType": "SaaS dashboard",
+  "models": [
+    {
+      "name": "CrmRuntime33",
+      "fields": [
+        "crm-33Name",
+        "crm-33Owner",
+        "crm-33State",
+        "crm-33Score"
+      ],
+      "owns": [
+        {
+          "model": "CrmEvent33",
+          "via": "crm-33RecordId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "CrmEvent33",
+      "fields": [
+        "crm-33RecordId",
+        "crm-33Action",
+        "crm-33Actor",
+        "crm-33Result"
+      ],
+      "owns": [
+        {
+          "model": "CrmAudit33",
+          "via": "crm-33EventId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": [
+        {
+          "model": "CrmRuntime33",
+          "via": "crm-33RecordId",
+          "type": "one-to-many"
+        }
+      ]
+    },
+    {
+      "name": "CrmAudit33",
+      "fields": [
+        "crm-33EventId",
+        "crm-33Reviewer",
+        "crm-33Decision",
+        "crm-33CreatedAt"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "CrmEvent33",
+          "via": "crm-33EventId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "CrmRuntime33",
+      "to": "CrmEvent33",
+      "type": "one-to-many",
+      "via": "crm-33RecordId"
+    },
+    {
+      "from": "CrmEvent33",
+      "to": "CrmAudit33",
+      "type": "one-to-many",
+      "via": "crm-33EventId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

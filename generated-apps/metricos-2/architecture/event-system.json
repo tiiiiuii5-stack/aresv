@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "name": "AnalyticsCreateAlert",
+      "trigger": "Create alert",
+      "payload": {
+        "target": "Alert",
+        "result": "Adds metric alert to owner queue",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "append record",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "AnalyticsTransitionAlert",
+      "trigger": "Resolve alert",
+      "payload": {
+        "target": "Alert",
+        "result": "Moves Open -> Investigating -> Resolved",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "update record status",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "AnalyticsDeleteCohort",
+      "trigger": "Delete cohort",
+      "payload": {
+        "target": "Cohort",
+        "result": "Removes stale cohort analysis",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "remove record and dependents",
+        "prepend audit event"
+      ]
+    }
+  ],
+  "delivery": "in-process runtime event log plus API response payload"
+}

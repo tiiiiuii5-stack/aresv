@@ -1,0 +1,82 @@
+{
+  "rule": "UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH",
+  "blockBuildIfAnyStepMissing": true,
+  "apiRoute": "/api/clients",
+  "bindings": [
+    {
+      "uiAction": {
+        "label": "Create deal",
+        "selector": "[data-action=\"create\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/clients",
+        "requestAction": "create"
+      },
+      "databaseChange": {
+        "target": "Deal",
+        "operation": "insert",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Advance stage",
+        "selector": "[data-action=\"transition\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/clients",
+        "requestAction": "transition"
+      },
+      "databaseChange": {
+        "target": "Deal",
+        "operation": "update",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Delete task",
+        "selector": "[data-action=\"delete\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/clients",
+        "requestAction": "delete"
+      },
+      "databaseChange": {
+        "target": "Task",
+        "operation": "delete",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    }
+  ]
+}

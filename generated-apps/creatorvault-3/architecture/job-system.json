@@ -1,0 +1,36 @@
+{
+  "asyncNeeded": true,
+  "queuePolicy": "Use queued job for long-running generation, publishing, checkout, export, alerting, or AI work.",
+  "jobs": [
+    {
+      "name": "CreatorCreateJob",
+      "trigger": "Launch offer",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "creator:create:Offer:recordId"
+    },
+    {
+      "name": "CreatorTransitionJob",
+      "trigger": "Convert subscriber",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "creator:transition:Purchase:recordId"
+    },
+    {
+      "name": "CreatorDeleteJob",
+      "trigger": "Cancel subscriber",
+      "mode": "async",
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential"
+      },
+      "idempotencyKey": "creator:delete:Subscriber:recordId"
+    }
+  ]
+}

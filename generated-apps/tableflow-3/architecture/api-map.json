@@ -1,0 +1,102 @@
+{
+  "backendRequired": true,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/menu",
+      "purpose": "List menu items",
+      "hitsBackend": true,
+      "requestBody": null,
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders",
+      "purpose": "Submit order",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/kitchen/[id]",
+      "purpose": "Update prep status",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    }
+  ],
+  "actionBindings": [
+    {
+      "action": "Send order",
+      "type": "create",
+      "target": "KitchenTicket",
+      "backend": {
+        "method": "GET",
+        "path": "/api/menu",
+        "purpose": "List menu items"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Advance prep",
+      "type": "transition",
+      "target": "KitchenTicket",
+      "backend": {
+        "method": "POST",
+        "path": "/api/orders",
+        "purpose": "Submit order"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Remove line",
+      "type": "delete",
+      "target": "OrderLine",
+      "backend": {
+        "method": "PATCH",
+        "path": "/api/kitchen/[id]",
+        "purpose": "Update prep status"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    }
+  ]
+}

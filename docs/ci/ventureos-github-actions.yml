@@ -1,0 +1,41 @@
+name: VentureOS Repository Scan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+jobs:
+  ventureos-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run VentureOS deterministic scan
+        env:
+          VENTUREOS_INTELLIGENCE_API_URL: ${{ vars.VENTUREOS_INTELLIGENCE_API_URL }}
+          VENTUREOS_INTELLIGENCE_API_KEY: ${{ secrets.VENTUREOS_INTELLIGENCE_API_KEY }}
+          VENTUREOS_SCAN_ROOT: ${{ github.workspace }}
+          VENTUREOS_SCAN_MODE: "quick"
+          VENTUREOS_SCAN_BLOCK_THRESHOLD: "75"
+          VENTUREOS_SCAN_PROJECT_ID: ${{ vars.VENTUREOS_SCAN_PROJECT_ID }}
+          VENTUREOS_SCAN_OUTPUT: ventureos-scan-result.json
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/ventureos-scan-repo.mjs
+
+      - name: Upload VentureOS scan manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ventureos-scan-result
+          path: ventureos-scan-result.json

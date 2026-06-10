@@ -1,0 +1,82 @@
+{
+  "rule": "UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH",
+  "blockBuildIfAnyStepMissing": true,
+  "apiRoute": "/api/offers",
+  "bindings": [
+    {
+      "uiAction": {
+        "label": "Launch offer",
+        "selector": "[data-action=\"create\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/offers",
+        "requestAction": "create"
+      },
+      "databaseChange": {
+        "target": "Offer",
+        "operation": "insert",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Convert subscriber",
+        "selector": "[data-action=\"transition\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/offers",
+        "requestAction": "transition"
+      },
+      "databaseChange": {
+        "target": "Purchase",
+        "operation": "update",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Cancel subscriber",
+        "selector": "[data-action=\"delete\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/offers",
+        "requestAction": "delete"
+      },
+      "databaseChange": {
+        "target": "Subscriber",
+        "operation": "delete",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    }
+  ]
+}

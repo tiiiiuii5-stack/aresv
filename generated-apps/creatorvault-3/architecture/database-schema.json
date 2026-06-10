@@ -1,0 +1,82 @@
+{
+  "appType": "internal tool",
+  "models": [
+    {
+      "name": "Offer",
+      "fields": [
+        "title",
+        "price",
+        "tier",
+        "conversionRate",
+        "status"
+      ],
+      "owns": [
+        {
+          "model": "Purchase",
+          "via": "offerId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "Subscriber",
+      "fields": [
+        "email",
+        "tier",
+        "lifetimeValue",
+        "risk",
+        "joinedAt"
+      ],
+      "owns": [
+        {
+          "model": "Purchase",
+          "via": "subscriberId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "Purchase",
+      "fields": [
+        "offerId",
+        "subscriberId",
+        "amount",
+        "status"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "Offer",
+          "via": "offerId",
+          "type": "one-to-many"
+        },
+        {
+          "model": "Subscriber",
+          "via": "subscriberId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Offer",
+      "to": "Purchase",
+      "type": "one-to-many",
+      "via": "offerId"
+    },
+    {
+      "from": "Subscriber",
+      "to": "Purchase",
+      "type": "one-to-many",
+      "via": "subscriberId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

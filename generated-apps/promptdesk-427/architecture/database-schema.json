@@ -1,0 +1,81 @@
+{
+  "appType": "AI tool",
+  "models": [
+    {
+      "name": "AiContentRuntime427",
+      "fields": [
+        "ai-content-427Name",
+        "ai-content-427Owner",
+        "ai-content-427State",
+        "ai-content-427Score"
+      ],
+      "owns": [
+        {
+          "model": "AiContentEvent427",
+          "via": "ai-content-427RecordId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "AiContentEvent427",
+      "fields": [
+        "ai-content-427RecordId",
+        "ai-content-427Action",
+        "ai-content-427Actor",
+        "ai-content-427Result"
+      ],
+      "owns": [
+        {
+          "model": "AiContentAudit427",
+          "via": "ai-content-427EventId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": [
+        {
+          "model": "AiContentRuntime427",
+          "via": "ai-content-427RecordId",
+          "type": "one-to-many"
+        }
+      ]
+    },
+    {
+      "name": "AiContentAudit427",
+      "fields": [
+        "ai-content-427EventId",
+        "ai-content-427Reviewer",
+        "ai-content-427Decision",
+        "ai-content-427CreatedAt"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "AiContentEvent427",
+          "via": "ai-content-427EventId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "AiContentRuntime427",
+      "to": "AiContentEvent427",
+      "type": "one-to-many",
+      "via": "ai-content-427RecordId"
+    },
+    {
+      "from": "AiContentEvent427",
+      "to": "AiContentAudit427",
+      "type": "one-to-many",
+      "via": "ai-content-427EventId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

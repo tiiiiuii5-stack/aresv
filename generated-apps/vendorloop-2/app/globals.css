@@ -1,0 +1,6 @@
+:root{--surface:#f5f3ff;--primary:#6d28d9;--accent:#14b8a6;--ink:#1e1b4b}
+*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+button,input,textarea{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #e2e8f0}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 18px 45px rgba(15,23,42,.08)}
+.market-grid{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));}.card{border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:16px}.primary{border:0;border-radius:12px;background:var(--primary);color:white;padding:12px 14px;font-weight:800;cursor:pointer}
+@media(max-width:840px){.hero{grid-template-columns:1fr}.market-grid{grid-template-columns:1fr!important}}

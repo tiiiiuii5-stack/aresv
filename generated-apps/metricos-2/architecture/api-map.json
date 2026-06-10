@@ -1,0 +1,81 @@
+{
+  "backendRequired": true,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/metrics",
+      "purpose": "List KPI metrics",
+      "hitsBackend": true,
+      "requestBody": null,
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/alerts",
+      "purpose": "Create metric alert",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/alerts/[id]",
+      "purpose": "Acknowledge alert",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    }
+  ],
+  "actionBindings": [
+    {
+      "action": "Create alert",
+      "type": "create",
+      "target": "Alert",
+      "backend": {
+        "method": "GET",
+        "path": "/api/metrics",
+        "purpose": "List KPI metrics"
+      },
+      "mustPersist": true
+    },
+    {
+      "action": "Resolve alert",
+      "type": "transition",
+      "target": "Alert",
+      "backend": {
+        "method": "POST",
+        "path": "/api/alerts",
+        "purpose": "Create metric alert"
+      },
+      "mustPersist": true
+    },
+    {
+      "action": "Delete cohort",
+      "type": "delete",
+      "target": "Cohort",
+      "backend": {
+        "method": "PATCH",
+        "path": "/api/alerts/[id]",
+        "purpose": "Acknowledge alert"
+      },
+      "mustPersist": true
+    }
+  ]
+}

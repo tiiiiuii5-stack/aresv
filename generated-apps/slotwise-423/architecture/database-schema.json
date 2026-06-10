@@ -1,0 +1,81 @@
+{
+  "appType": "internal tool",
+  "models": [
+    {
+      "name": "BookingRuntime423",
+      "fields": [
+        "booking-423Name",
+        "booking-423Owner",
+        "booking-423State",
+        "booking-423Score"
+      ],
+      "owns": [
+        {
+          "model": "BookingEvent423",
+          "via": "booking-423RecordId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "BookingEvent423",
+      "fields": [
+        "booking-423RecordId",
+        "booking-423Action",
+        "booking-423Actor",
+        "booking-423Result"
+      ],
+      "owns": [
+        {
+          "model": "BookingAudit423",
+          "via": "booking-423EventId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": [
+        {
+          "model": "BookingRuntime423",
+          "via": "booking-423RecordId",
+          "type": "one-to-many"
+        }
+      ]
+    },
+    {
+      "name": "BookingAudit423",
+      "fields": [
+        "booking-423EventId",
+        "booking-423Reviewer",
+        "booking-423Decision",
+        "booking-423CreatedAt"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "BookingEvent423",
+          "via": "booking-423EventId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "BookingRuntime423",
+      "to": "BookingEvent423",
+      "type": "one-to-many",
+      "via": "booking-423RecordId"
+    },
+    {
+      "from": "BookingEvent423",
+      "to": "BookingAudit423",
+      "type": "one-to-many",
+      "via": "booking-423EventId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

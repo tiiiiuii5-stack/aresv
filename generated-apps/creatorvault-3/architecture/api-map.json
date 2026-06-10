@@ -1,0 +1,102 @@
+{
+  "backendRequired": true,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/offers",
+      "purpose": "List paid offers",
+      "hitsBackend": true,
+      "requestBody": null,
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "purpose": "Add subscriber",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/offers/[id]",
+      "purpose": "Update launch status",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    }
+  ],
+  "actionBindings": [
+    {
+      "action": "Launch offer",
+      "type": "create",
+      "target": "Offer",
+      "backend": {
+        "method": "GET",
+        "path": "/api/offers",
+        "purpose": "List paid offers"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Convert subscriber",
+      "type": "transition",
+      "target": "Purchase",
+      "backend": {
+        "method": "POST",
+        "path": "/api/subscribers",
+        "purpose": "Add subscriber"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Cancel subscriber",
+      "type": "delete",
+      "target": "Subscriber",
+      "backend": {
+        "method": "PATCH",
+        "path": "/api/offers/[id]",
+        "purpose": "Update launch status"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    }
+  ]
+}

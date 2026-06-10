@@ -1,0 +1,1110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  plan         String        @default("free")
+  createdAt    DateTime      @default(now())
+  projects     Project[]
+  payments     Payment[]
+  subscription Subscription?
+  githubInstallations GitHubInstallation[]
+  softwareAppraisals SoftwareAppraisal[]
+  trustLedgerSnapshots SoftwareTrustLedgerSnapshot[]
+  softwareCertificates SoftwareCertificate[]
+
+  @@map("users")
+}
+
+model Project {
+  id              String                  @id
+  userId          String
+  prompt          String
+  title           String
+  slug            String                  @unique
+  status          String
+  category        String                  @default("custom")
+  problem         String                  @default("")
+  audience        String                  @default("")
+  uiDirection     String                  @default("")
+  monetization    String                  @default("")
+  features        Json                    @default("[]")
+  onboarding      Json                    @default("[]")
+  record          Json
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generatedApps   GeneratedApp[]
+  generationRuns  GenerationRun[]
+  qaReports       QAReport[]
+  artifacts       Artifact[]
+  deployments     Deployment[]
+  jobs            Job[]
+  usageEvents     UsageEvent[]
+  memory          ProjectMemory?
+  repositoryLinks ProjectRepositoryLink[]
+  appAnalyses     AppAnalysis[]
+  appSnapshots    AppSnapshot[]
+  analysisResults AnalysisResult[]
+  telemetryEvents AppTelemetryEvent[]
+  scanHistory     ProjectScanHistory[]
+  githubRepositories GitHubRepository[]
+  githubScanJobs     GitHubScanJob[]
+  softwareAppraisals SoftwareAppraisal[]
+  trustLedgerSnapshots SoftwareTrustLedgerSnapshot[]
+  softwareCertificates SoftwareCertificate[]
+  payments Payment[]
+
+  @@index([userId, updatedAt])
+  @@map("projects")
+}
+
+model Payment {
+  id                   String    @id @default(cuid())
+  stripeSessionId      String    @unique
+  stripePaymentId      String?
+  stripeCustomerId     String?
+  userId               String
+  orgId                String?
+  projectId            String?
+  appraisalId          String?
+  certificateId        String?
+  offerId              String
+  status               String    @default("pending")
+  fulfillmentStatus    String    @default("pending")
+  amount               Int
+  currency             String    @default("usd")
+  customerEmail        String?
+  metadata             Json      @default("{}")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  paidAt               DateTime?
+  fulfilledAt          DateTime?
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project              Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([status, createdAt])
+  @@index([fulfillmentStatus, updatedAt])
+  @@index([offerId])
+  @@map("payments")
+}
+
+model GeneratedApp {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  slug      String
+  files     Json     @default("[]")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("generated_apps")
+}
+
+model GenerationRun {
+  id        String   @id @default(cuid())
+  projectId String
+  logs      Json     @default("[]")
+  model     String?
+  duration  Int?
+  tokens    Int?
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("generation_runs")
+}
+
+model QAReport {
+  id        String   @id @default(cuid())
+  projectId String
+  results   Json     @default("{}")
+  score     Int
+  issues    Json     @default("[]")
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("qa_reports")
+}
+
+model Artifact {
+  id         String   @id @default(cuid())
+  projectId  String
+  zipUrl     String?
+  previewUrl String?
+  metadata   Json     @default("{}")
+  content    Json     @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, updatedAt])
+  @@map("artifacts")
+}
+
+model Deployment {
+  id        String   @id @default(cuid())
+  projectId String
+  status    String
+  url       String?
+  logs      Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("deployments")
+}
+
+model Job {
+  id              String    @id
+  projectId       String?
+  type            String
+  payload         Json      @default("{}")
+  status          JobStatus @default(QUEUED)
+  queuedAt        DateTime  @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  progress        Int       @default(0)
+  currentStep     String    @default("queued")
+  errorMessage    String?
+  resultUrl       String?
+  mutationCount   Int       @default(0)
+  mutationHistory Json?     @default("[]")
+  modelUsed       String?
+  temperature     Float?
+  promptHash      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  project         Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([status, updatedAt])
+  @@map("jobs")
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  GENERATING
+  BUILDING
+  DEPLOYING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model UsageEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  projectId String?
+  event     String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([event, createdAt])
+  @@index([projectId, createdAt])
+  @@map("usage_events")
+}
+
+model ProjectMemory {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  context   Json     @default("{}")
+  decisions Json     @default("[]")
+  changelog Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_memory")
+}
+
+model AgentMemory {
+  id             String                       @id @default(cuid())
+  userId         String
+  projectId      String?
+  memoryType     String
+  content        String                       @db.Text
+  embedding      Unsupported("vector(1536)")?
+  metadata       Json?
+  usageCount     Int                          @default(0)
+  lastAccessedAt DateTime?
+  archivedAt     DateTime?
+  createdAt      DateTime                     @default(now())
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([memoryType])
+  @@index([userId, lastAccessedAt])
+  @@map("agent_memories")
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  ownerId   String
+  metadata  Json         @default("{}")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  members   TeamMember[]
+  apiKeys   ApiKey[]
+
+  @@index([ownerId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  email     String
+  role      String
+  status    String   @default("active")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([email])
+  @@map("team_members")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  teamId     String?
+  projectId  String?
+  action     String
+  resource   String
+  resourceId String?
+  outcome    String   @default("success")
+  traceId    String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([teamId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([action, createdAt])
+  @@index([traceId])
+  @@map("audit_logs")
+}
+
+model ApiKey {
+  id          String          @id @default(cuid())
+  userId      String
+  teamId      String?
+  name        String
+  prefix      String
+  keyHash     String
+  scopes      Json            @default("[]")
+  status      String          @default("active")
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime        @default(now())
+  team        Team?           @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  usageEvents ApiUsageEvent[]
+
+  @@unique([prefix])
+  @@index([userId])
+  @@index([teamId])
+  @@index([status])
+  @@map("api_keys")
+}
+
+model ApiUsageEvent {
+  id           String   @id @default(cuid())
+  apiKeyId     String?
+  userId       String
+  teamId       String?
+  endpoint     String
+  method       String
+  statusCode   Int
+  tier         String
+  costCents    Int      @default(0)
+  requestUnits Int      @default(1)
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+  apiKey       ApiKey?  @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  @@index([apiKeyId, createdAt])
+  @@index([userId, createdAt])
+  @@index([endpoint, createdAt])
+  @@index([tier, createdAt])
+  @@map("api_usage_events")
+}
+
+model ScheduledJob {
+  id           String    @id @default(cuid())
+  userId       String
+  teamId       String?
+  projectId    String?
+  name         String
+  jobType      String
+  schedule     String
+  payload      Json      @default("{}")
+  status       String    @default("active")
+  lastRunAt    DateTime?
+  nextRunAt    DateTime?
+  runCount     Int       @default(0)
+  failureCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([projectId])
+  @@index([status, nextRunAt])
+  @@map("scheduled_jobs")
+}
+
+model BillingAccount {
+  id                 String    @id @default(cuid())
+  userId             String
+  teamId             String?
+  plan               String    @default("free")
+  status             String    @default("active")
+  customerRef        String?
+  subscriptionRef    String?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  usage              Json      @default("{}")
+  metadata           Json      @default("{}")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@unique([userId, teamId])
+  @@index([status])
+  @@index([teamId])
+  @@map("billing_accounts")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id])
+  stripeCustomerId     String
+  stripeSubscriptionId String
+  tier                 Tier               @default(STARTER)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@index([tier])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model IntegrationModule {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  version         String    @default("1.0.0")
+  category        String
+  description     String
+  codeTemplate    Json
+  testCases       Json
+  validationScore Int       @default(95)
+  usageCount      Int       @default(0)
+  immutable       Boolean   @default(true)
+  humanReviewedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([category])
+  @@index([validationScore])
+  @@index([immutable])
+  @@map("integration_modules")
+}
+
+model AppAnalysis {
+  id              String   @id @default(cuid())
+  projectId       String?
+  framework       String
+  modules         Json     @default("[]")
+  appCodeHash     String
+  securityScore   Int
+  failureScore    Int
+  readinessScore  Int
+  riskLevel       String
+  issues          Json     @default("[]")
+  recommendations Json     @default("[]")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([riskLevel])
+  @@index([createdAt])
+  @@index([framework])
+  @@map("app_analyses")
+}
+
+model AppSnapshot {
+  id              String              @id @default(cuid())
+  projectId       String?
+  appCodeHash     String
+  framework       String
+  modules         Json                @default("[]")
+  structure       Json                @default("{}")
+  metadata        Json                @default("{}")
+  sourceLength    Int                 @default(0)
+  createdAt       DateTime            @default(now())
+  project         Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  analysisResults AnalysisResult[]
+  telemetryEvents AppTelemetryEvent[]
+  repairAttempts  RepairAttempt[]
+
+  @@index([projectId, createdAt])
+  @@index([appCodeHash])
+  @@index([framework])
+  @@index([createdAt])
+  @@map("app_snapshots")
+}
+
+model AnalysisResult {
+  id                String              @id @default(cuid())
+  projectId         String?
+  snapshotId        String?
+  securityScore     Int
+  failureScore      Int
+  readinessScore    Int
+  riskLevel         String
+  severityBreakdown Json                @default("{}")
+  issues            Json                @default("[]")
+  failureEvents     Json                @default("[]")
+  validationResults Json                @default("{}")
+  recommendations   Json                @default("[]")
+  metadata          Json                @default("{}")
+  createdAt         DateTime            @default(now())
+  project           Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  snapshot          AppSnapshot?        @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+  telemetryEvents   AppTelemetryEvent[]
+  repairAttempts    RepairAttempt[]
+
+  @@index([projectId, createdAt])
+  @@index([snapshotId])
+  @@index([riskLevel])
+  @@index([securityScore])
+  @@index([createdAt])
+  @@map("analysis_results")
+}
+
+model AppTelemetryEvent {
+  id               String          @id @default(cuid())
+  projectId        String?
+  snapshotId       String?
+  analysisResultId String?
+  eventType        String
+  dataset          String
+  framework        String?
+  riskLevel        String?
+  severity         String?
+  counts           Json            @default("{}")
+  metadata         Json            @default("{}")
+  createdAt        DateTime        @default(now())
+  project          Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  snapshot         AppSnapshot?    @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+  analysisResult   AnalysisResult? @relation(fields: [analysisResultId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([dataset, createdAt])
+  @@index([framework])
+  @@index([riskLevel])
+  @@index([snapshotId])
+  @@index([analysisResultId])
+  @@map("app_telemetry_events")
+}
+
+model ProjectRepositoryLink {
+  id         String   @id @default(cuid())
+  projectId  String
+  provider   String   @default("github")
+  repository String
+  url        String?
+  branch     String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, repository])
+  @@index([projectId, updatedAt])
+  @@index([repository])
+  @@map("project_repository_links")
+}
+
+model ProjectScanHistory {
+  id                    String   @id @default(cuid())
+  projectId             String?
+  scanSource            String
+  scanRefId             String?
+  readinessScore        Int
+  findingsCount         Int
+  criticalFindingsCount Int
+  riskLevel             String?
+  framework             String?
+  metadata              Json     @default("{}")
+  scannedAt             DateTime @default(now())
+  createdAt             DateTime @default(now())
+  project               Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([scanSource, scanRefId])
+  @@index([projectId, scannedAt])
+  @@index([scannedAt])
+  @@index([scanRefId])
+  @@map("project_scan_history")
+}
+
+model SoftwareAppraisal {
+  id                     String   @id @default(cuid())
+  publicId               String   @unique
+  projectId              String?
+  userId                 String
+  appName                String
+  status                 String   @default("active")
+  grade                  String
+  launchVerdict          String
+  readinessScore         Int
+  technicalRiskScore     Int
+  transferReadinessScore Int
+  repairCostLow          Int
+  repairCostHigh         Int
+  valueLow               Int
+  valueHigh              Int
+  badgeState             String
+  publicSummary          Json     @default("{}")
+  privateReport          Json     @default("{}")
+  evidenceRef            Json     @default("{}")
+  sourceScanId           String?
+  sourceScanRefId        String?
+  monitoredUntil         DateTime?
+  expiresAt              DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  project                Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  certificates           SoftwareCertificate[]
+
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([publicId])
+  @@index([launchVerdict])
+  @@map("software_appraisals")
+}
+
+model CertificateSigningKey {
+  id           String                @id
+  algorithm    String
+  publicKey    String                @db.Text
+  status       String                @default("ACTIVE")
+  createdAt    DateTime              @default(now())
+  retiredAt    DateTime?
+  certificates SoftwareCertificate[]
+  snapshots    SoftwareCertificateSnapshot[]
+
+  @@index([status])
+  @@map("certificate_signing_keys")
+}
+
+model SoftwareCertificate {
+  id                 String                        @id @default(cuid())
+  certificateId      String                        @unique
+  appraisalId        String
+  appraisalPublicId  String
+  projectId          String?
+  userId             String
+  schemaVersion      String
+  status             String                        @default("ACTIVE")
+  badgeState         String
+  payload            Json                          @default("{}")
+  payloadHash        String
+  signature          String                        @db.Text
+  signingKeyId       String
+  publicSummaryHash  String
+  privateEvidenceHash String
+  sourceSnapshotHash String?
+  issuedAt           DateTime                      @default(now())
+  expiresAt          DateTime?
+  revokedAt          DateTime?
+  supersededById     String?
+  createdAt          DateTime                      @default(now())
+  updatedAt          DateTime                      @updatedAt
+  appraisal          SoftwareAppraisal             @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
+  project            Project?                      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user               User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  signingKey         CertificateSigningKey         @relation(fields: [signingKeyId], references: [id], onDelete: Restrict)
+  snapshots          SoftwareCertificateSnapshot[]
+
+  @@index([appraisalId, issuedAt])
+  @@index([appraisalPublicId])
+  @@index([projectId, issuedAt])
+  @@index([userId, issuedAt])
+  @@index([certificateId])
+  @@index([payloadHash])
+  @@index([status])
+  @@index([signingKeyId])
+  @@map("software_certificates")
+}
+
+model SoftwareCertificateSnapshot {
+  id              String              @id @default(cuid())
+  certificateDbId String
+  certificateId   String
+  version         Int
+  status          String
+  payload         Json                @default("{}")
+  payloadHash     String
+  signature       String              @db.Text
+  signingKeyId    String
+  changeReason    String?
+  createdAt       DateTime            @default(now())
+  certificate     SoftwareCertificate @relation(fields: [certificateDbId], references: [id], onDelete: Cascade)
+  signingKey      CertificateSigningKey @relation(fields: [signingKeyId], references: [id], onDelete: Restrict)
+
+  @@unique([certificateDbId, version])
+  @@index([certificateId])
+  @@index([payloadHash])
+  @@index([signingKeyId])
+  @@map("software_certificate_snapshots")
+}
+
+model SoftwareTrustLedgerSnapshot {
+  id              String   @id @default(cuid())
+  projectId       String?
+  userId          String
+  snapshotHash    String
+  sourceScanId    String?
+  sourceScanRefId String?
+  ledgerVersion   String
+  score           Int
+  confidence      Float
+  verdict         String
+  rating          String
+  evidenceCount   Int
+  claimCount      Int
+  graph           Json     @default("{}")
+  scoreReport     Json     @default("{}")
+  claimGate       Json     @default("{}")
+  publicClaims    Json     @default("[]")
+  privateClaims   Json     @default("[]")
+  report          Json     @default("{}")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, snapshotHash])
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([snapshotHash])
+  @@index([verdict])
+  @@index([rating])
+  @@map("software_trust_ledger_snapshots")
+}
+
+model TrustEvidencePack {
+  id                String   @id @default(cuid())
+  passportId        String
+  repoSnapshotHash  String
+  sbomHash          String
+  configHash        String
+  buildMetadataHash String
+  packHash          String
+  createdAt         DateTime @default(now())
+  evaluations       TrustDomainEvaluation[]
+  trustStates       TrustStateRecord[]
+  attestations      TrustAttestation[]
+
+  @@index([passportId, createdAt])
+  @@index([packHash])
+  @@map("trust_evidence_packs")
+}
+
+model TrustDomainEvaluation {
+  id             String            @id @default(cuid())
+  evidencePackId String
+  passportId     String
+  domain         String
+  score          Int
+  riskFlags      Json              @default("[]")
+  evidenceRefs   Json              @default("[]")
+  outputHash     String
+  createdAt      DateTime          @default(now())
+  evidencePack   TrustEvidencePack @relation(fields: [evidencePackId], references: [id], onDelete: Cascade)
+
+  @@index([evidencePackId])
+  @@index([passportId, domain])
+  @@index([outputHash])
+  @@map("trust_domain_evaluations")
+}
+
+model TrustStateRecord {
+  id               String            @id @default(cuid())
+  evidencePackId   String
+  passportId       String
+  trustScore       Int
+  status           String
+  dominantRisks    Json              @default("[]")
+  evaluationHashes Json              @default("[]")
+  trustStateHash   String
+  reducerVersion   String
+  createdAt        DateTime          @default(now())
+  evidencePack     TrustEvidencePack @relation(fields: [evidencePackId], references: [id], onDelete: Cascade)
+  attestations     TrustAttestation[]
+
+  @@index([evidencePackId])
+  @@index([passportId, createdAt])
+  @@index([trustStateHash])
+  @@index([status])
+  @@map("trust_state_records")
+}
+
+model TrustAttestation {
+  id               String            @id @default(cuid())
+  evidencePackId   String
+  trustStateId     String
+  passportId       String
+  evidenceHash     String
+  evaluationHashes Json              @default("[]")
+  trustStateHash   String
+  pipelineVersion  String
+  signature        String            @db.Text
+  attestationHash  String
+  createdAt        DateTime          @default(now())
+  evidencePack     TrustEvidencePack @relation(fields: [evidencePackId], references: [id], onDelete: Cascade)
+  trustState       TrustStateRecord  @relation(fields: [trustStateId], references: [id], onDelete: Cascade)
+  ledgerEvents     TrustLedgerEvent[]
+
+  @@index([passportId, createdAt])
+  @@index([attestationHash])
+  @@index([evidenceHash])
+  @@map("trust_attestations")
+}
+
+model TrustLedgerEvent {
+  id              String           @id @default(cuid())
+  passportId      String
+  attestationId   String
+  attestationHash String
+  previousHash    String?
+  eventHash       String
+  replayStatus    String           @default("REPLAYABLE")
+  createdAt       DateTime         @default(now())
+  attestation     TrustAttestation @relation(fields: [attestationId], references: [id], onDelete: Cascade)
+
+  @@index([passportId, createdAt])
+  @@index([attestationHash])
+  @@index([eventHash])
+  @@map("trust_ledger_events")
+}
+
+model RepairAttempt {
+  id               String          @id @default(cuid())
+  snapshotId       String?
+  analysisResultId String?
+  attemptNumber    Int
+  strategy         String
+  status           String
+  beforeScore      Int?
+  afterScore       Int?
+  issuesBefore     Json            @default("[]")
+  issuesAfter      Json            @default("[]")
+  changes          Json            @default("[]")
+  metadata         Json            @default("{}")
+  createdAt        DateTime        @default(now())
+  snapshot         AppSnapshot?    @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+  analysisResult   AnalysisResult? @relation(fields: [analysisResultId], references: [id], onDelete: SetNull)
+
+  @@index([snapshotId])
+  @@index([analysisResultId])
+  @@index([status])
+  @@index([strategy])
+  @@index([createdAt])
+  @@map("repair_attempts")
+}
+
+model GitHubInstallation {
+  id                    String             @id @default(cuid())
+  userId                String
+  installationId        String             @unique
+  accountLogin          String
+  accountId             String
+  accountType           String
+  repositorySelection   String?
+  permissions           Json               @default("{}")
+  userAccessToken       String?
+  userRefreshToken      String?
+  userTokenExpiresAt    DateTime?
+  refreshTokenExpiresAt DateTime?
+  status                String             @default("active")
+  metadata              Json               @default("{}")
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repositories          GitHubRepository[]
+
+  @@index([userId])
+  @@index([accountLogin])
+  @@index([status])
+  @@map("github_installations")
+}
+
+model GitHubRepository {
+  id                 String                   @id @default(cuid())
+  userId             String
+  projectId          String?
+  installationDbId   String
+  installationId     String
+  githubRepositoryId String
+  owner              String
+  name               String
+  fullName           String
+  defaultBranch      String
+  private            Boolean                  @default(false)
+  permissions        Json                     @default("{}")
+  status             String                   @default("connected")
+  scanStatus         String                   @default("idle")
+  lastScanAt         DateTime?
+  connectedAt        DateTime                 @default(now())
+  disconnectedAt     DateTime?
+  metadata           Json                     @default("{}")
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  project            Project?                 @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  installation       GitHubInstallation       @relation(fields: [installationDbId], references: [id], onDelete: Cascade)
+  scanJobs           GitHubScanJob[]
+  pullRequestAnalyses GitHubPullRequestAnalysis[]
+
+  @@unique([installationId, githubRepositoryId])
+  @@unique([userId, fullName])
+  @@index([projectId, updatedAt])
+  @@index([installationId])
+  @@index([fullName])
+  @@index([status])
+  @@index([scanStatus])
+  @@map("github_repositories")
+}
+
+model GitHubScanJob {
+  id                    String            @id @default(cuid())
+  repositoryId          String
+  projectId             String?
+  userId                String
+  jobType               String
+  status                String            @default("queued")
+  githubDeliveryId      String?
+  githubEvent           String?
+  pullRequestNumber     Int?
+  headSha               String?
+  baseSha               String?
+  readinessScore        Int?
+  findingsCount         Int?
+  criticalFindingsCount Int?
+  errorMessage          String?
+  attempts              Int               @default(0)
+  queuedAt              DateTime          @default(now())
+  startedAt             DateTime?
+  completedAt           DateTime?
+  metadata              Json              @default("{}")
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  project               Project?          @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  repository            GitHubRepository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  pullRequestAnalyses   GitHubPullRequestAnalysis[]
+
+  @@index([repositoryId, queuedAt])
+  @@index([projectId, queuedAt])
+  @@index([userId, queuedAt])
+  @@index([status, queuedAt])
+  @@index([githubDeliveryId])
+  @@map("github_scan_jobs")
+}
+
+model GitHubPullRequestAnalysis {
+  id                String           @id @default(cuid())
+  repositoryId      String
+  scanJobId         String?
+  pullRequestNumber Int
+  headSha           String
+  baseSha           String?
+  readinessScore    Int
+  readinessDelta    Int?
+  status            String
+  findings          Json             @default("[]")
+  recommendations   Json             @default("[]")
+  commentId         String?
+  statusContext     String?
+  metadata          Json             @default("{}")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  repository        GitHubRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  scanJob           GitHubScanJob?   @relation(fields: [scanJobId], references: [id], onDelete: SetNull)
+
+  @@unique([repositoryId, pullRequestNumber, headSha])
+  @@index([repositoryId, createdAt])
+  @@index([scanJobId])
+  @@index([status])
+  @@map("github_pull_request_analyses")
+}
+
+model GitHubWebhookDelivery {
+  deliveryId        String    @id
+  event             String
+  action            String?
+  installationId    String?
+  repositoryFullName String?
+  status            String    @default("received")
+  processedAt       DateTime?
+  metadata          Json      @default("{}")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([event, createdAt])
+  @@index([installationId])
+  @@index([repositoryFullName])
+  @@index([status])
+  @@map("github_webhook_deliveries")
+}
+
+model Studio {
+  id          String       @id @default(cuid())
+  name        String
+  location    String
+  description String
+  ownerId     String
+  instructors Instructor[]
+  classes     Class[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([ownerId])
+  @@map("studios")
+}
+
+model Instructor {
+  id        String   @id @default(cuid())
+  name      String
+  bio       String
+  specialty String
+  studioId  String
+  studio    Studio   @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  classes   Class[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studioId])
+  @@map("instructors")
+}
+
+model Class {
+  id              String     @id @default(cuid())
+  name            String
+  description     String
+  instructorId    String
+  instructor      Instructor @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  studioId        String
+  studio          Studio     @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  capacity        Int
+  durationMinutes Int
+  type            String
+  timeSlots       TimeSlot[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([instructorId])
+  @@index([studioId])
+  @@map("classes")
+}
+
+model TimeSlot {
+  id                String    @id @default(cuid())
+  classId           String
+  class             Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  startTime         DateTime
+  endTime           DateTime
+  capacityRemaining Int
+  totalCapacity     Int
+  isPublished       Boolean   @default(false)
+  bookings          Booking[]
+  createdAt         DateTime  @default(now())
+
+  @@index([classId])
+  @@index([startTime])
+  @@index([isPublished])
+  @@map("time_slots")
+}
+
+model Booking {
+  id          String      @id @default(cuid())
+  timeSlotId  String
+  timeSlot    TimeSlot    @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
+  memberName  String
+  memberEmail String
+  status      String      @default("confirmed")
+  createdAt   DateTime    @default(now())
+  cancelledAt DateTime?
+  attendance  Attendance?
+
+  @@index([timeSlotId])
+  @@index([memberEmail])
+  @@index([status])
+  @@map("bookings")
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status    String
+  markedAt  DateTime @default(now())
+  markedBy  String
+
+  @@index([status])
+  @@index([markedBy])
+  @@map("attendance")
+}
+
+enum Tier {
+  STARTER
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+}

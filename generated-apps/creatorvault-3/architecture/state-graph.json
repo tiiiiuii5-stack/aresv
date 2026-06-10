@@ -1,0 +1,56 @@
+{
+  "initialStates": [
+    "Growing",
+    "Launching",
+    "Limited"
+  ],
+  "transitions": [
+    {
+      "from": "Growing",
+      "to": "Launching",
+      "terminal": false,
+      "triggeredBy": "Convert subscriber"
+    },
+    {
+      "from": "Launching",
+      "to": "Limited",
+      "terminal": false,
+      "triggeredBy": "Convert subscriber"
+    },
+    {
+      "from": "Limited",
+      "to": "In Progress",
+      "terminal": false,
+      "triggeredBy": "Convert subscriber"
+    },
+    {
+      "from": "In Progress",
+      "to": "Done",
+      "terminal": false,
+      "triggeredBy": "Convert subscriber"
+    },
+    {
+      "from": "Done",
+      "to": "Done",
+      "terminal": true,
+      "triggeredBy": "Convert subscriber"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Launch offer",
+      "changes": "Adds paid offer to launch board",
+      "target": "Offer"
+    },
+    {
+      "action": "Convert subscriber",
+      "changes": "Moves Interested -> Purchased -> Retained",
+      "target": "Purchase"
+    },
+    {
+      "action": "Cancel subscriber",
+      "changes": "Marks subscriber inactive",
+      "target": "Subscriber"
+    }
+  ]
+}

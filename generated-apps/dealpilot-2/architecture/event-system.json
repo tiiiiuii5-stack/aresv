@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "name": "CrmCreateDeal",
+      "trigger": "Create deal",
+      "payload": {
+        "target": "Deal",
+        "result": "Adds a deal to the first pipeline stage",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "append record",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "CrmTransitionDeal",
+      "trigger": "Advance stage",
+      "payload": {
+        "target": "Deal",
+        "result": "Moves Lead -> In Progress -> Review -> Done",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "update record status",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "CrmDeleteTask",
+      "trigger": "Delete task",
+      "payload": {
+        "target": "Task",
+        "result": "Removes completed task from the deal",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "remove record and dependents",
+        "prepend audit event"
+      ]
+    }
+  ],
+  "delivery": "in-process runtime event log plus API response payload"
+}

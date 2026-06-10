@@ -1,0 +1,184 @@
+{
+  "pipeline": "REAL RUNTIME APPLICATION FACTORY",
+  "runtimeType": "fullstack",
+  "phases": {
+    "intentToSpec": {
+      "appType": "internal tool",
+      "structuredSpec": true,
+      "routes": [
+        {
+          "path": "/",
+          "label": "Menu",
+          "purpose": "Browse menu and featured bundles"
+        },
+        {
+          "path": "/order",
+          "label": "Order",
+          "purpose": "Build a cart and submit order"
+        },
+        {
+          "path": "/kitchen",
+          "label": "Kitchen",
+          "purpose": "Track prep queue"
+        },
+        {
+          "path": "/admin",
+          "label": "Admin",
+          "purpose": "Update menu and fulfillment status"
+        }
+      ],
+      "databaseSchema": [
+        {
+          "name": "MenuItem",
+          "fields": [
+            "name",
+            "price",
+            "station",
+            "available",
+            "prepTime"
+          ]
+        },
+        {
+          "name": "KitchenTicket",
+          "fields": [
+            "items",
+            "customerName",
+            "status",
+            "pickupTime"
+          ]
+        },
+        {
+          "name": "OrderLine",
+          "fields": [
+            "ticketId",
+            "menuItemId",
+            "quantity",
+            "notes"
+          ]
+        }
+      ],
+      "uiScreens": [
+        {
+          "path": "/",
+          "screen": "Menu",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/order",
+          "screen": "Order",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/kitchen",
+          "screen": "Kitchen",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/admin",
+          "screen": "Admin",
+          "wiredToBackend": true
+        }
+      ],
+      "requiredIntegrations": [
+        "database",
+        "project runtime API",
+        "auth-ready protected routes"
+      ],
+      "unclearSpecPolicy": "block generation and ask questions"
+    },
+    "codeGeneration": {
+      "realFileTree": true,
+      "backendRoutes": [
+        "/api/menu",
+        "/api/orders",
+        "/api/kitchen/[id]"
+      ],
+      "frontendPages": [
+        "/",
+        "/order",
+        "/kitchen",
+        "/admin"
+      ],
+      "databaseSchema": "schema.prisma",
+      "environmentVariables": [
+        ".env.example"
+      ],
+      "noPlaceholderButtons": true,
+      "noStaticMockDataUnlessMarkedMock": true
+    },
+    "buildInstall": {
+      "requiredCommands": [
+        "npm install",
+        "npm run build",
+        "npm run type-check",
+        "npm run lint"
+      ],
+      "maxRepairLoops": 3,
+      "invalidIfBuildFails": true
+    },
+    "runtimeBootstrap": {
+      "startCommand": "npm run start",
+      "healthChecks": [
+        "GET /",
+        "GET /api/orders"
+      ],
+      "databaseCheck": "assertRelationalSchema",
+      "brokenIfAnyFail": true
+    },
+    "interactionTesting": {
+      "clickEveryButton": true,
+      "submitEveryForm": true,
+      "navigateEveryRoute": true,
+      "testApiEndpoints": true,
+      "blockFakeUi": true
+    },
+    "previewGeneration": {
+      "realOnly": true,
+      "requiresServerRunning": true,
+      "requiresRoutesRespond": true,
+      "requiresJsExecuting": true,
+      "requiresBackendAlive": true,
+      "requiresDatabaseConnected": true,
+      "noStaticPreviewModeEver": true
+    },
+    "selfHeal": {
+      "loop": "build -> run -> test -> fail -> fix -> rebuild",
+      "maxLoops": 5,
+      "stopOnlyWhen": [
+        "zero runtime errors",
+        "all routes respond",
+        "UI is interactive",
+        "backend is connected"
+      ]
+    },
+    "deploymentGate": {
+      "buildSuccess": true,
+      "runtimeSuccess": true,
+      "testSuccess": true,
+      "noFakeUiDetected": true
+    }
+  },
+  "generationMode": "module-assisted",
+  "integrationModules": [
+    {
+      "name": "Ecommerce-Stripe",
+      "category": "ecommerce",
+      "description": "Stripe checkout session, webhook payment confirmation, cart state, and order confirmation email.",
+      "validationScore": 97,
+      "dependencies": [
+        "stripe@^22.2.0",
+        "zustand@^5.0.13"
+      ],
+      "files": [
+        "integrations/ecommerce-stripe/checkout.ts",
+        "app/api/stripe/webhook/route.ts",
+        "integrations/ecommerce-stripe/cart-store.ts",
+        "integrations/ecommerce-stripe/order-email.ts"
+      ]
+    }
+  ],
+  "moduleInjection": {
+    "stage": "before-generation",
+    "rule": "Detected category modules are injected into the isolated runtime factory before code validation."
+  }
+}

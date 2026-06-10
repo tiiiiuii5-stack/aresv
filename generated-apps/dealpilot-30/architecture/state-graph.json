@@ -1,0 +1,50 @@
+{
+  "initialStates": [
+    "Queued",
+    "Active",
+    "Healthy"
+  ],
+  "transitions": [
+    {
+      "from": "Lead",
+      "to": "In Progress",
+      "terminal": false,
+      "triggeredBy": "Advance variant 30 state"
+    },
+    {
+      "from": "In Progress",
+      "to": "Review",
+      "terminal": false,
+      "triggeredBy": "Advance variant 30 state"
+    },
+    {
+      "from": "Review",
+      "to": "Done",
+      "terminal": false,
+      "triggeredBy": "Advance variant 30 state"
+    },
+    {
+      "from": "Done",
+      "to": "Done",
+      "terminal": true,
+      "triggeredBy": "Advance variant 30 state"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Create variant 30 event",
+      "changes": "Adds event to DealPilot 30 runtime queue",
+      "target": "CrmEvent30"
+    },
+    {
+      "action": "Advance variant 30 state",
+      "changes": "Moves Queued -> Active -> Reviewed -> Done",
+      "target": "CrmRuntime30"
+    },
+    {
+      "action": "Remove variant 30 audit",
+      "changes": "Removes audit and dependent runtime rows",
+      "target": "CrmAudit30"
+    }
+  ]
+}

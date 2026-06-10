@@ -1,0 +1,442 @@
+{
+  "id": "0dc7779e-fd21-449f-bc54-d0937009ce08",
+  "name": "PromptDesk 427",
+  "slug": "promptdesk-427",
+  "category": "ai-content",
+  "problem": "Build a booking calendar for clinic admins, providers, and patients. Real users: clinic admin, provider, patient. Real actions: create availability slots, book appointments, generate ICS invites, sync Google Calendar, parse recurring availability rules, cancel appointments. Real data: users, providers, slots, appointments, recurring rules, calendar sync events. Real state changes: booking reduces availability, cancellation restores slot, sync marks provider event id, refresh keeps saved state. unique architecture variant 427",
+  "audience": "content teams, creators, and AI-powered marketing teams",
+  "uiDirection": "editor studio with prompt queue, content calendar, and approval rail",
+  "monetization": "workspace SaaS with AI generation credits",
+  "prompt": "Build a booking calendar for clinic admins, providers, and patients. Real users: clinic admin, provider, patient. Real actions: create availability slots, book appointments, generate ICS invites, sync Google Calendar, parse recurring availability rules, cancel appointments. Real data: users, providers, slots, appointments, recurring rules, calendar sync events. Real state changes: booking reduces availability, cancellation restores slot, sync marks provider event id, refresh keeps saved state.",
+  "status": "ready",
+  "createdAt": "2026-05-31T15:09:28.131Z",
+  "updatedAt": "2026-05-31T15:09:28.131Z",
+  "onboarding": [
+    "Review generated plan",
+    "Open interactive preview",
+    "Edit source files",
+    "Run QA",
+    "Export or deploy"
+  ],
+  "features": [
+    "Variant 427 command queue",
+    "Variant 427 rule builder",
+    "Variant 427 event timeline",
+    "Variant 427 insight scoring",
+    "Variant 427 export workflow"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# PromptDesk 427\n\nBuild a booking calendar for clinic admins, providers, and patients. Real users: clinic admin, provider, patient. Real actions: create availability slots, book appointments, generate ICS invites, sync Google Calendar, parse recurring availability rules, cancel appointments. Real data: users, providers, slots, appointments, recurring rules, calendar sync events. Real state changes: booking reduces availability, cancellation restores slot, sync marks provider event id, refresh keeps saved state. unique architecture variant 427\n\nThis is an isolated ai-content application. It does not depend on a shared app shell.\n\n## Classification\n- App type: AI tool\n- Real users: yes\n- Real actions: yes\n- Real data: yes\n- Real state changes: yes\n\n## Runtime behavior\n- Component: ContentStudio\n- State engine: lib/content-engine.ts\n- Primary API: /api/drafts\n- Interaction: create brief\n\n## Routes\n- /: PromptDesk 427 command center\n- /ai-content-427-queue: Variant 427 work queue and approvals\n- /ai-content-427-rules: Variant 427 automation rules\n- /ai-content-427-insights: Variant 427 performance insights\n\n## Schema\n- AiContentRuntime427: ai-content-427Name, ai-content-427Owner, ai-content-427State, ai-content-427Score\n- AiContentEvent427: ai-content-427RecordId, ai-content-427Action, ai-content-427Actor, ai-content-427Result\n- AiContentAudit427: ai-content-427EventId, ai-content-427Reviewer, ai-content-427Decision, ai-content-427CreatedAt\n\n## Relationships\n- AiContentRuntime427 one-to-many AiContentEvent427 via ai-content-427RecordId\n- AiContentEvent427 one-to-many AiContentAudit427 via ai-content-427EventId\n\n## Functional interactions\n- Create variant 427 event: Adds event to PromptDesk 427 runtime queue\n- Advance variant 427 state: Moves Queued -> Active -> Reviewed -> Done\n- Remove variant 427 audit: Removes audit and dependent runtime rows\n\n## Architecture maps\n- architecture/database-schema.json: relational model graph\n- architecture/api-map.json: action-to-backend endpoint map\n- architecture/state-graph.json: state transition graph\n- architecture/event-system.json: event trigger map\n- architecture/job-system.json: async/background job policy\n- architecture/execution-binding.json: UI action to API to data to state to UI proof\n- architecture/runtime-factory.json: build, boot, interaction, preview, heal, and deploy gates\n"
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"promptdesk-427\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"start\": \"next start\"\n  },\n  \"dependencies\": {\n    \"next\": \"16.2.6\",\n    \"react\": \"19.2.6\",\n    \"react-dom\": \"19.2.6\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^6.0.3\",\n    \"@types/node\": \"20.14.10\",\n    \"@types/react\": \"^19.2.15\",\n    \"@types/react-dom\": \"^19.2.3\"\n  }\n}"
+    },
+    {
+      "path": "tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },\n  \"include\": [\n    \"**/*.ts\",\n    \"**/*.tsx\"\n  ],\n  \"exclude\": [\n    \"node_modules\"\n  ]\n}"
+    },
+    {
+      "path": "next.config.js",
+      "content": "const nextConfig = {};\nmodule.exports = nextConfig;\n"
+    },
+    {
+      "path": ".env.example",
+      "content": "DATABASE_URL=\nNEXT_PUBLIC_APP_URL=\n"
+    },
+    {
+      "path": "schema.prisma",
+      "content": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel AiContentRuntime427 {\n  id        String   @id @default(cuid())\n  aicontent427Name String\n  aicontent427Owner String\n  aicontent427State String\n  aicontent427Score String\n  AiContentEvent427 AiContentEvent427[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel AiContentEvent427 {\n  id        String   @id @default(cuid())\n  aicontent427RecordId String\n  aicontent427Action String\n  aicontent427Actor String\n  aicontent427Result String\n  AiContentAudit427 AiContentAudit427[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel AiContentAudit427 {\n  id        String   @id @default(cuid())\n  aicontent427EventId String\n  aicontent427Reviewer String\n  aicontent427Decision String\n  aicontent427CreatedAt String\n\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n"
+    },
+    {
+      "path": "app/layout.tsx",
+      "content": "import \"./globals.css\";\n\nexport const metadata = {\n  title: \"PromptDesk 427\",\n  description: \"Build a booking calendar for clinic admins, providers, and patients. Real users: clinic admin, provider, patient. Real actions: create availability slots, book appointments, generate ICS invites, sync Google Calendar, parse recurring availability rules, cancel appointments. Real data: users, providers, slots, appointments, recurring rules, calendar sync events. Real state changes: booking reduces availability, cancellation restores slot, sync marks provider event id, refresh keeps saved state. unique architecture variant 427\",\n};\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return <html lang=\"en\"><body>{children}</body></html>;\n}\n"
+    },
+    {
+      "path": "app/globals.css",
+      "content": ":root{--surface:#fdf2f8;--primary:#be185d;--accent:#8b5cf6;--ink:#111827}\n*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif}\nbutton,input,textarea{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid #e2e8f0}\n.wrap{max-width:1180px;margin:0 auto;padding:18px 20px}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 18px 45px rgba(15,23,42,.08)}\n.studio-rail{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));}.card{border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:16px}.primary{border:0;border-radius:12px;background:var(--primary);color:white;padding:12px 14px;font-weight:800;cursor:pointer}\n@media(max-width:840px){.hero{grid-template-columns:1fr}.studio-rail{grid-template-columns:1fr!important}}\n"
+    },
+    {
+      "path": "app/page.tsx",
+      "content": "import { ContentStudio } from \"@/components/ContentStudio\";\n\nexport default function Page() {\n  return <ContentStudio />;\n}\n"
+    },
+    {
+      "path": "components/ContentStudio.tsx",
+      "content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\n\nconst initialRecords = [\n  {\n    \"id\": \"ai-content-1\",\n    \"label\": \"PromptDesk 427 queue item\",\n    \"value\": \"1281 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 427 command queue\"\n  },\n  {\n    \"id\": \"ai-content-2\",\n    \"label\": \"PromptDesk 427 rule set\",\n    \"value\": \"431 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 427 rule builder\",\n    \"parentId\": \"ai-content-1\"\n  },\n  {\n    \"id\": \"ai-content-3\",\n    \"label\": \"PromptDesk 427 insight\",\n    \"value\": \"517%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 427 event timeline\",\n    \"parentId\": \"ai-content-1\"\n  }\n];\nconst views = [\"Command\",\"Queue\",\"Rules\",\"Insights\"];\nconst transitions = [\"Queued\",\"Active\",\"Healthy\",\"In Progress\",\"Done\"];\n\nexport function ContentStudio({ initialView = views[0] }: { initialView?: string }) {\n  const [view, setView] = useState(initialView);\n  const [records, setRecords] = useState(initialRecords);\n  const [input, setInput] = useState(\"\");\n  const [events, setEvents] = useState<string[]>([\"PromptDesk 427 ready\"]);\n  const visible = useMemo(() => records.filter((record) => view === views[0] || record.status.toLowerCase().includes(view.toLowerCase()) || record.meta.toLowerCase().includes(view.toLowerCase())), [records, view]);\n  async function mutate(payload: { action: \"create\" | \"transition\" | \"delete\"; id?: string; label?: string; value?: string; status?: string }) {\n    const response = await fetch(\"/api/drafts\", {\n      method: \"POST\",\n      headers: { \"content-type\": \"application/json\" },\n      body: JSON.stringify(payload),\n    });\n    if (!response.ok) {\n      setEvents((current) => [\"Backend mutation failed\", ...current]);\n      return;\n    }\n    const data = await response.json() as { records: typeof initialRecords; record?: (typeof initialRecords)[number] };\n    setRecords(data.records);\n    setEvents((current) => [payload.action + \" persisted through /api/drafts\", ...current]);\n    if (payload.action === \"create\") setInput(\"\");\n  }\n  return (\n    <main className=\"app\">\n      <header className=\"top\"><div className=\"wrap\" style={{display:\"flex\",justifyContent:\"space-between\",gap:12,alignItems:\"center\"}}><strong>PromptDesk 427</strong><nav style={{display:\"flex\",gap:8,overflowX:\"auto\"}}>{views.map((item) => <a key={item} href={\"#\"+item} onClick={(event) => { event.preventDefault(); setView(item); }} className=\"primary\" style={{background:item===view?\"var(--primary)\":\"#e2e8f0\",color:item===view?\"white\":\"#0f172a\",textDecoration:\"none\"}}>{item}</a>)}</nav></div></header>\n      <section className=\"wrap hero\">\n        <div className=\"panel\">\n          <p style={{fontWeight:900,textTransform:\"uppercase\",letterSpacing:\".16em\",fontSize:12,color:\"var(--primary)\"}}>ai-content</p>\n          <h1 style={{fontSize:48,lineHeight:1,margin:\"10px 0\"}}>PromptDesk 427</h1>\n          <p style={{lineHeight:1.7,color:\"#475569\"}}>Build a booking calendar for clinic admins, providers, and patients. Real users: clinic admin, provider, patient. Real actions: create availability slots, book appointments, generate ICS invites, sync Google Calendar, parse recurring availability rules, cancel appointments. Real data: users, providers, slots, appointments, recurring rules, calendar sync events. Real state changes: booking reduces availability, cancellation restores slot, sync marks provider event id, refresh keeps saved state. unique architecture variant 427</p>\n          <div className=\"studio-rail\" style={{marginTop:18}}>{visible.map((record) => <article key={record.id || record.label} className=\"card\"><strong>{record.label}</strong><p style={{fontSize:28,fontWeight:850,margin:\"8px 0\"}}>{record.value}</p><span>{record.status}</span><div style={{display:\"flex\",gap:8,marginTop:12}}><button data-action=\"transition\" data-api=\"/api/drafts\" data-db-change=\"update-status\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"transition\", id: record.id })} className=\"primary\" style={{padding:\"8px 10px\"}}>Advance variant 427 state</button><button data-action=\"delete\" data-api=\"/api/drafts\" data-db-change=\"delete-record\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"delete\", id: record.id })} className=\"primary\" style={{padding:\"8px 10px\",background:\"#fee2e2\",color:\"#991b1b\"}}>Remove variant 427 audit</button></div></article>)}</div>\n        </div>\n        <aside className=\"panel\">\n          <h2>Create ai-content event</h2>\n          <p>Adds variant 427 event to isolated runtime</p>\n          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder=\"Name, Owner, State, Score\" style={{width:\"100%\",minHeight:110,border:\"1px solid #cbd5e1\",borderRadius:12,padding:12}} />\n          <button data-action=\"create\" data-api=\"/api/drafts\" data-db-change=\"insert-record\" data-state-update=\"setRecords\" data-ui-refresh=\"records-list\" onClick={() => mutate({ action: \"create\", label: input || \"Create ai-content event\", value: \"New\", status: transitions[0] || \"Created\" })} className=\"primary\" style={{width:\"100%\",marginTop:10}}>create brief</button>\n          <div style={{display:\"grid\",gap:8,marginTop:16}}>{events.map((event) => <div key={event} className=\"card\">{event}</div>)}</div>\n        </aside>\n      </section>\n    </main>\n  );\n}\n"
+    },
+    {
+      "path": "features/drafts/interactions.ts",
+      "content": "export const interactionMap = [\n  {\n    \"label\": \"Create variant 427 event\",\n    \"type\": \"create\",\n    \"target\": \"AiContentEvent427\",\n    \"result\": \"Adds event to PromptDesk 427 runtime queue\"\n  },\n  {\n    \"label\": \"Advance variant 427 state\",\n    \"type\": \"transition\",\n    \"target\": \"AiContentRuntime427\",\n    \"result\": \"Moves Queued -> Active -> Reviewed -> Done\"\n  },\n  {\n    \"label\": \"Remove variant 427 audit\",\n    \"type\": \"delete\",\n    \"target\": \"AiContentAudit427\",\n    \"result\": \"Removes audit and dependent runtime rows\"\n  }\n] as const;\nexport const relationshipMap = [\n  {\n    \"from\": \"AiContentRuntime427\",\n    \"to\": \"AiContentEvent427\",\n    \"type\": \"one-to-many\",\n    \"via\": \"ai-content-427RecordId\"\n  },\n  {\n    \"from\": \"AiContentEvent427\",\n    \"to\": \"AiContentAudit427\",\n    \"type\": \"one-to-many\",\n    \"via\": \"ai-content-427EventId\"\n  }\n] as const;\n\nexport function validateDraftsRelationships(record: { parentId?: string }, existingIds: string[]) {\n  if (!relationshipMap.length) throw new Error(\"Generated app requires relational data models.\");\n  return !record.parentId || existingIds.includes(record.parentId);\n}\n"
+    },
+    {
+      "path": "db/ai-content-schema.ts",
+      "content": "export const models = [\n  {\n    \"name\": \"AiContentRuntime427\",\n    \"fields\": [\n      \"ai-content-427Name\",\n      \"ai-content-427Owner\",\n      \"ai-content-427State\",\n      \"ai-content-427Score\"\n    ]\n  },\n  {\n    \"name\": \"AiContentEvent427\",\n    \"fields\": [\n      \"ai-content-427RecordId\",\n      \"ai-content-427Action\",\n      \"ai-content-427Actor\",\n      \"ai-content-427Result\"\n    ]\n  },\n  {\n    \"name\": \"AiContentAudit427\",\n    \"fields\": [\n      \"ai-content-427EventId\",\n      \"ai-content-427Reviewer\",\n      \"ai-content-427Decision\",\n      \"ai-content-427CreatedAt\"\n    ]\n  }\n] as const;\nexport const relationships = [\n  {\n    \"from\": \"AiContentRuntime427\",\n    \"to\": \"AiContentEvent427\",\n    \"type\": \"one-to-many\",\n    \"via\": \"ai-content-427RecordId\"\n  },\n  {\n    \"from\": \"AiContentEvent427\",\n    \"to\": \"AiContentAudit427\",\n    \"type\": \"one-to-many\",\n    \"via\": \"ai-content-427EventId\"\n  }\n] as const;\n\nexport function assertRelationalSchema() {\n  if (relationships.length < 2) throw new Error(\"Relational schema is required.\");\n  return relationships.map((relation) => relation.from + \" -> \" + relation.to);\n}\n"
+    },
+    {
+      "path": "api/drafts/handlers.ts",
+      "content": "import { applyDraftsMutation, removeDraftsRecord, transitionDraftsRecord } from \"@/lib/content-engine\";\n\nexport const statusFlow = [\n  \"Queued\",\n  \"Active\",\n  \"Healthy\",\n  \"In Progress\",\n  \"Done\"\n] as const;\n\nexport function handleDraftsAction(records: Array<{ id: string; label: string; value: string; status: string; meta?: string; parentId?: string }>, body: { action?: string; id?: string; label?: string; value?: string; status?: string }) {\n  if (body.action === \"transition\" && body.id) return transitionDraftsRecord(records, body.id, [...statusFlow]);\n  if (body.action === \"delete\" && body.id) return removeDraftsRecord(records, body.id);\n  return applyDraftsMutation(records, { label: body.label || \"Create ai-content event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\" });\n}\n"
+    },
+    {
+      "path": "architecture/database-schema.json",
+      "content": "{\n  \"appType\": \"AI tool\",\n  \"models\": [\n    {\n      \"name\": \"AiContentRuntime427\",\n      \"fields\": [\n        \"ai-content-427Name\",\n        \"ai-content-427Owner\",\n        \"ai-content-427State\",\n        \"ai-content-427Score\"\n      ],\n      \"owns\": [\n        {\n          \"model\": \"AiContentEvent427\",\n          \"via\": \"ai-content-427RecordId\",\n          \"type\": \"one-to-many\"\n        }\n      ],\n      \"belongsTo\": []\n    },\n    {\n      \"name\": \"AiContentEvent427\",\n      \"fields\": [\n        \"ai-content-427RecordId\",\n        \"ai-content-427Action\",\n        \"ai-content-427Actor\",\n        \"ai-content-427Result\"\n      ],\n      \"owns\": [\n        {\n          \"model\": \"AiContentAudit427\",\n          \"via\": \"ai-content-427EventId\",\n          \"type\": \"one-to-many\"\n        }\n      ],\n      \"belongsTo\": [\n        {\n          \"model\": \"AiContentRuntime427\",\n          \"via\": \"ai-content-427RecordId\",\n          \"type\": \"one-to-many\"\n        }\n      ]\n    },\n    {\n      \"name\": \"AiContentAudit427\",\n      \"fields\": [\n        \"ai-content-427EventId\",\n        \"ai-content-427Reviewer\",\n        \"ai-content-427Decision\",\n        \"ai-content-427CreatedAt\"\n      ],\n      \"owns\": [],\n      \"belongsTo\": [\n        {\n          \"model\": \"AiContentEvent427\",\n          \"via\": \"ai-content-427EventId\",\n          \"type\": \"one-to-many\"\n        }\n      ]\n    }\n  ],\n  \"relationships\": [\n    {\n      \"from\": \"AiContentRuntime427\",\n      \"to\": \"AiContentEvent427\",\n      \"type\": \"one-to-many\",\n      \"via\": \"ai-content-427RecordId\"\n    },\n    {\n      \"from\": \"AiContentEvent427\",\n      \"to\": \"AiContentAudit427\",\n      \"type\": \"one-to-many\",\n      \"via\": \"ai-content-427EventId\"\n    }\n  ],\n  \"invariants\": [\n    \"Every generated app has at least two relational links.\",\n    \"Child records carry a foreign key defined by relationship.via.\",\n    \"Deletes cascade dependent runtime rows through parentId in preview runtime.\"\n  ]\n}"
+    },
+    {
+      "path": "architecture/api-map.json",
+      "content": "{\n  \"backendRequired\": true,\n  \"endpoints\": [\n    {\n      \"method\": \"GET\",\n      \"path\": \"/api/ai-content-427-runtime\",\n      \"purpose\": \"List variant 427 runtime records\",\n      \"hitsBackend\": true,\n      \"requestBody\": null,\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    },\n    {\n      \"method\": \"POST\",\n      \"path\": \"/api/ai-content-427-events\",\n      \"purpose\": \"Create variant 427 runtime event\",\n      \"hitsBackend\": true,\n      \"requestBody\": {\n        \"action\": \"create | transition | delete\",\n        \"id\": \"optional record id\",\n        \"label\": \"optional user value\"\n      },\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    },\n    {\n      \"method\": \"PATCH\",\n      \"path\": \"/api/ai-content-427-events/[id]\",\n      \"purpose\": \"Resolve variant 427 event\",\n      \"hitsBackend\": true,\n      \"requestBody\": {\n        \"action\": \"create | transition | delete\",\n        \"id\": \"optional record id\",\n        \"label\": \"optional user value\"\n      },\n      \"responseShape\": {\n        \"ok\": true,\n        \"records\": \"updated domain records\"\n      }\n    }\n  ],\n  \"actionBindings\": [\n    {\n      \"action\": \"Create variant 427 event\",\n      \"type\": \"create\",\n      \"target\": \"AiContentEvent427\",\n      \"backend\": {\n        \"method\": \"GET\",\n        \"path\": \"/api/ai-content-427-runtime\",\n        \"purpose\": \"List variant 427 runtime records\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    },\n    {\n      \"action\": \"Advance variant 427 state\",\n      \"type\": \"transition\",\n      \"target\": \"AiContentRuntime427\",\n      \"backend\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/ai-content-427-events\",\n        \"purpose\": \"Create variant 427 runtime event\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    },\n    {\n      \"action\": \"Remove variant 427 audit\",\n      \"type\": \"delete\",\n      \"target\": \"AiContentAudit427\",\n      \"backend\": {\n        \"method\": \"PATCH\",\n        \"path\": \"/api/ai-content-427-events/[id]\",\n        \"purpose\": \"Resolve variant 427 event\"\n      },\n      \"mustPersist\": true,\n      \"executionChain\": [\n        \"uiAction\",\n        \"apiRoute\",\n        \"databaseChange\",\n        \"stateUpdate\",\n        \"uiRefresh\"\n      ]\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/state-graph.json",
+      "content": "{\n  \"initialStates\": [\n    \"Queued\",\n    \"Active\",\n    \"Healthy\"\n  ],\n  \"transitions\": [\n    {\n      \"from\": \"Queued\",\n      \"to\": \"Active\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance variant 427 state\"\n    },\n    {\n      \"from\": \"Active\",\n      \"to\": \"Healthy\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance variant 427 state\"\n    },\n    {\n      \"from\": \"Healthy\",\n      \"to\": \"In Progress\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance variant 427 state\"\n    },\n    {\n      \"from\": \"In Progress\",\n      \"to\": \"Done\",\n      \"terminal\": false,\n      \"triggeredBy\": \"Advance variant 427 state\"\n    },\n    {\n      \"from\": \"Done\",\n      \"to\": \"Done\",\n      \"terminal\": true,\n      \"triggeredBy\": \"Advance variant 427 state\"\n    }\n  ],\n  \"mutations\": [\n    {\n      \"action\": \"Create variant 427 event\",\n      \"changes\": \"Adds event to PromptDesk 427 runtime queue\",\n      \"target\": \"AiContentEvent427\"\n    },\n    {\n      \"action\": \"Advance variant 427 state\",\n      \"changes\": \"Moves Queued -> Active -> Reviewed -> Done\",\n      \"target\": \"AiContentRuntime427\"\n    },\n    {\n      \"action\": \"Remove variant 427 audit\",\n      \"changes\": \"Removes audit and dependent runtime rows\",\n      \"target\": \"AiContentAudit427\"\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/event-system.json",
+      "content": "{\n  \"events\": [\n    {\n      \"name\": \"AiContentCreateAiContentEvent427\",\n      \"trigger\": \"Create variant 427 event\",\n      \"payload\": {\n        \"target\": \"AiContentEvent427\",\n        \"result\": \"Adds event to PromptDesk 427 runtime queue\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"append record\",\n        \"prepend audit event\"\n      ]\n    },\n    {\n      \"name\": \"AiContentTransitionAiContentRuntime427\",\n      \"trigger\": \"Advance variant 427 state\",\n      \"payload\": {\n        \"target\": \"AiContentRuntime427\",\n        \"result\": \"Moves Queued -> Active -> Reviewed -> Done\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"update record status\",\n        \"prepend audit event\"\n      ]\n    },\n    {\n      \"name\": \"AiContentDeleteAiContentAudit427\",\n      \"trigger\": \"Remove variant 427 audit\",\n      \"payload\": {\n        \"target\": \"AiContentAudit427\",\n        \"result\": \"Removes audit and dependent runtime rows\",\n        \"timestamp\": \"ISO-8601\"\n      },\n      \"sideEffects\": [\n        \"remove record and dependents\",\n        \"prepend audit event\"\n      ]\n    }\n  ],\n  \"delivery\": \"in-process runtime event log plus API response payload\"\n}"
+    },
+    {
+      "path": "architecture/job-system.json",
+      "content": "{\n  \"asyncNeeded\": true,\n  \"queuePolicy\": \"Use queued job for long-running generation, publishing, checkout, export, alerting, or AI work.\",\n  \"jobs\": [\n    {\n      \"name\": \"AiContentCreateJob\",\n      \"trigger\": \"Create variant 427 event\",\n      \"mode\": \"async\",\n      \"retry\": {\n        \"maxAttempts\": 3,\n        \"backoff\": \"exponential\"\n      },\n      \"idempotencyKey\": \"ai-content:create:AiContentEvent427:recordId\"\n    },\n    {\n      \"name\": \"AiContentTransitionJob\",\n      \"trigger\": \"Advance variant 427 state\",\n      \"mode\": \"async\",\n      \"retry\": {\n        \"maxAttempts\": 3,\n        \"backoff\": \"exponential\"\n      },\n      \"idempotencyKey\": \"ai-content:transition:AiContentRuntime427:recordId\"\n    },\n    {\n      \"name\": \"AiContentDeleteJob\",\n      \"trigger\": \"Remove variant 427 audit\",\n      \"mode\": \"async\",\n      \"retry\": {\n        \"maxAttempts\": 3,\n        \"backoff\": \"exponential\"\n      },\n      \"idempotencyKey\": \"ai-content:delete:AiContentAudit427:recordId\"\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/execution-binding.json",
+      "content": "{\n  \"rule\": \"UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH\",\n  \"blockBuildIfAnyStepMissing\": true,\n  \"apiRoute\": \"/api/drafts\",\n  \"bindings\": [\n    {\n      \"uiAction\": {\n        \"label\": \"Create variant 427 event\",\n        \"selector\": \"[data-action=\\\"create\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/drafts\",\n        \"requestAction\": \"create\"\n      },\n      \"databaseChange\": {\n        \"target\": \"AiContentEvent427\",\n        \"operation\": \"insert\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    },\n    {\n      \"uiAction\": {\n        \"label\": \"Advance variant 427 state\",\n        \"selector\": \"[data-action=\\\"transition\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/drafts\",\n        \"requestAction\": \"transition\"\n      },\n      \"databaseChange\": {\n        \"target\": \"AiContentRuntime427\",\n        \"operation\": \"update\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    },\n    {\n      \"uiAction\": {\n        \"label\": \"Remove variant 427 audit\",\n        \"selector\": \"[data-action=\\\"delete\\\"]\",\n        \"event\": \"click\"\n      },\n      \"apiRoute\": {\n        \"method\": \"POST\",\n        \"path\": \"/api/drafts\",\n        \"requestAction\": \"delete\"\n      },\n      \"databaseChange\": {\n        \"target\": \"AiContentAudit427\",\n        \"operation\": \"delete\",\n        \"persisted\": true\n      },\n      \"stateUpdate\": {\n        \"clientStateSetter\": \"setRecords\",\n        \"source\": \"API response records\"\n      },\n      \"uiRefresh\": {\n        \"region\": \"records-list\",\n        \"mechanism\": \"React state re-render\"\n      }\n    }\n  ]\n}"
+    },
+    {
+      "path": "architecture/runtime-factory.json",
+      "content": "{\n  \"pipeline\": \"REAL RUNTIME APPLICATION FACTORY\",\n  \"runtimeType\": \"fullstack\",\n  \"phases\": {\n    \"intentToSpec\": {\n      \"appType\": \"AI tool\",\n      \"structuredSpec\": true,\n      \"routes\": [\n        {\n          \"path\": \"/\",\n          \"label\": \"Command\",\n          \"purpose\": \"PromptDesk 427 command center\"\n        },\n        {\n          \"path\": \"/ai-content-427-queue\",\n          \"label\": \"Queue\",\n          \"purpose\": \"Variant 427 work queue and approvals\"\n        },\n        {\n          \"path\": \"/ai-content-427-rules\",\n          \"label\": \"Rules\",\n          \"purpose\": \"Variant 427 automation rules\"\n        },\n        {\n          \"path\": \"/ai-content-427-insights\",\n          \"label\": \"Insights\",\n          \"purpose\": \"Variant 427 performance insights\"\n        }\n      ],\n      \"databaseSchema\": [\n        {\n          \"name\": \"AiContentRuntime427\",\n          \"fields\": [\n            \"ai-content-427Name\",\n            \"ai-content-427Owner\",\n            \"ai-content-427State\",\n            \"ai-content-427Score\"\n          ]\n        },\n        {\n          \"name\": \"AiContentEvent427\",\n          \"fields\": [\n            \"ai-content-427RecordId\",\n            \"ai-content-427Action\",\n            \"ai-content-427Actor\",\n            \"ai-content-427Result\"\n          ]\n        },\n        {\n          \"name\": \"AiContentAudit427\",\n          \"fields\": [\n            \"ai-content-427EventId\",\n            \"ai-content-427Reviewer\",\n            \"ai-content-427Decision\",\n            \"ai-content-427CreatedAt\"\n          ]\n        }\n      ],\n      \"uiScreens\": [\n        {\n          \"path\": \"/\",\n          \"screen\": \"Command\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/ai-content-427-queue\",\n          \"screen\": \"Queue\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/ai-content-427-rules\",\n          \"screen\": \"Rules\",\n          \"wiredToBackend\": true\n        },\n        {\n          \"path\": \"/ai-content-427-insights\",\n          \"screen\": \"Insights\",\n          \"wiredToBackend\": true\n        }\n      ],\n      \"requiredIntegrations\": [\n        \"database\",\n        \"project runtime API\",\n        \"AI provider boundary\"\n      ],\n      \"unclearSpecPolicy\": \"block generation and ask questions\"\n    },\n    \"codeGeneration\": {\n      \"realFileTree\": true,\n      \"backendRoutes\": [\n        \"/api/ai-content-427-runtime\",\n        \"/api/ai-content-427-events\",\n        \"/api/ai-content-427-events/[id]\"\n      ],\n      \"frontendPages\": [\n        \"/\",\n        \"/ai-content-427-queue\",\n        \"/ai-content-427-rules\",\n        \"/ai-content-427-insights\"\n      ],\n      \"databaseSchema\": \"schema.prisma\",\n      \"environmentVariables\": [\n        \".env.example\"\n      ],\n      \"noPlaceholderButtons\": true,\n      \"noStaticMockDataUnlessMarkedMock\": true\n    },\n    \"buildInstall\": {\n      \"requiredCommands\": [\n        \"npm install\",\n        \"npm run build\",\n        \"npm run type-check\",\n        \"npm run lint\"\n      ],\n      \"maxRepairLoops\": 3,\n      \"invalidIfBuildFails\": true\n    },\n    \"runtimeBootstrap\": {\n      \"startCommand\": \"npm run start\",\n      \"healthChecks\": [\n        \"GET /\",\n        \"GET /api/drafts\"\n      ],\n      \"databaseCheck\": \"assertRelationalSchema\",\n      \"brokenIfAnyFail\": true\n    },\n    \"interactionTesting\": {\n      \"clickEveryButton\": true,\n      \"submitEveryForm\": true,\n      \"navigateEveryRoute\": true,\n      \"testApiEndpoints\": true,\n      \"blockFakeUi\": true\n    },\n    \"previewGeneration\": {\n      \"realOnly\": true,\n      \"requiresServerRunning\": true,\n      \"requiresRoutesRespond\": true,\n      \"requiresJsExecuting\": true,\n      \"requiresBackendAlive\": true,\n      \"requiresDatabaseConnected\": true,\n      \"noStaticPreviewModeEver\": true\n    },\n    \"selfHeal\": {\n      \"loop\": \"build -> run -> test -> fail -> fix -> rebuild\",\n      \"maxLoops\": 5,\n      \"stopOnlyWhen\": [\n        \"zero runtime errors\",\n        \"all routes respond\",\n        \"UI is interactive\",\n        \"backend is connected\"\n      ]\n    },\n    \"deploymentGate\": {\n      \"buildSuccess\": true,\n      \"runtimeSuccess\": true,\n      \"testSuccess\": true,\n      \"noFakeUiDetected\": true\n    }\n  },\n  \"generationMode\": \"module-assisted\",\n  \"integrationModules\": [\n    {\n      \"name\": \"Booking-Calendar\",\n      \"category\": \"booking\",\n      \"description\": \"Availability matrix, ICS file generation, Google Calendar sync boundary, and recurring rule parser.\",\n      \"validationScore\": 98,\n      \"dependencies\": [],\n      \"files\": [\n        \"integrations/booking-calendar/availability.ts\",\n        \"integrations/booking-calendar/ics.ts\",\n        \"integrations/booking-calendar/google-sync.ts\",\n        \"integrations/booking-calendar/recurrence.ts\"\n      ]\n    },\n    {\n      \"name\": \"Project-Gantt\",\n      \"category\": \"project\",\n      \"description\": \"Task dependency graph, date calculation engine, canvas renderer, and drag-and-drop rescheduling.\",\n      \"validationScore\": 95,\n      \"dependencies\": [],\n      \"files\": [\n        \"integrations/project-gantt/dependency-graph.ts\",\n        \"integrations/project-gantt/date-engine.ts\",\n        \"integrations/project-gantt/canvas-renderer.ts\",\n        \"integrations/project-gantt/reschedule.ts\"\n      ]\n    }\n  ],\n  \"moduleInjection\": {\n    \"stage\": \"before-generation\",\n    \"rule\": \"Detected category modules are injected into the isolated runtime factory before code validation.\"\n  }\n}"
+    },
+    {
+      "path": "architecture/README.md",
+      "content": "# PromptDesk 427 Architecture\n\n## Database schema\nSee `database-schema.json` for models and real relationships.\n\n## API map\nSee `api-map.json`. Every listed action is bound to a backend endpoint and must persist state.\n\n## State graph\nSee `state-graph.json`. Transitions define what changes what.\n\n## Event system\nSee `event-system.json`. Events describe trigger, payload, and side effects.\n\n## Job system\nSee `job-system.json`. Async work is queued when the action is long-running or externally dependent.\n\n## Execution binding\nSee `execution-binding.json`. Every button must complete: UI action -> API route -> database change -> state update -> UI refresh.\n\n## Runtime factory\nSee `runtime-factory.json`. Preview and deployment are blocked unless build, runtime, interaction, and fake-UI checks pass.\n"
+    },
+    {
+      "path": "lib/content-engine.ts",
+      "content": "type RecordItem = { id: string; label: string; value: string; status: string; meta?: string; parentId?: string };\n\nexport function applyDraftsMutation(records: RecordItem[], input: Pick<RecordItem, \"label\" | \"value\" | \"status\">) {\n  const created = { id: crypto.randomUUID?.() || String(Date.now()), ...input, meta: \"create brief\", parentId: records[0]?.id };\n  return {\n    records: [created, ...records],\n    event: \"create brief: \" + created.label,\n  };\n}\n\nexport function transitionDraftsRecord(records: RecordItem[], id: string, flow: string[]) {\n  let changed = \"No record changed\";\n  const nextRecords = records.map((record) => {\n    if (record.id !== id) return record;\n    const index = flow.indexOf(record.status);\n    const status = flow[Math.min(index + 1, flow.length - 1)] || \"Done\";\n    changed = record.label + \" moved to \" + status;\n    return { ...record, status };\n  });\n  return { records: nextRecords, event: changed };\n}\n\nexport function removeDraftsRecord(records: RecordItem[], id: string) {\n  const target = records.find((record) => record.id === id);\n  return {\n    records: records.filter((record) => record.id !== id && record.parentId !== id),\n    event: target ? \"Removed \" + target.label : \"Removed record\",\n  };\n}\n"
+    },
+    {
+      "path": "app/api/drafts/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"ai-content-1\",\n    \"label\": \"PromptDesk 427 queue item\",\n    \"value\": \"1281 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 427 command queue\"\n  },\n  {\n    \"id\": \"ai-content-2\",\n    \"label\": \"PromptDesk 427 rule set\",\n    \"value\": \"431 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 427 rule builder\",\n    \"parentId\": \"ai-content-1\"\n  },\n  {\n    \"id\": \"ai-content-3\",\n    \"label\": \"PromptDesk 427 insight\",\n    \"value\": \"517%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 427 event timeline\",\n    \"parentId\": \"ai-content-1\"\n  }\n];\nconst statusFlow = [\"Queued\",\"Active\",\"Healthy\",\"In Progress\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"drafts\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create ai-content event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"create brief\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "preview/index.html",
+      "content": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>PromptDesk 427</title><style>:root{--surface:#fdf2f8;--primary:#be185d;--accent:#8b5cf6;--ink:#111827}*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,system-ui,sans-serif}header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 20px;background:rgba(255,255,255,.92);border-bottom:1px solid #e2e8f0;backdrop-filter:blur(14px)}nav{display:flex;gap:8px;overflow:auto}button,nav a{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;text-decoration:none}nav a{background:#e2e8f0;color:#334155}.active,#submit{background:var(--primary)!important;color:white}.hero{max-width:1180px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:minmax(0,1fr)340px;gap:18px}.panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:22px;box-shadow:0 18px 45px rgba(15,23,42,.08)}h1{font-size:clamp(34px,5vw,58px);line-height:1;margin:8px 0}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:900;color:var(--primary)}.studio-rail{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));}.card,.event{background:#f8fafc;border:1px solid #e2e8f0;border-radius:13px;padding:14px}.value{font-size:28px;font-weight:850;margin:8px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button:first-child{background:var(--primary);color:white}.actions button:last-child{background:#fee2e2;color:#991b1b}textarea{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit}#submit{width:100%;margin-top:10px}.event{margin-top:10px;color:#047857}@media(max-width:840px){.hero{grid-template-columns:1fr}.studio-rail{grid-template-columns:1fr!important}header{align-items:flex-start;flex-direction:column}}</style></head>\n<body><main class=\"app\"><header><strong>PromptDesk 427</strong><nav id=\"nav\"></nav></header><section class=\"hero\"><div class=\"panel\"><p class=\"eyebrow\">ai-content runtime</p><h1>PromptDesk 427</h1><p>Build a booking calendar for clinic admins, providers, and patients. Real users: clinic admin, provider, patient. Real actions: create availability slots, book appointments, generate ICS invites, sync Google Calendar, parse recurring availability rules, cancel appointments. Real data: users, providers, slots, appointments, recurring rules, calendar sync events. Real state changes: booking reduces availability, cancellation restores slot, sync marks provider event id, refresh keeps saved state. unique architecture variant 427</p><div id=\"records\" class=\"studio-rail\"></div></div><aside class=\"panel\"><h2>Create ai-content event</h2><textarea id=\"input\" placeholder=\"Name, Owner, State, Score\"></textarea><button id=\"submit\" data-action=\"create\" data-api=\"/api/projects/0dc7779e-fd21-449f-bc54-d0937009ce08/runtime\" data-db-change=\"insert-record\" data-state-update=\"records=data.state.records\" data-ui-refresh=\"render\">create brief</button><div id=\"events\"></div></aside></section></main>\n<script>\nconst projectId=\"0dc7779e-fd21-449f-bc54-d0937009ce08\";const views=[\"Command\",\"Queue\",\"Rules\",\"Insights\"];const statusFlow=[\"Queued\",\"Active\",\"Healthy\",\"In Progress\",\"Done\"];const transitionLabel=\"Advance variant 427 state\";const deleteLabel=\"Remove variant 427 audit\";let records=[{\"id\":\"ai-content-1\",\"label\":\"PromptDesk 427 queue item\",\"value\":\"1281 open\",\"status\":\"Queued\",\"meta\":\"Variant 427 command queue\"},{\"id\":\"ai-content-2\",\"label\":\"PromptDesk 427 rule set\",\"value\":\"431 rules\",\"status\":\"Active\",\"meta\":\"Variant 427 rule builder\",\"parentId\":\"ai-content-1\"},{\"id\":\"ai-content-3\",\"label\":\"PromptDesk 427 insight\",\"value\":\"517%\",\"status\":\"Healthy\",\"meta\":\"Variant 427 event timeline\",\"parentId\":\"ai-content-1\"}];let active=views[0];const nav=document.getElementById(\"nav\");const root=document.getElementById(\"records\");const events=document.getElementById(\"events\");const input=document.getElementById(\"input\");\nasync function load(){try{const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\");if(res.ok){const data=await res.json();records=data.state.records||records;log(\"Loaded isolated runtime state\");}}catch(error){log(\"Runtime API unavailable; using bundled state\");}render();}\nfunction render(){nav.innerHTML=\"\";views.forEach(view=>{const b=document.createElement(\"a\");b.href=\"#\"+view;b.textContent=view;b.className=view===active?\"active\":\"\";b.onclick=(event)=>{event.preventDefault();active=view;log(\"Opened \"+view);render();};nav.appendChild(b)});root.innerHTML=\"\";records.forEach(record=>{const card=document.createElement(\"article\");card.className=\"card\";card.innerHTML=\"<strong>\"+record.label+\"</strong><div class='value'>\"+record.value+\"</div><span>\"+record.status+\"</span><div class='actions'><button data-action='transition' data-api='/api/projects/\"+projectId+\"/runtime' data-db-change='update-status' data-state-update='records=data.state.records' data-ui-refresh='render' data-id='\"+record.id+\"'>\"+transitionLabel+\"</button><button data-action='delete' data-api='/api/projects/\"+projectId+\"/runtime' data-db-change='delete-record' data-state-update='records=data.state.records' data-ui-refresh='render' data-id='\"+record.id+\"'>\"+deleteLabel+\"</button></div>\";card.onclick=()=>log(\"Selected \"+record.label);card.querySelector(\"[data-action='transition']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"transition\",id:record.id});};card.querySelector(\"[data-action='delete']\").onclick=(event)=>{event.stopPropagation();mutate({action:\"delete\",id:record.id});};root.appendChild(card);});}\nfunction log(message){const item=document.createElement(\"div\");item.className=\"event\";item.textContent=message;events.prepend(item);}\nasync function mutate(payload){const res=await fetch(\"/api/projects/\"+projectId+\"/runtime\",{method:\"POST\",headers:{\"content-type\":\"application/json\"},body:JSON.stringify({type:\"create brief\",...payload})});if(res.ok){const data=await res.json();records=data.state.records;log(\"Runtime mutation persisted: \"+(payload.action||\"create\"));render();}else if(payload.action===\"transition\"){records=records.map(record=>record.id===payload.id?{...record,status:statusFlow[Math.min(statusFlow.indexOf(record.status)+1,statusFlow.length-1)]||\"Done\"}:record);log(\"Transition saved locally\");render();}else if(payload.action===\"delete\"){records=records.filter(record=>record.id!==payload.id&&record.parentId!==payload.id);log(\"Delete saved locally\");render();}}\ndocument.getElementById(\"submit\").onclick=async()=>{const label=input.value.trim()||\"create brief\";await mutate({action:\"create\",label,value:\"New\",status:statusFlow[0]||\"Created\"});input.value=\"\";};\nload();\n</script></body></html>"
+    },
+    {
+      "path": "app/calendar/page.tsx",
+      "content": "import { ContentStudio } from \"@/components/ContentStudio\";\n\nexport default function CalendarPage() {\n  return <ContentStudio initialView=\"calendar\" />;\n}\n"
+    },
+    {
+      "path": "app/assets/page.tsx",
+      "content": "import { ContentStudio } from \"@/components/ContentStudio\";\n\nexport default function AssetsPage() {\n  return <ContentStudio initialView=\"assets\" />;\n}\n"
+    },
+    {
+      "path": "app/analytics/page.tsx",
+      "content": "import { ContentStudio } from \"@/components/ContentStudio\";\n\nexport default function AnalyticsPage() {\n  return <ContentStudio initialView=\"analytics\" />;\n}\n"
+    },
+    {
+      "path": "app/api/ai-content-427-runtime/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"ai-content-1\",\n    \"label\": \"PromptDesk 427 queue item\",\n    \"value\": \"1281 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 427 command queue\"\n  },\n  {\n    \"id\": \"ai-content-2\",\n    \"label\": \"PromptDesk 427 rule set\",\n    \"value\": \"431 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 427 rule builder\",\n    \"parentId\": \"ai-content-1\"\n  },\n  {\n    \"id\": \"ai-content-3\",\n    \"label\": \"PromptDesk 427 insight\",\n    \"value\": \"517%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 427 event timeline\",\n    \"parentId\": \"ai-content-1\"\n  }\n];\nconst statusFlow = [\"Queued\",\"Active\",\"Healthy\",\"In Progress\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/ai-content-427-runtime\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create ai-content event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"create brief\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "app/api/ai-content-427-events/route.ts",
+      "content": "let records = [\n  {\n    \"id\": \"ai-content-1\",\n    \"label\": \"PromptDesk 427 queue item\",\n    \"value\": \"1281 open\",\n    \"status\": \"Queued\",\n    \"meta\": \"Variant 427 command queue\"\n  },\n  {\n    \"id\": \"ai-content-2\",\n    \"label\": \"PromptDesk 427 rule set\",\n    \"value\": \"431 rules\",\n    \"status\": \"Active\",\n    \"meta\": \"Variant 427 rule builder\",\n    \"parentId\": \"ai-content-1\"\n  },\n  {\n    \"id\": \"ai-content-3\",\n    \"label\": \"PromptDesk 427 insight\",\n    \"value\": \"517%\",\n    \"status\": \"Healthy\",\n    \"meta\": \"Variant 427 event timeline\",\n    \"parentId\": \"ai-content-1\"\n  }\n];\nconst statusFlow = [\"Queued\",\"Active\",\"Healthy\",\"In Progress\",\"Done\"];\n\nexport async function GET() {\n  return Response.json({ records, endpoint: \"/api/ai-content-427-events\" });\n}\n\nexport async function POST(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  if (body.action === \"transition\" && body.id) {\n    records = records.map((record) => record.id === body.id ? { ...record, status: statusFlow[Math.min(statusFlow.indexOf(record.status) + 1, statusFlow.length - 1)] || \"Done\" } : record);\n    return Response.json({ ok: true, records });\n  }\n  if (body.action === \"delete\" && body.id) {\n    records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n    return Response.json({ ok: true, records });\n  }\n  const record = { id: crypto.randomUUID(), label: body.label || \"Create ai-content event\", value: body.value || \"New\", status: body.status || statusFlow[0] || \"Created\", meta: \"create brief\", parentId: records[0]?.id };\n  records = [record, ...records];\n  return Response.json({ ok: true, record, records }, { status: 201 });\n}\n\nexport async function PATCH(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.map((record) => record.id === body.id ? { ...record, status: body.status || \"Done\" } : record);\n  return Response.json({ ok: true, records });\n}\n\nexport async function DELETE(request: Request) {\n  const body = await request.json().catch(() => ({}));\n  records = records.filter((record) => record.id !== body.id && record.parentId !== body.id);\n  return Response.json({ ok: true, records });\n}\n"
+    },
+    {
+      "path": "integrations/booking-calendar/availability.ts",
+      "content": "// Integration module: Booking-Calendar\nexport type Slot = { id: string; startsAt: string; capacity: number; booked: number };\n\nexport function availableSlots(slots: Slot[]) {\n  return slots.filter((slot) => slot.booked < slot.capacity);\n}\n\nexport function reserveSlot(slot: Slot) {\n  if (slot.booked >= slot.capacity) throw new Error(\"Slot is full\");\n  return { ...slot, booked: slot.booked + 1 };\n}\n"
+    },
+    {
+      "path": "integrations/booking-calendar/ics.ts",
+      "content": "// Integration module: Booking-Calendar\nexport function icsEvent(input: { uid: string; title: string; startsAt: string; endsAt: string }) {\n  return [\"BEGIN:VCALENDAR\", \"VERSION:2.0\", \"BEGIN:VEVENT\", `UID:${input.uid}`, `SUMMARY:${input.title}`, `DTSTART:${formatIcsDate(input.startsAt)}`, `DTEND:${formatIcsDate(input.endsAt)}`, \"END:VEVENT\", \"END:VCALENDAR\"].join(\"\\r\\n\");\n}\n\nfunction formatIcsDate(value: string) {\n  return new Date(value).toISOString().replace(/[-:]/g, \"\").replace(\".000\", \"\");\n}\n"
+    },
+    {
+      "path": "integrations/booking-calendar/google-sync.ts",
+      "content": "// Integration module: Booking-Calendar\nexport type CalendarEvent = { id: string; title: string; startsAt: string; endsAt: string };\n\nexport async function syncGoogleCalendarEvent(event: CalendarEvent) {\n  return { provider: \"google-calendar\", synced: true, providerEventId: `gcal_${event.id}` };\n}\n"
+    },
+    {
+      "path": "integrations/booking-calendar/recurrence.ts",
+      "content": "// Integration module: Booking-Calendar\nexport function parseWeeklyRule(rule: string) {\n  const intervalMatch = rule.match(/INTERVAL=(\\d+)/);\n  const byDayMatch = rule.match(/BYDAY=([^;]+)/);\n  return {\n    frequency: rule.includes(\"FREQ=WEEKLY\") ? \"weekly\" : \"custom\",\n    interval: intervalMatch ? Number(intervalMatch[1]) : 1,\n    days: byDayMatch ? byDayMatch[1].split(\",\") : [],\n  };\n}\n"
+    },
+    {
+      "path": "integrations/project-gantt/dependency-graph.ts",
+      "content": "// Integration module: Project-Gantt\nexport type GanttTask = { id: string; title: string; start: string; durationDays: number; dependsOn: string[] };\n\nexport function topologicalTaskOrder(tasks: GanttTask[]) {\n  const visited = new Set<string>();\n  const ordered: GanttTask[] = [];\n  const byId = new Map(tasks.map((task) => [task.id, task]));\n  function visit(task: GanttTask) {\n    if (visited.has(task.id)) return;\n    visited.add(task.id);\n    for (const dependency of task.dependsOn) {\n      const parent = byId.get(dependency);\n      if (parent) visit(parent);\n    }\n    ordered.push(task);\n  }\n  tasks.forEach(visit);\n  return ordered;\n}\n"
+    },
+    {
+      "path": "integrations/project-gantt/date-engine.ts",
+      "content": "// Integration module: Project-Gantt\nimport type { GanttTask } from \"./dependency-graph\";\n\nexport function calculateSchedule(tasks: GanttTask[]) {\n  return tasks.map((task) => {\n    const start = new Date(task.start);\n    const end = new Date(start);\n    end.setDate(start.getDate() + task.durationDays);\n    return { ...task, end: end.toISOString().slice(0, 10) };\n  });\n}\n"
+    },
+    {
+      "path": "integrations/project-gantt/canvas-renderer.ts",
+      "content": "// Integration module: Project-Gantt\nexport function ganttBar(task: { id: string; title: string }, x: number, y: number, width: number) {\n  return `<g data-task=\"${task.id}\"><rect x=\"${x}\" y=\"${y}\" width=\"${width}\" height=\"28\" rx=\"6\" /><text x=\"${x + 8}\" y=\"${y + 19}\">${task.title}</text></g>`;\n}\n"
+    },
+    {
+      "path": "integrations/project-gantt/reschedule.ts",
+      "content": "// Integration module: Project-Gantt\nexport function rescheduleTask(start: string, deltaDays: number) {\n  const date = new Date(start);\n  date.setDate(date.getDate() + deltaDays);\n  return date.toISOString().slice(0, 10);\n}\n"
+    },
+    {
+      "path": "architecture/integration-modules.json",
+      "content": "{\n  \"mode\": \"module-assisted\",\n  \"modules\": [\n    {\n      \"name\": \"Booking-Calendar\",\n      \"category\": \"booking\",\n      \"description\": \"Availability matrix, ICS file generation, Google Calendar sync boundary, and recurring rule parser.\",\n      \"validationScore\": 98,\n      \"dependencies\": [],\n      \"files\": [\n        \"integrations/booking-calendar/availability.ts\",\n        \"integrations/booking-calendar/ics.ts\",\n        \"integrations/booking-calendar/google-sync.ts\",\n        \"integrations/booking-calendar/recurrence.ts\"\n      ]\n    },\n    {\n      \"name\": \"Project-Gantt\",\n      \"category\": \"project\",\n      \"description\": \"Task dependency graph, date calculation engine, canvas renderer, and drag-and-drop rescheduling.\",\n      \"validationScore\": 95,\n      \"dependencies\": [],\n      \"files\": [\n        \"integrations/project-gantt/dependency-graph.ts\",\n        \"integrations/project-gantt/date-engine.ts\",\n        \"integrations/project-gantt/canvas-renderer.ts\",\n        \"integrations/project-gantt/reschedule.ts\"\n      ]\n    }\n  ],\n  \"validation\": [\n    {\n      \"input\": \"slot capacity 5 booked 4\",\n      \"expectedOutput\": \"slot is available\"\n    },\n    {\n      \"input\": \"FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE\",\n      \"expectedOutput\": \"weekly interval two on Monday and Wednesday\"\n    },\n    {\n      \"input\": \"task with dependency\",\n      \"expectedOutput\": \"dependency appears before dependent task\"\n    },\n    {\n      \"input\": \"drag task three days\",\n      \"expectedOutput\": \"start date advances by three days\"\n    }\n  ]\n}"
+    }
+  ],
+  "appPlan": {
+    "category": "ai-content",
+    "productNames": [
+      "PromptDesk",
+      "ContentPilot",
+      "StudioGrid"
+    ],
+    "signals": [
+      "fitness",
+      "workout",
+      "habit",
+      "nutrition",
+      "health",
+      "tracker"
+    ],
+    "problemTemplate": "Turns content ideas into briefs, drafts, approvals, and publishing performance.",
+    "audience": "content teams, creators, and AI-powered marketing teams",
+    "monetization": "workspace SaaS with AI generation credits",
+    "visualDirection": "editor studio with prompt queue, content calendar, and approval rail",
+    "layout": "studio",
+    "palette": {
+      "surface": "#fdf2f8",
+      "primary": "#be185d",
+      "secondary": "#111827",
+      "accent": "#8b5cf6",
+      "ink": "#111827"
+    },
+    "routes": [
+      {
+        "path": "/",
+        "label": "Command",
+        "purpose": "PromptDesk 427 command center"
+      },
+      {
+        "path": "/ai-content-427-queue",
+        "label": "Queue",
+        "purpose": "Variant 427 work queue and approvals"
+      },
+      {
+        "path": "/ai-content-427-rules",
+        "label": "Rules",
+        "purpose": "Variant 427 automation rules"
+      },
+      {
+        "path": "/ai-content-427-insights",
+        "label": "Insights",
+        "purpose": "Variant 427 performance insights"
+      }
+    ],
+    "dataModels": [
+      {
+        "name": "AiContentRuntime427",
+        "fields": [
+          "ai-content-427Name",
+          "ai-content-427Owner",
+          "ai-content-427State",
+          "ai-content-427Score"
+        ]
+      },
+      {
+        "name": "AiContentEvent427",
+        "fields": [
+          "ai-content-427RecordId",
+          "ai-content-427Action",
+          "ai-content-427Actor",
+          "ai-content-427Result"
+        ]
+      },
+      {
+        "name": "AiContentAudit427",
+        "fields": [
+          "ai-content-427EventId",
+          "ai-content-427Reviewer",
+          "ai-content-427Decision",
+          "ai-content-427CreatedAt"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "AiContentRuntime427",
+        "to": "AiContentEvent427",
+        "type": "one-to-many",
+        "via": "ai-content-427RecordId"
+      },
+      {
+        "from": "AiContentEvent427",
+        "to": "AiContentAudit427",
+        "type": "one-to-many",
+        "via": "ai-content-427EventId"
+      }
+    ],
+    "apiEndpoints": [
+      {
+        "method": "GET",
+        "path": "/api/ai-content-427-runtime",
+        "purpose": "List variant 427 runtime records"
+      },
+      {
+        "method": "POST",
+        "path": "/api/ai-content-427-events",
+        "purpose": "Create variant 427 runtime event"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/ai-content-427-events/[id]",
+        "purpose": "Resolve variant 427 event"
+      }
+    ],
+    "navigation": [
+      "Command",
+      "Queue",
+      "Rules",
+      "Insights"
+    ],
+    "features": [
+      "Variant 427 command queue",
+      "Variant 427 rule builder",
+      "Variant 427 event timeline",
+      "Variant 427 insight scoring",
+      "Variant 427 export workflow"
+    ],
+    "interactions": [
+      {
+        "label": "Create variant 427 event",
+        "type": "create",
+        "target": "AiContentEvent427",
+        "result": "Adds event to PromptDesk 427 runtime queue"
+      },
+      {
+        "label": "Advance variant 427 state",
+        "type": "transition",
+        "target": "AiContentRuntime427",
+        "result": "Moves Queued -> Active -> Reviewed -> Done"
+      },
+      {
+        "label": "Remove variant 427 audit",
+        "type": "delete",
+        "target": "AiContentAudit427",
+        "result": "Removes audit and dependent runtime rows"
+      }
+    ],
+    "forms": [
+      {
+        "name": "Create ai-content event",
+        "fields": [
+          "Name",
+          "Owner",
+          "State",
+          "Score"
+        ],
+        "action": "Adds variant 427 event to isolated runtime"
+      }
+    ],
+    "seedData": [
+      {
+        "label": "PromptDesk 427 queue item",
+        "value": "1281 open",
+        "status": "Queued"
+      },
+      {
+        "label": "PromptDesk 427 rule set",
+        "value": "431 rules",
+        "status": "Active"
+      },
+      {
+        "label": "PromptDesk 427 insight",
+        "value": "517%",
+        "status": "Healthy"
+      }
+    ],
+    "appType": "AI tool",
+    "productName": "PromptDesk 427",
+    "problem": "Build a booking calendar for clinic admins, providers, and patients. Real users: clinic admin, provider, patient. Real actions: create availability slots, book appointments, generate ICS invites, sync Google Calendar, parse recurring availability rules, cancel appointments. Real data: users, providers, slots, appointments, recurring rules, calendar sync events. Real state changes: booking reduces availability, cancellation restores slot, sync marks provider event id, refresh keeps saved state. unique architecture variant 427",
+    "truthSpec": {
+      "realUsers": true,
+      "realActions": true,
+      "realData": true,
+      "realStateChanges": true,
+      "blocksShallowMode": false,
+      "rejectionReasons": []
+    }
+  },
+  "uniqueness": {
+    "score": 96,
+    "signature": "ai-content::studio::app/analytics/page.tsx|app/assets/page.tsx|app/calendar/page.tsx|app/page.tsx::app/api/ai-content-427-events/route.ts|app/api/ai-content-427-runtime/route.ts|app/api/drafts/route.ts::components/ContentStudio.tsx::AiContentRuntime427:ai-content-427Name,ai-content-427Owner,ai-content-427State,ai-content-427Score|AiContentEvent427:ai-content-427RecordId,ai-content-427Action,ai-content-427Actor,ai-content-427Result|AiContentAudit427:ai-content-427EventId,ai-content-427Reviewer,ai-content-427Decision,ai-content-427CreatedAt::AiContentRuntime427->AiContentEvent427:ai-content-427RecordId|AiContentEvent427->AiContentAudit427:ai-content-427EventId::create:AiContentEvent427:Adds event to PromptDesk 427 runtime queue|transition:AiContentRuntime427:Moves Queued -> Active -> Reviewed -> Done|delete:AiContentAudit427:Removes audit and dependent runtime rows",
+    "routeSignature": "/|/ai-content-427-queue|/ai-content-427-rules|/ai-content-427-insights",
+    "featureSignature": "Variant 427 command queue|Variant 427 rule builder|Variant 427 event timeline|Variant 427 insight scoring|Variant 427 export workflow",
+    "schemaSignature": "AiContentRuntime427:ai-content-427Name,ai-content-427Owner,ai-content-427State,ai-content-427Score|AiContentEvent427:ai-content-427RecordId,ai-content-427Action,ai-content-427Actor,ai-content-427Result|AiContentAudit427:ai-content-427EventId,ai-content-427Reviewer,ai-content-427Decision,ai-content-427CreatedAt",
+    "relationshipSignature": "AiContentRuntime427->AiContentEvent427:ai-content-427RecordId|AiContentEvent427->AiContentAudit427:ai-content-427EventId",
+    "componentSignature": "components/ContentStudio.tsx"
+  },
+  "buildValidation": {
+    "status": "passed",
+    "checkedAt": "2026-05-31T15:09:28.815Z",
+    "fileCount": 38,
+    "routeCount": 4,
+    "apiCount": 3,
+    "logs": [
+      "Static build validation passed",
+      "Isolated source tree present",
+      "Project-specific runtime API is wired"
+    ]
+  },
+  "memory": {
+    "architecture": "studio ai-content application with 4 routes and 3 data models",
+    "routes": [
+      "/",
+      "/ai-content-427-queue",
+      "/ai-content-427-rules",
+      "/ai-content-427-insights"
+    ],
+    "decisions": [
+      "Selected studio layout for ai-content",
+      "Generated 38 source files",
+      "Injected integration modules: Booking-Calendar, Project-Gantt",
+      "Uniqueness score 96"
+    ],
+    "edits": []
+  },
+  "runtimeState": {
+    "records": [
+      {
+        "id": "ai-content-1",
+        "label": "PromptDesk 427 queue item",
+        "value": "1281 open",
+        "status": "Queued",
+        "meta": "Variant 427 command queue"
+      },
+      {
+        "id": "ai-content-2",
+        "label": "PromptDesk 427 rule set",
+        "value": "431 rules",
+        "status": "Active",
+        "meta": "Variant 427 rule builder",
+        "parentId": "ai-content-1"
+      },
+      {
+        "id": "ai-content-3",
+        "label": "PromptDesk 427 insight",
+        "value": "517%",
+        "status": "Healthy",
+        "meta": "Variant 427 event timeline",
+        "parentId": "ai-content-1"
+      }
+    ],
+    "events": [
+      {
+        "message": "PromptDesk 427 runtime initialized",
+        "createdAt": "2026-05-31T15:09:28.814Z"
+      }
+    ],
+    "env": {
+      "PROJECT_ID": "0dc7779e-fd21-449f-bc54-d0937009ce08",
+      "PROJECT_SLUG": "promptdesk-427",
+      "RUNTIME_MODE": "isolated-project",
+      "INTEGRATION_MODE": "module-assisted"
+    },
+    "updatedAt": "2026-05-31T15:09:28.131Z"
+  }
+}

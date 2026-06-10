@@ -1,0 +1,90 @@
+name: "VentureOS Evidence Ingest"
+description: "Submit CI/CD evidence events to VentureOS and receive a signed ingestion receipt."
+inputs:
+  ventureos-url:
+    description: "Base URL of the VentureOS deployment, for example https://ventureos.example.com"
+    required: true
+  api-key:
+    description: "VentureOS API key with evidence:write scope."
+    required: true
+  event-type:
+    description: "Evidence event type, such as build.completed, test.completed, scan.completed, or deploy.completed."
+    required: true
+    default: "build.completed"
+  project-id:
+    description: "Optional VentureOS project ID."
+    required: false
+    default: ""
+  status:
+    description: "Evidence status: success, failure, cancelled, skipped, or unknown."
+    required: false
+    default: "success"
+  artifact-name:
+    description: "Optional artifact name."
+    required: false
+    default: ""
+  artifact-digest:
+    description: "Optional sha256 artifact digest."
+    required: false
+    default: ""
+  controls:
+    description: "Optional comma-separated controls, for example SOC2:CC8.1,ISO27001:8.32."
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Submit evidence
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        ARTIFACTS="[]"
+        if [ -n "${{ inputs.artifact-digest }}" ]; then
+          ARTIFACTS=$(node -e 'const name=process.argv[1]||"ci-artifact"; const digest=process.argv[2]; console.log(JSON.stringify([{ name, artifactType:"other", mediaType:"application/octet-stream", hashAlgorithm:"sha256", digest, sizeBytes:null, uri:null }]))' "${{ inputs.artifact-name }}" "${{ inputs.artifact-digest }}")
+        fi
+
+        CONTROLS=$(node -e 'const raw=process.argv[1]||""; console.log(JSON.stringify(raw.split(",").map(v=>v.trim()).filter(Boolean)))' "${{ inputs.controls }}")
+        export ARTIFACTS_JSON="$ARTIFACTS"
+        export CONTROLS_JSON="$CONTROLS"
+
+        PAYLOAD=$(node -e '
+          const artifacts = JSON.parse(process.env.ARTIFACTS_JSON || "[]");
+          const controls = JSON.parse(process.env.CONTROLS_JSON || "[]");
+          const projectId = process.env.VOS_PROJECT_ID || "";
+          const payload = {
+            eventType: process.env.VOS_EVENT_TYPE,
+            projectId: projectId || undefined,
+            idempotencyKey: `${process.env.GITHUB_REPOSITORY}:${process.env.GITHUB_RUN_ID}:${process.env.GITHUB_JOB}:${process.env.VOS_EVENT_TYPE}`,
+            source: {
+              provider: "github_actions",
+              repository: process.env.GITHUB_REPOSITORY,
+              workflow: process.env.GITHUB_WORKFLOW,
+              runId: process.env.GITHUB_RUN_ID,
+              job: process.env.GITHUB_JOB,
+              actor: process.env.GITHUB_ACTOR,
+              sourceEventId: process.env.GITHUB_RUN_ATTEMPT ? `${process.env.GITHUB_RUN_ID}.${process.env.GITHUB_RUN_ATTEMPT}` : process.env.GITHUB_RUN_ID
+            },
+            subject: {
+              commitSha: process.env.GITHUB_SHA,
+              branch: process.env.GITHUB_REF_NAME
+            },
+            result: {
+              status: process.env.VOS_STATUS,
+              completedAt: new Date().toISOString()
+            },
+            artifacts,
+            controls
+          };
+          console.log(JSON.stringify(payload));
+        ')
+
+        curl --fail-with-body \
+          -X POST "${{ inputs.ventureos-url }}/api/evidence/events" \
+          -H "content-type: application/json" \
+          -H "x-api-key: ${{ inputs.api-key }}" \
+          --data "$PAYLOAD"
+      env:
+        VOS_PROJECT_ID: ${{ inputs.project-id }}
+        VOS_EVENT_TYPE: ${{ inputs.event-type }}
+        VOS_STATUS: ${{ inputs.status }}

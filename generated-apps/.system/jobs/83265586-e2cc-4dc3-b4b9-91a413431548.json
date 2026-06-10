@@ -1,0 +1,73 @@
+{
+  "id": "83265586-e2cc-4dc3-b4b9-91a413431548",
+  "action": "deploy",
+  "status": "failed",
+  "stage": "failed",
+  "appName": "Mutation Smoke",
+  "prompt": "Check mutation tracking retry flow",
+  "model": "claude-sonnet-4",
+  "modelUsed": "claude-sonnet-4",
+  "temperature": 0.72,
+  "promptHash": "2bae3121256a11fd",
+  "mutationCount": 1,
+  "mutationHistory": [
+    {
+      "retryOf": "081b6a19-7e25-40e9-8af2-ba2734a69a18",
+      "mutationCount": 1,
+      "modelUsed": "claude-sonnet-4",
+      "temperature": 0.72,
+      "promptHash": "2bae3121256a11fd",
+      "mutatedAt": "2026-05-31T06:06:17.695Z"
+    }
+  ],
+  "mode": "",
+  "traceId": "44b8a3fa-dd5e-4a3b-822d-da497bec231b",
+  "userId": "mutation-smoke-user",
+  "projectPath": "C:\\Users\\user\\Downloads\\ventureos-full-fixed\\generated-apps\\mutation-smoke",
+  "createdAt": "2026-05-31T06:06:17.846Z",
+  "attempts": 1,
+  "maxAttempts": 5,
+  "message": "Runtime validation failed for deploy",
+  "events": [],
+  "progress": 100,
+  "updatedAt": "2026-05-31T06:06:19.565Z",
+  "memoryContext": [],
+  "startedAt": "2026-05-31T06:06:18.631Z",
+  "artifact": {
+    "kind": "job-result",
+    "version": 1,
+    "jobId": "83265586-e2cc-4dc3-b4b9-91a413431548",
+    "action": "deploy",
+    "generatedAt": "2026-05-31T06:06:18.728Z",
+    "metadata": {
+      "appName": "Mutation Smoke",
+      "prompt": "Check mutation tracking retry flow",
+      "model": "claude-sonnet-4",
+      "mode": null,
+      "attempts": 1,
+      "maxAttempts": 5,
+      "createdAt": "2026-05-31T06:06:17.846Z",
+      "startedAt": "2026-05-31T06:06:18.631Z",
+      "finishedAt": "2026-05-31T06:06:18.728Z"
+    },
+    "status": "failed",
+    "stage": "failed",
+    "progress": 100,
+    "summary": "Runtime validation failed for deploy",
+    "outputFiles": [],
+    "runtimeStatus": "failed",
+    "executionLogs": [],
+    "executionError": "Runtime execution is disabled in production; queue deploy/preview work outside the request cycle.",
+    "result": {
+      "message": "Runtime validation failed for deploy",
+      "status": "failed",
+      "stage": "failed",
+      "progress": 100
+    }
+  },
+  "error": "Runtime execution is disabled in production; queue deploy/preview work outside the request cycle.",
+  "finishedAt": "2026-05-31T06:06:18.728Z",
+  "memoryStoredAt": "2026-05-31T06:06:19.399Z",
+  "memoryId": "702a3176-9cbf-41bc-a32e-664f2d2dba21",
+  "auditStoredAt": "2026-05-31T06:06:19.480Z"
+}

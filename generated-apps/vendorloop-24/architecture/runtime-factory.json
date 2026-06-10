@@ -1,0 +1,159 @@
+{
+  "pipeline": "REAL RUNTIME APPLICATION FACTORY",
+  "runtimeType": "fullstack",
+  "phases": {
+    "intentToSpec": {
+      "appType": "marketplace",
+      "structuredSpec": true,
+      "routes": [
+        {
+          "path": "/",
+          "label": "Command",
+          "purpose": "VendorLoop 24 command center"
+        },
+        {
+          "path": "/marketplace-24-queue",
+          "label": "Queue",
+          "purpose": "Variant 24 work queue and approvals"
+        },
+        {
+          "path": "/marketplace-24-rules",
+          "label": "Rules",
+          "purpose": "Variant 24 automation rules"
+        },
+        {
+          "path": "/marketplace-24-insights",
+          "label": "Insights",
+          "purpose": "Variant 24 performance insights"
+        }
+      ],
+      "databaseSchema": [
+        {
+          "name": "MarketplaceRuntime24",
+          "fields": [
+            "marketplace-24Name",
+            "marketplace-24Owner",
+            "marketplace-24State",
+            "marketplace-24Score"
+          ]
+        },
+        {
+          "name": "MarketplaceEvent24",
+          "fields": [
+            "marketplace-24RecordId",
+            "marketplace-24Action",
+            "marketplace-24Actor",
+            "marketplace-24Result"
+          ]
+        },
+        {
+          "name": "MarketplaceAudit24",
+          "fields": [
+            "marketplace-24EventId",
+            "marketplace-24Reviewer",
+            "marketplace-24Decision",
+            "marketplace-24CreatedAt"
+          ]
+        }
+      ],
+      "uiScreens": [
+        {
+          "path": "/",
+          "screen": "Command",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/marketplace-24-queue",
+          "screen": "Queue",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/marketplace-24-rules",
+          "screen": "Rules",
+          "wiredToBackend": true
+        },
+        {
+          "path": "/marketplace-24-insights",
+          "screen": "Insights",
+          "wiredToBackend": true
+        }
+      ],
+      "requiredIntegrations": [
+        "database",
+        "project runtime API"
+      ],
+      "unclearSpecPolicy": "block generation and ask questions"
+    },
+    "codeGeneration": {
+      "realFileTree": true,
+      "backendRoutes": [
+        "/api/marketplace-24-runtime",
+        "/api/marketplace-24-events",
+        "/api/marketplace-24-events/[id]"
+      ],
+      "frontendPages": [
+        "/",
+        "/marketplace-24-queue",
+        "/marketplace-24-rules",
+        "/marketplace-24-insights"
+      ],
+      "databaseSchema": "schema.prisma",
+      "environmentVariables": [
+        ".env.example"
+      ],
+      "noPlaceholderButtons": true,
+      "noStaticMockDataUnlessMarkedMock": true
+    },
+    "buildInstall": {
+      "requiredCommands": [
+        "npm install",
+        "npm run build",
+        "npm run type-check",
+        "npm run lint"
+      ],
+      "maxRepairLoops": 3,
+      "invalidIfBuildFails": true
+    },
+    "runtimeBootstrap": {
+      "startCommand": "npm run start",
+      "healthChecks": [
+        "GET /",
+        "GET /api/inquiries"
+      ],
+      "databaseCheck": "assertRelationalSchema",
+      "brokenIfAnyFail": true
+    },
+    "interactionTesting": {
+      "clickEveryButton": true,
+      "submitEveryForm": true,
+      "navigateEveryRoute": true,
+      "testApiEndpoints": true,
+      "blockFakeUi": true
+    },
+    "previewGeneration": {
+      "realOnly": true,
+      "requiresServerRunning": true,
+      "requiresRoutesRespond": true,
+      "requiresJsExecuting": true,
+      "requiresBackendAlive": true,
+      "requiresDatabaseConnected": true,
+      "noStaticPreviewModeEver": true
+    },
+    "selfHeal": {
+      "loop": "build -> run -> test -> fail -> fix -> rebuild",
+      "maxLoops": 5,
+      "stopOnlyWhen": [
+        "zero runtime errors",
+        "all routes respond",
+        "UI is interactive",
+        "backend is connected"
+      ]
+    },
+    "deploymentGate": {
+      "buildSuccess": true,
+      "runtimeSuccess": true,
+      "testSuccess": true,
+      "noFakeUiDetected": true
+    }
+  }
+}

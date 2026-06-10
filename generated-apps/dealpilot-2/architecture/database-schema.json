@@ -1,0 +1,84 @@
+{
+  "appType": "SaaS dashboard",
+  "models": [
+    {
+      "name": "Client",
+      "fields": [
+        "name",
+        "owner",
+        "health",
+        "renewalDate",
+        "notes"
+      ],
+      "owns": [
+        {
+          "model": "Deal",
+          "via": "clientId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "Deal",
+      "fields": [
+        "clientId",
+        "stage",
+        "value",
+        "probability",
+        "nextStep"
+      ],
+      "owns": [
+        {
+          "model": "Task",
+          "via": "dealId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": [
+        {
+          "model": "Client",
+          "via": "clientId",
+          "type": "one-to-many"
+        }
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "dealId",
+        "title",
+        "status",
+        "createdAt",
+        "completedAt"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "Deal",
+          "via": "dealId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Client",
+      "to": "Deal",
+      "type": "one-to-many",
+      "via": "clientId"
+    },
+    {
+      "from": "Deal",
+      "to": "Task",
+      "type": "one-to-many",
+      "via": "dealId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

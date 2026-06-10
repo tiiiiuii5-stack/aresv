@@ -1,0 +1,5 @@
+{
+  "asyncNeeded": false,
+  "queuePolicy": "Handle request-time mutations only; enqueue if action exceeds serverless timeout budget.",
+  "jobs": []
+}

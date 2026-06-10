@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "name": "MarketplaceCreateMarketplaceEvent24",
+      "trigger": "Create variant 24 event",
+      "payload": {
+        "target": "MarketplaceEvent24",
+        "result": "Adds event to VendorLoop 24 runtime queue",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "append record",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "MarketplaceTransitionMarketplaceRuntime24",
+      "trigger": "Advance variant 24 state",
+      "payload": {
+        "target": "MarketplaceRuntime24",
+        "result": "Moves Queued -> Active -> Reviewed -> Done",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "update record status",
+        "prepend audit event"
+      ]
+    },
+    {
+      "name": "MarketplaceDeleteMarketplaceAudit24",
+      "trigger": "Remove variant 24 audit",
+      "payload": {
+        "target": "MarketplaceAudit24",
+        "result": "Removes audit and dependent runtime rows",
+        "timestamp": "ISO-8601"
+      },
+      "sideEffects": [
+        "remove record and dependents",
+        "prepend audit event"
+      ]
+    }
+  ],
+  "delivery": "in-process runtime event log plus API response payload"
+}

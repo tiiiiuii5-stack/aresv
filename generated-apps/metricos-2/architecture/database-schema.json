@@ -1,0 +1,81 @@
+{
+  "appType": "SaaS dashboard",
+  "models": [
+    {
+      "name": "Metric",
+      "fields": [
+        "name",
+        "value",
+        "delta",
+        "segment",
+        "period"
+      ],
+      "owns": [
+        {
+          "model": "Alert",
+          "via": "metricId",
+          "type": "one-to-many"
+        },
+        {
+          "model": "Cohort",
+          "via": "metricId",
+          "type": "one-to-many"
+        }
+      ],
+      "belongsTo": []
+    },
+    {
+      "name": "Alert",
+      "fields": [
+        "metricId",
+        "severity",
+        "message",
+        "owner"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "Metric",
+          "via": "metricId",
+          "type": "one-to-many"
+        }
+      ]
+    },
+    {
+      "name": "Cohort",
+      "fields": [
+        "metricId",
+        "name",
+        "period",
+        "retention"
+      ],
+      "owns": [],
+      "belongsTo": [
+        {
+          "model": "Metric",
+          "via": "metricId",
+          "type": "one-to-many"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Metric",
+      "to": "Alert",
+      "type": "one-to-many",
+      "via": "metricId"
+    },
+    {
+      "from": "Metric",
+      "to": "Cohort",
+      "type": "one-to-many",
+      "via": "metricId"
+    }
+  ],
+  "invariants": [
+    "Every generated app has at least two relational links.",
+    "Child records carry a foreign key defined by relationship.via.",
+    "Deletes cascade dependent runtime rows through parentId in preview runtime."
+  ]
+}

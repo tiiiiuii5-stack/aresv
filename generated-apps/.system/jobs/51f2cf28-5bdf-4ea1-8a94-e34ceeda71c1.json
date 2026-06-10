@@ -1,0 +1,22 @@
+{
+  "id": "51f2cf28-5bdf-4ea1-8a94-e34ceeda71c1",
+  "action": "generate",
+  "status": "queued",
+  "stage": "idle",
+  "prompt": "Build preflight CRM for sales managers where users create clients, move deals, assign tasks, and save activity history.",
+  "model": "gemini-2.5-pro",
+  "modelUsed": "gemini-2.5-pro",
+  "temperature": 0.8,
+  "promptHash": "3d33cc340160e289",
+  "mutationCount": 0,
+  "mutationHistory": [],
+  "userId": "load-preflight-1780232991682",
+  "createdAt": "2026-05-31T13:12:27.284Z",
+  "attempts": 0,
+  "maxAttempts": 5,
+  "message": "Job queued for generate",
+  "events": [],
+  "progress": 0,
+  "updatedAt": "2026-05-31T13:12:27.851Z",
+  "memoryContext": []
+}

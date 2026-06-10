@@ -1,0 +1,102 @@
+{
+  "backendRequired": true,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/ai-content-427-runtime",
+      "purpose": "List variant 427 runtime records",
+      "hitsBackend": true,
+      "requestBody": null,
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai-content-427-events",
+      "purpose": "Create variant 427 runtime event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/ai-content-427-events/[id]",
+      "purpose": "Resolve variant 427 event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    }
+  ],
+  "actionBindings": [
+    {
+      "action": "Create variant 427 event",
+      "type": "create",
+      "target": "AiContentEvent427",
+      "backend": {
+        "method": "GET",
+        "path": "/api/ai-content-427-runtime",
+        "purpose": "List variant 427 runtime records"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Advance variant 427 state",
+      "type": "transition",
+      "target": "AiContentRuntime427",
+      "backend": {
+        "method": "POST",
+        "path": "/api/ai-content-427-events",
+        "purpose": "Create variant 427 runtime event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Remove variant 427 audit",
+      "type": "delete",
+      "target": "AiContentAudit427",
+      "backend": {
+        "method": "PATCH",
+        "path": "/api/ai-content-427-events/[id]",
+        "purpose": "Resolve variant 427 event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    }
+  ]
+}

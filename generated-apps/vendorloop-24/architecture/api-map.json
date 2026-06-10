@@ -1,0 +1,102 @@
+{
+  "backendRequired": true,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/marketplace-24-runtime",
+      "purpose": "List variant 24 runtime records",
+      "hitsBackend": true,
+      "requestBody": null,
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/marketplace-24-events",
+      "purpose": "Create variant 24 runtime event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/marketplace-24-events/[id]",
+      "purpose": "Resolve variant 24 event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    }
+  ],
+  "actionBindings": [
+    {
+      "action": "Create variant 24 event",
+      "type": "create",
+      "target": "MarketplaceEvent24",
+      "backend": {
+        "method": "GET",
+        "path": "/api/marketplace-24-runtime",
+        "purpose": "List variant 24 runtime records"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Advance variant 24 state",
+      "type": "transition",
+      "target": "MarketplaceRuntime24",
+      "backend": {
+        "method": "POST",
+        "path": "/api/marketplace-24-events",
+        "purpose": "Create variant 24 runtime event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Remove variant 24 audit",
+      "type": "delete",
+      "target": "MarketplaceAudit24",
+      "backend": {
+        "method": "PATCH",
+        "path": "/api/marketplace-24-events/[id]",
+        "purpose": "Resolve variant 24 event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    }
+  ]
+}

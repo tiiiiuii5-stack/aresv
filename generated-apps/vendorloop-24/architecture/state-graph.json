@@ -1,0 +1,56 @@
+{
+  "initialStates": [
+    "Queued",
+    "Active",
+    "Healthy"
+  ],
+  "transitions": [
+    {
+      "from": "Queued",
+      "to": "Active",
+      "terminal": false,
+      "triggeredBy": "Advance variant 24 state"
+    },
+    {
+      "from": "Active",
+      "to": "Healthy",
+      "terminal": false,
+      "triggeredBy": "Advance variant 24 state"
+    },
+    {
+      "from": "Healthy",
+      "to": "In Progress",
+      "terminal": false,
+      "triggeredBy": "Advance variant 24 state"
+    },
+    {
+      "from": "In Progress",
+      "to": "Done",
+      "terminal": false,
+      "triggeredBy": "Advance variant 24 state"
+    },
+    {
+      "from": "Done",
+      "to": "Done",
+      "terminal": true,
+      "triggeredBy": "Advance variant 24 state"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Create variant 24 event",
+      "changes": "Adds event to VendorLoop 24 runtime queue",
+      "target": "MarketplaceEvent24"
+    },
+    {
+      "action": "Advance variant 24 state",
+      "changes": "Moves Queued -> Active -> Reviewed -> Done",
+      "target": "MarketplaceRuntime24"
+    },
+    {
+      "action": "Remove variant 24 audit",
+      "changes": "Removes audit and dependent runtime rows",
+      "target": "MarketplaceAudit24"
+    }
+  ]
+}

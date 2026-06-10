@@ -1,0 +1,82 @@
+{
+  "rule": "UI ACTION -> API ROUTE -> DATABASE CHANGE -> STATE UPDATE -> UI REFRESH",
+  "blockBuildIfAnyStepMissing": true,
+  "apiRoute": "/api/drafts",
+  "bindings": [
+    {
+      "uiAction": {
+        "label": "Create variant 427 event",
+        "selector": "[data-action=\"create\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/drafts",
+        "requestAction": "create"
+      },
+      "databaseChange": {
+        "target": "AiContentEvent427",
+        "operation": "insert",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Advance variant 427 state",
+        "selector": "[data-action=\"transition\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/drafts",
+        "requestAction": "transition"
+      },
+      "databaseChange": {
+        "target": "AiContentRuntime427",
+        "operation": "update",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    },
+    {
+      "uiAction": {
+        "label": "Remove variant 427 audit",
+        "selector": "[data-action=\"delete\"]",
+        "event": "click"
+      },
+      "apiRoute": {
+        "method": "POST",
+        "path": "/api/drafts",
+        "requestAction": "delete"
+      },
+      "databaseChange": {
+        "target": "AiContentAudit427",
+        "operation": "delete",
+        "persisted": true
+      },
+      "stateUpdate": {
+        "clientStateSetter": "setRecords",
+        "source": "API response records"
+      },
+      "uiRefresh": {
+        "region": "records-list",
+        "mechanism": "React state re-render"
+      }
+    }
+  ]
+}

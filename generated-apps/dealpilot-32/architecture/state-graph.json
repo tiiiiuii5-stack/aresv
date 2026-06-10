@@ -1,0 +1,50 @@
+{
+  "initialStates": [
+    "Queued",
+    "Active",
+    "Healthy"
+  ],
+  "transitions": [
+    {
+      "from": "Lead",
+      "to": "In Progress",
+      "terminal": false,
+      "triggeredBy": "Advance variant 32 state"
+    },
+    {
+      "from": "In Progress",
+      "to": "Review",
+      "terminal": false,
+      "triggeredBy": "Advance variant 32 state"
+    },
+    {
+      "from": "Review",
+      "to": "Done",
+      "terminal": false,
+      "triggeredBy": "Advance variant 32 state"
+    },
+    {
+      "from": "Done",
+      "to": "Done",
+      "terminal": true,
+      "triggeredBy": "Advance variant 32 state"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Create variant 32 event",
+      "changes": "Adds event to DealPilot 32 runtime queue",
+      "target": "CrmEvent32"
+    },
+    {
+      "action": "Advance variant 32 state",
+      "changes": "Moves Queued -> Active -> Reviewed -> Done",
+      "target": "CrmRuntime32"
+    },
+    {
+      "action": "Remove variant 32 audit",
+      "changes": "Removes audit and dependent runtime rows",
+      "target": "CrmAudit32"
+    }
+  ]
+}

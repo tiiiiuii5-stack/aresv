@@ -1,0 +1,102 @@
+{
+  "backendRequired": true,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/crm-33-runtime",
+      "purpose": "List variant 33 runtime records",
+      "hitsBackend": true,
+      "requestBody": null,
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/crm-33-events",
+      "purpose": "Create variant 33 runtime event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/crm-33-events/[id]",
+      "purpose": "Resolve variant 33 event",
+      "hitsBackend": true,
+      "requestBody": {
+        "action": "create | transition | delete",
+        "id": "optional record id",
+        "label": "optional user value"
+      },
+      "responseShape": {
+        "ok": true,
+        "records": "updated domain records"
+      }
+    }
+  ],
+  "actionBindings": [
+    {
+      "action": "Create variant 33 event",
+      "type": "create",
+      "target": "CrmEvent33",
+      "backend": {
+        "method": "GET",
+        "path": "/api/crm-33-runtime",
+        "purpose": "List variant 33 runtime records"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Advance variant 33 state",
+      "type": "transition",
+      "target": "CrmRuntime33",
+      "backend": {
+        "method": "POST",
+        "path": "/api/crm-33-events",
+        "purpose": "Create variant 33 runtime event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    },
+    {
+      "action": "Remove variant 33 audit",
+      "type": "delete",
+      "target": "CrmAudit33",
+      "backend": {
+        "method": "PATCH",
+        "path": "/api/crm-33-events/[id]",
+        "purpose": "Resolve variant 33 event"
+      },
+      "mustPersist": true,
+      "executionChain": [
+        "uiAction",
+        "apiRoute",
+        "databaseChange",
+        "stateUpdate",
+        "uiRefresh"
+      ]
+    }
+  ]
+}

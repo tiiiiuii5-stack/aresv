@@ -1,0 +1,45 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "title": "VentureOS",
+    "text": "VentureOS Build, preview, and ship apps Dashboard Pricing Sign out Demo mode included Describe your app idea... One prompt becomes a working SaaS project you can preview, edit, save, and deploy. 1. Describe your app 2. Generate real files 3. Preview or deploy Agency SaaS Booking SaaS AI CRM Have a brief? Drop a `.txt`, `.md`, or `.json` file to fill the prompt. Import brief Generate App Ready · Preview starts automatically after validation. STATUS Ready to ship Refresh PREVIEW Ready to start D",
+    "shot": "v01-home.png"
+  },
+  {
+    "path": "/api/auth/demo",
+    "status": 201,
+    "body": "{\"user\":{\"id\":\"cmpq59yos0000n4uqrqtb9xo3\",\"email\":\"demo-dec48aaa@ventureos.local\",\"plan\":\"FREE\",\"role\":\"USER\"},\"demo\":true}"
+  },
+  {
+    "path": "/dashboard",
+    "status": 200,
+    "title": "VentureOS",
+    "text": "USER DASHBOARD Your projects, usage, and plan status. This is the working surface for your account. It shows what you have left on Free, or what Starter and Pro unlock. Open Builder Billing & Settings Sign out PLAN FREE Plan-based access GENERATIONS 0/3 3 remaining PREVIEW USAGE 0/25 Preview access Recent projects full-stack-app A deployable full-stack Next.js app with a client UI and /api/items route. Safe scaffold used because This operation was aborted Open full-stack-app-2 A deployable ful",
+    "shot": "v01-dashboard.png"
+  },
+  {
+    "path": "/developer",
+    "status": 200,
+    "title": "VentureOS",
+    "text": "VentureOS Build, preview, and ship apps Dashboard Pricing Sign out Demo mode included Describe your app idea... One prompt becomes a working SaaS project you can preview, edit, save, and deploy. 1. Describe your app 2. Generate real files 3. Preview or deploy Agency SaaS Booking SaaS AI CRM Have a brief? Drop a `.txt`, `.md`, or `.json` file to fill the prompt. Import brief Generate App Ready · Preview starts automatically after validation. STATUS Ready to ship Refresh PREVIEW Ready to start D",
+    "shot": "v01-developer.png"
+  },
+  {
+    "path": "/account",
+    "status": 200,
+    "title": "VentureOS",
+    "text": "ACCOUNT SETTINGS Billing, usage, and access. Sign out Signed in as demo-7852cd42@ventureos.local FREE Generations 0 / 3 3 remaining Previews 0 / 25 25 remaining Referral placeholder demo_gbnu72bq Open Billing Portal",
+    "shot": "v01-account.png"
+  },
+  {
+    "path": "/api/agent/projects",
+    "status": 200,
+    "body": "{\"projects\":[{\"name\":\"full-stack-app\",\"summary\":\"A deployable full-stack Next.js app with a client UI and /api/items route. Safe scaffold used because This operation was aborted\",\"mode\":\"hyper-scale-saas\",\"relativeDir\":\"generated-apps\\\\full-stack-app\",\"prompt\":\"ADVERTISING AGNT\",\"state\":{\"goal\":\"ADVERTISING AGNT\",\"mode\":\"hyper-scale-saas\",\"run_id\":\"1779793525058-0c4d5e80\",\"stack\":[\"nextjs\",\"tailwind\",\"typescript\"],\"last_error\":\"spawn EPERM\",\"fix_attempts\":5,\"build_history\":[],\"last_successful_bu"
+  },
+  {
+    "path": "/api/agent/jobs",
+    "status": 200,
+    "body": "{\"jobs\":[]}"
+  }
+]

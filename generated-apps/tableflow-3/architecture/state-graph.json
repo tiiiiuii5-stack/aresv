@@ -1,0 +1,56 @@
+{
+  "initialStates": [
+    "Hot station",
+    "Ready fast",
+    "Popular"
+  ],
+  "transitions": [
+    {
+      "from": "Hot station",
+      "to": "Ready fast",
+      "terminal": false,
+      "triggeredBy": "Advance prep"
+    },
+    {
+      "from": "Ready fast",
+      "to": "Popular",
+      "terminal": false,
+      "triggeredBy": "Advance prep"
+    },
+    {
+      "from": "Popular",
+      "to": "In Progress",
+      "terminal": false,
+      "triggeredBy": "Advance prep"
+    },
+    {
+      "from": "In Progress",
+      "to": "Done",
+      "terminal": false,
+      "triggeredBy": "Advance prep"
+    },
+    {
+      "from": "Done",
+      "to": "Done",
+      "terminal": true,
+      "triggeredBy": "Advance prep"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Send order",
+      "changes": "Adds order to kitchen queue",
+      "target": "KitchenTicket"
+    },
+    {
+      "action": "Advance prep",
+      "changes": "Moves New -> Prep -> Ready -> Picked up",
+      "target": "KitchenTicket"
+    },
+    {
+      "action": "Remove line",
+      "changes": "Removes item from order",
+      "target": "OrderLine"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "initialStates": [
+    "+8%",
+    "Healthy",
+    "Watch"
+  ],
+  "transitions": [
+    {
+      "from": "Open",
+      "to": "Investigating",
+      "terminal": false,
+      "triggeredBy": "Resolve alert"
+    },
+    {
+      "from": "Investigating",
+      "to": "Resolved",
+      "terminal": false,
+      "triggeredBy": "Resolve alert"
+    },
+    {
+      "from": "Resolved",
+      "to": "Resolved",
+      "terminal": true,
+      "triggeredBy": "Resolve alert"
+    }
+  ],
+  "mutations": [
+    {
+      "action": "Create alert",
+      "changes": "Adds metric alert to owner queue",
+      "target": "Alert"
+    },
+    {
+      "action": "Resolve alert",
+      "changes": "Moves Open -> Investigating -> Resolved",
+      "target": "Alert"
+    },
+    {
+      "action": "Delete cohort",
+      "changes": "Removes stale cohort analysis",
+      "target": "Cohort"
+    }
+  ]
+}

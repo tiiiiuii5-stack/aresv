@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workout {
+  id        String   @id @default(cuid())
+  title String
+  sets String
+  duration String
+  intensity String
+  completedAt String
+  CheckIn CheckIn[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Habit {
+  id        String   @id @default(cuid())
+  name String
+  streak String
+  target String
+  status String
+  CheckIn CheckIn[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  workoutId String
+  habitId String
+  effort String
+  notes String
+  createdAt String
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

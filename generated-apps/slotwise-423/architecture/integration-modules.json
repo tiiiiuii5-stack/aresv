@@ -1,0 +1,49 @@
+{
+  "mode": "module-assisted",
+  "modules": [
+    {
+      "name": "Booking-Calendar",
+      "category": "booking",
+      "description": "Availability matrix, ICS file generation, Google Calendar sync boundary, and recurring rule parser.",
+      "validationScore": 98,
+      "dependencies": [],
+      "files": [
+        "integrations/booking-calendar/availability.ts",
+        "integrations/booking-calendar/ics.ts",
+        "integrations/booking-calendar/google-sync.ts",
+        "integrations/booking-calendar/recurrence.ts"
+      ]
+    },
+    {
+      "name": "Project-Gantt",
+      "category": "project",
+      "description": "Task dependency graph, date calculation engine, canvas renderer, and drag-and-drop rescheduling.",
+      "validationScore": 95,
+      "dependencies": [],
+      "files": [
+        "integrations/project-gantt/dependency-graph.ts",
+        "integrations/project-gantt/date-engine.ts",
+        "integrations/project-gantt/canvas-renderer.ts",
+        "integrations/project-gantt/reschedule.ts"
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "input": "slot capacity 5 booked 4",
+      "expectedOutput": "slot is available"
+    },
+    {
+      "input": "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE",
+      "expectedOutput": "weekly interval two on Monday and Wednesday"
+    },
+    {
+      "input": "task with dependency",
+      "expectedOutput": "dependency appears before dependent task"
+    },
+    {
+      "input": "drag task three days",
+      "expectedOutput": "start date advances by three days"
+    }
+  ]
+}
