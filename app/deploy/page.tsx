@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DeployStatus } from "@/components/deploy-status";
 import { VentureOSHeader } from "@/components/institutional/institutional-shell";
@@ -10,6 +10,14 @@ import { useJobs } from "@/lib/hooks/use-jobs";
 import { useProjects } from "@/lib/hooks/use-projects";
 
 export default function DeployPage() {
+  return (
+    <Suspense fallback={<DeployFallback />}>
+      <DeployContent />
+    </Suspense>
+  );
+}
+
+function DeployContent() {
   const search = useSearchParams();
   const selected = search?.get("project") || "";
   const { projects } = useProjects();
@@ -111,6 +119,26 @@ export default function DeployPage() {
         <div className="space-y-5">
           <DeployStatus job={latestJob} />
           <MutationIndicator job={latestJob} />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function DeployFallback() {
+  return (
+    <main className="vos-page min-h-screen">
+      <VentureOSHeader
+        purposeLabel="Deploy"
+        actions={[
+          { label: "Projects", href: "/projects" },
+          { label: "Build", href: "/build", variant: "default" },
+        ]}
+      />
+      <section className="mx-auto max-w-5xl px-4 pb-8 pt-20 sm:px-6 lg:px-8">
+        <div className="vos-panel p-6">
+          <p className="vos-label">Deploy</p>
+          <h1 className="mt-2 vos-h2">Loading deployment workspace.</h1>
         </div>
       </section>
     </main>

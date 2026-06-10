@@ -46,10 +46,12 @@ export function GitHubConnectPanel({ compact = false }: { compact?: boolean }) {
   }
 
   if (!status) {
+    if (compact) return null;
+
     return (
       <section className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950/60 p-4 text-sm font-semibold text-slate-400" aria-live="polite">
         <Loader2 className="h-4 w-4 animate-spin text-blue-300" />
-        Preparing repo connection
+        Loading GitHub connection tools
       </section>
     );
   }
