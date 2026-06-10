@@ -1,48 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FileText, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
 import { VentureOSFooter } from "@/components/institutional/institutional-shell";
-import { BuyerJourneyStrip } from "@/components/buyer-journey-strip";
-import { GitHubConnectPanel } from "@/components/github-connect-panel";
-import { StickyConversionBar } from "@/components/sticky-conversion-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonClassName } from "@/components/ui/button";
 
-const investigationSteps = [
-  { label: "Know who owns it", icon: FileText },
-  { label: "See what was checked", icon: CheckCircle2 },
-  { label: "Spot buyer blockers", icon: ShieldCheck },
-  { label: "Find safety gaps", icon: ShieldCheck },
-  { label: "Understand launch risk", icon: CheckCircle2 },
-  { label: "Share verification", icon: FileText },
-];
-
-const buyerSignals = [
+const reviewChecks = [
   {
-    title: "Clear status",
-    detail: "Trusted, risky, or blocked with plain-language reasons.",
-    icon: CheckCircle2,
+    title: "Launch blockers",
+    detail: "Find obvious risks before a buyer, customer, or teammate does.",
   },
   {
-    title: "Evidence boundaries",
-    detail: "Shows what was observed, inferred, and not verified.",
-    icon: ShieldCheck,
+    title: "Safety signals",
+    detail: "Check authentication, data handling, secrets, and dependency exposure.",
   },
   {
-    title: "Low friction review",
-    detail: "Start with a URL, repo, or source sample. No payment step.",
-    icon: Sparkles,
+    title: "Buyer summary",
+    detail: "Get plain-English status, limitations, and next steps.",
   },
 ];
 
-const trustBuilders = [
-  "Buyer-ready reports",
-  "Signed Verification Badge",
-  "Buyer-readable limitations",
-  "Public registry record",
+const nextSteps = [
+  "Paste a public GitHub repo or app URL.",
+  "Run the free review.",
+  "Upgrade only if you need a signed buyer report.",
 ];
 
 export default function HomePage() {
@@ -70,17 +54,17 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="grid min-h-[calc(100vh-6rem)] items-center gap-10 py-16 lg:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid min-h-[calc(100vh-6rem)] items-center gap-10 py-16 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/85 px-3 py-2 text-xs font-black uppercase text-[rgb(var(--vos-text-muted))]">
               <ShieldCheck className="h-4 w-4 text-[rgb(var(--vos-verified))]" />
-              Software trust records for buyers and builders
+              Free software trust check
             </div>
             <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.02] tracking-normal text-[rgb(var(--vos-text))] sm:text-5xl lg:text-6xl">
-              Decide if software is safe to buy, ship, or trust.
+              Paste a repo. See what would worry a buyer.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-[rgb(var(--vos-text-muted))]">
-              VentureOS turns repositories, code, and product evidence into a clear Software Passport with trust status, risks, limitations, and signed verification.
+              VentureOS gives founders and buyers a clear first-pass review of software quality, safety, and launch risk.
             </p>
 
             <form
@@ -90,7 +74,7 @@ export default function HomePage() {
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <label className="text-sm font-black uppercase tracking-normal text-[rgb(var(--vos-text))]" htmlFor="software-target">
-                  Start here: paste a GitHub repo or app URL
+                  Start here
                 </label>
                 <span className="rounded-full border border-[rgb(var(--vos-verified))]/50 bg-[rgb(var(--vos-verified-bg))]/70 px-3 py-1 text-xs font-black text-[rgb(var(--vos-verified))]">
                   Free review
@@ -113,134 +97,61 @@ export default function HomePage() {
                 </button>
               </div>
               <p className="mt-3 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
-                No payment required. You get a buyer-readable trust preview before upgrading.
+                No payment required. Public repos work best.
               </p>
             </form>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/free-review" className={buttonClassName({ size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
-                Start Free Review <ArrowRight className="h-4 w-4" />
-              </Link>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Link href="/sample-appraisal" className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
-                See Buyer Sample
+                See sample report
               </Link>
-              <a href="mailto:sales@ventureos.ai?subject=VentureOS%20buyer%20demo" className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
-                Book Demo
-              </a>
+              <Link href="/pricing" className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
+                View pricing
+              </Link>
             </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {buyerSignals.map((signal) => {
-              const Icon = signal.icon;
-              return (
-                <article key={signal.title} className="vos-buyer-card p-4">
-                  <Icon className="h-5 w-5 text-[rgb(var(--vos-verified))]" />
-                  <h2 className="mt-3 text-base font-black text-[rgb(var(--vos-text))]">{signal.title}</h2>
-                  <p className="mt-2 text-sm font-semibold leading-6 text-[rgb(var(--vos-text-muted))]">{signal.detail}</p>
-                </article>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 grid gap-2 sm:grid-cols-4">
-            {trustBuilders.map((item) => (
-              <div key={item} className="flex min-h-11 items-center gap-2 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/85 px-3">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[rgb(var(--vos-verified))]" />
-                <span className="text-xs font-black text-[rgb(var(--vos-text-muted))]">{item}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-2">
-            <Link href="/tutorial" className={buttonClassName({ variant: "outline", size: "sm" })}>
-              Tutorial
-            </Link>
-            <Link href="/software-immigration" className={buttonClassName({ variant: "outline", size: "sm" })}>
-              Software Immigration Terminal
-            </Link>
-            <Link href="/api/github/install" className={buttonClassName({ variant: "outline", size: "sm" })}>
-              Connect GitHub
-            </Link>
-            <Link href="/sample-appraisal" className={buttonClassName({ variant: "outline", size: "sm" })}>
-              View Sample Passport
-            </Link>
-          </div>
-
-          <div className="mx-auto mt-6 max-w-3xl">
-            <GitHubConnectPanel compact />
+          <div className="mt-6 grid gap-2 text-sm font-bold text-[rgb(var(--vos-text-muted))] sm:grid-cols-3">
+            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Quality</p>
+            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Safety</p>
+            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Buyer readiness</p>
           </div>
           </div>
 
           <aside className="vos-buyer-card p-5">
             <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--vos-border))] pb-4">
               <div>
-                <p className="vos-label">Buyer View</p>
-                <h2 className="mt-2 vos-card-title">Passport Preview</h2>
+                <p className="vos-label">What happens next</p>
+                <h2 className="mt-2 vos-card-title">Simple flow</h2>
               </div>
-              <span className="vos-badge vos-badge-ready">Free</span>
+              <span className="vos-badge vos-badge-ready">3 steps</span>
             </div>
             <div className="mt-5 grid gap-3">
-              <PreviewMetric label="Trust status" value="Reviewable" />
-              <PreviewMetric label="Quality" value="89" />
-              <PreviewMetric label="Safety" value="86" />
-            </div>
-            <div className="mt-5 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] p-4">
-              <p className="flex items-center gap-2 text-sm font-black text-[rgb(var(--vos-text))]">
-                <ShieldCheck className="h-4 w-4 text-[rgb(var(--vos-verified))]" />
-                What buyers get
-              </p>
-              <div className="mt-4 grid gap-3">
-                {["Verified evidence summary", "Plain-English risk reasons", "Signed Verification Badge", "Unknowns clearly called out"].map((item) => (
-                  <p key={item} className="flex gap-2 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--vos-verified))]" />
-                    {item}
-                  </p>
-                ))}
+              {nextSteps.map((step, index) => (
+                <div key={step} className="flex gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] p-4">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[rgb(var(--vos-primary))] text-sm font-black text-[rgb(var(--vos-primary-text))]">{index + 1}</span>
+                  <p className="text-sm font-bold leading-6 text-[rgb(var(--vos-text-muted))]">{step}</p>
+                </div>
+              ))}
               </div>
-            </div>
-            <Link href="/sample-appraisal" className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}>
-              View Sample Passport
+            <Link href="/tutorial" className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}>
+              Open tutorial
             </Link>
           </aside>
         </div>
 
-        <section className="mx-auto grid w-full max-w-5xl gap-2 border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/90 p-3">
-          <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--vos-border))] pb-3">
-            <div className="flex items-center gap-3">
+        <section className="mx-auto grid w-full max-w-5xl gap-4 sm:grid-cols-3">
+          {reviewChecks.map((item) => (
+            <article key={item.title} className="vos-buyer-card p-5">
               <ShieldCheck className="h-5 w-5 text-[rgb(var(--vos-verified))]" />
-              <p className="text-xs font-black uppercase tracking-normal text-[rgb(var(--vos-text-muted))]">What your review checks</p>
-            </div>
-            <p className="text-xs font-black uppercase tracking-normal text-[rgb(var(--vos-text-subtle))]">Buyer-readable</p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {investigationSteps.map((step) => {
-              const Icon = step.icon;
-              return (
-                <div key={step.label} className="flex items-center gap-2 rounded-md border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] px-3 py-2">
-                  <Icon className="h-4 w-4 shrink-0 text-[rgb(var(--vos-verified))]" />
-                  <p className="text-xs font-bold text-[rgb(var(--vos-text-muted))]">{step.label}</p>
-                </div>
-              );
-            })}
-          </div>
+              <h2 className="mt-4 text-lg font-black text-[rgb(var(--vos-text))]">{item.title}</h2>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[rgb(var(--vos-text-muted))]">{item.detail}</p>
+            </article>
+          ))}
         </section>
-        <div className="mx-auto mt-5 w-full max-w-5xl">
-          <BuyerJourneyStrip current="choose" />
-        </div>
         </div>
       </section>
 
       <VentureOSFooter />
-      <StickyConversionBar primaryHref="/free-review" secondaryHref="/sample-appraisal" source="home_sticky" />
     </main>
-  );
-}
-
-function PreviewMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] p-4">
-      <span className="text-sm font-bold text-[rgb(var(--vos-text-muted))]">{label}</span>
-      <span className="font-mono text-xl font-black text-[rgb(var(--vos-verified))]">{value}</span>
-    </div>
   );
 }
