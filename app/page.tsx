@@ -47,10 +47,6 @@ const trustBuilders = [
 
 export default function HomePage() {
   const [target, setTarget] = useState("");
-  const query = target.trim();
-  const passportHref = query
-    ? `/free-review?${new URLSearchParams({ repo: query }).toString()}`
-    : "/free-review";
 
   return (
     <main className="vos-page min-h-screen">
@@ -87,23 +83,39 @@ export default function HomePage() {
               VentureOS turns repositories, code, and product evidence into a clear Software Passport with trust status, risks, limitations, and signed verification.
             </p>
 
-          <form action="/free-review" className="mt-8 grid max-w-3xl gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/95 p-3 shadow-2xl shadow-black/20 sm:grid-cols-[minmax(0,1fr)_190px]">
-            <label className="sr-only" htmlFor="software-target">Software target</label>
-            <div className="flex min-w-0 items-center gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] px-4">
-              <FileText className="h-5 w-5 shrink-0 text-[rgb(var(--vos-text-subtle))]" />
-              <input
-                id="software-target"
-                name="repo"
-                value={target}
-                onChange={(event) => setTarget(event.target.value)}
-                placeholder="Paste your GitHub repo or app URL"
-                className="h-14 min-w-0 flex-1 border-0 bg-transparent text-sm font-bold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))]"
-              />
-            </div>
-            <Link href={passportHref} className={buttonClassName({ size: "lg", className: "h-14 w-full" })}>
-              Start Free Review <ArrowRight className="h-4 w-4" />
-            </Link>
-          </form>
+            <form
+              action="/free-review"
+              method="get"
+              className="mt-8 max-w-3xl rounded-xl border border-[rgb(var(--vos-primary))]/60 bg-[rgb(var(--vos-panel))]/95 p-4 shadow-2xl shadow-[rgb(var(--vos-primary))]/15 ring-1 ring-[rgb(var(--vos-primary))]/25"
+            >
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <label className="text-sm font-black uppercase tracking-normal text-[rgb(var(--vos-text))]" htmlFor="software-target">
+                  Start here: paste a GitHub repo or app URL
+                </label>
+                <span className="rounded-full border border-[rgb(var(--vos-verified))]/50 bg-[rgb(var(--vos-verified-bg))]/70 px-3 py-1 text-xs font-black text-[rgb(var(--vos-verified))]">
+                  Free review
+                </span>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_210px]">
+                <div className="flex min-w-0 items-center gap-3 rounded-lg border border-[rgb(var(--vos-border-strong))] bg-[rgb(var(--vos-panel-raised))] px-4 shadow-inner shadow-black/20">
+                  <FileText className="h-5 w-5 shrink-0 text-[rgb(var(--vos-primary))]" />
+                  <input
+                    id="software-target"
+                    name="repo"
+                    value={target}
+                    onChange={(event) => setTarget(event.target.value)}
+                    placeholder="https://github.com/company/app"
+                    className="h-16 min-w-0 flex-1 border-0 bg-transparent text-base font-bold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))]"
+                  />
+                </div>
+                <button type="submit" className={buttonClassName({ size: "lg", className: "h-16 w-full text-base" })}>
+                  Start Free Review <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-3 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
+                No payment required. You get a buyer-readable trust preview before upgrading.
+              </p>
+            </form>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/free-review" className={buttonClassName({ size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
