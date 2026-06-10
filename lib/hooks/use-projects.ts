@@ -13,11 +13,12 @@ export function useProjects() {
     setLoading(true);
     setError(null);
     try {
-      if (!(await hasServerSession())) {
+      const hasSession = await withTimeout(hasServerSession(), 6_000, false);
+      if (!hasSession) {
         setProjects([]);
         return true;
       }
-      const data = await api.projects();
+      const data = await withTimeout(api.projects(), 8_000, { ok: false, projects: [] });
       setProjects(data.projects);
       return true;
     } catch (err) {
@@ -34,4 +35,14 @@ export function useProjects() {
   }, [refresh]);
 
   return { projects, loading, error, refresh, setProjects };
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => resolve(fallback), timeoutMs);
+    promise
+      .then((value) => resolve(value))
+      .catch((error) => reject(error))
+      .finally(() => window.clearTimeout(timeout));
+  });
 }
