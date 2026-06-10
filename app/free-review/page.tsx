@@ -340,7 +340,7 @@ export default function FreeReviewPage() {
               aria-label="Code to scan"
             />
             <p className="mt-2 text-xs font-semibold text-slate-500">
-              Preview sample: {Math.min(code.length, 6_000).toLocaleString()} characters used for this free scan. Full reports review a broader evidence package.
+              Paste a small code sample only if you do not have a public repo. Full reports review a broader evidence package.
             </p>
           </div>
 
