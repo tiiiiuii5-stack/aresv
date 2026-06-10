@@ -38,9 +38,7 @@ export default function HomePage() {
         <div className="mx-auto flex w-full max-w-6xl flex-col">
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 text-sm font-black text-[rgb(var(--vos-text))]">
-            <span className="grid h-10 w-10 place-items-center rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-primary))] text-[rgb(var(--vos-primary-text))]">
-              V
-            </span>
+            <span aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-primary))] text-[rgb(var(--vos-primary-text))] before:content-['V']" />
             <span>
               <span className="block">VentureOS</span>
               <span className="block text-xs font-bold text-[rgb(var(--vos-text-subtle))]">Software Passport Network</span>
