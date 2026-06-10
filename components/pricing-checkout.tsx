@@ -5,7 +5,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
-import { BuyerJourneyStrip } from "@/components/buyer-journey-strip";
 import { InstitutionalMetricCard, InstitutionalPageHero, InstitutionalPageShell, InstitutionalPanel } from "@/components/institutional/institutional-shell";
 import { StickyConversionBar } from "@/components/sticky-conversion-bar";
 
@@ -110,7 +109,6 @@ export function PricingCheckout() {
       ]}
     >
       <div className="grid gap-5">
-        <BuyerJourneyStrip current="choose" />
         <InstitutionalPageHero
           eyebrow="Build Your Verified Report"
           title="Know if your software asset is safe to ship."
