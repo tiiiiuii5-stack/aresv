@@ -86,7 +86,8 @@ export async function searchVentureOSRegistry(input: { query?: string; limit?: n
   const query = cleanQuery(input.query);
   const limit = boundedLimit(input.limit);
   const rows = await loadRegistryRows({ query: looksLikeVentureOSId(query) ? "" : query, limit: query ? MAX_PREFILTER_LIMIT : limit });
-  const assets = dedupeRegistryAssets(rows.map(rowToRegistryAsset));
+  const realAssets = dedupeRegistryAssets(rows.map(rowToRegistryAsset));
+  const assets = !query && realAssets.length === 0 ? fallbackRegistryAssets() : realAssets;
   const filtered = query ? assets.filter((asset) => assetMatchesQuery(asset, query)).slice(0, limit) : assets.slice(0, limit);
 
   return {
@@ -95,6 +96,84 @@ export async function searchVentureOSRegistry(input: { query?: string; limit?: n
     assets: filtered,
     searchedBy: ["VentureOS ID", "Certificate ID", "Company/app name", "Repository", "Domain"],
   };
+}
+
+function fallbackRegistryAssets(): RegistryAsset[] {
+  const verifiedAt = "2026-06-10T00:00:00.000Z";
+  return [
+    {
+      ventureOsId: "VOS-SAMPLE-ARES",
+      publicAssetId: "sample-aresv",
+      projectId: null,
+      appraisalId: null,
+      appraisalPublicId: "sample-aresv",
+      certificateId: null,
+      name: "Aresv Repository Review",
+      company: "VentureOS Sample",
+      repository: "tiiiiuii5-stack/aresv",
+      domain: null,
+      status: "APPRAISED",
+      trustRating: "B+",
+      trustScore: 84,
+      readinessScore: 84,
+      evidenceCoverage: 72,
+      evidenceCoverageLevel: "sample",
+      lastScan: verifiedAt,
+      lastVerification: verifiedAt,
+      appraisalUrl: "/sample-appraisal",
+      certificateUrl: null,
+      passportUrl: "/sample-appraisal",
+      publicVerificationUrl: "/sample-appraisal",
+    },
+    {
+      ventureOsId: "VOS-SAMPLE-PASSPORT",
+      publicAssetId: "sample-passport",
+      projectId: null,
+      appraisalId: null,
+      appraisalPublicId: "sample-passport",
+      certificateId: "vos-cert-8b3bcecc6de64fe6",
+      name: "VentureOS Software Passport",
+      company: "VentureOS Sample",
+      repository: null,
+      domain: "ventureos-full-fixed.vercel.app",
+      status: "VERIFIED",
+      trustRating: "A-",
+      trustScore: 89,
+      readinessScore: 89,
+      evidenceCoverage: 86,
+      evidenceCoverageLevel: "sample",
+      lastScan: verifiedAt,
+      lastVerification: verifiedAt,
+      appraisalUrl: "/sample-appraisal",
+      certificateUrl: "/certificate/vos-cert-8b3bcecc6de64fe6",
+      passportUrl: "/sample-appraisal",
+      publicVerificationUrl: "/certificate/vos-cert-8b3bcecc6de64fe6",
+    },
+    {
+      ventureOsId: "VOS-SAMPLE-BUYER",
+      publicAssetId: "sample-buyer-ready",
+      projectId: null,
+      appraisalId: null,
+      appraisalPublicId: "sample-buyer-ready",
+      certificateId: null,
+      name: "Buyer-Ready Report Sample",
+      company: "VentureOS Sample",
+      repository: null,
+      domain: null,
+      status: "APPRAISED",
+      trustRating: "B",
+      trustScore: 78,
+      readinessScore: 78,
+      evidenceCoverage: 68,
+      evidenceCoverageLevel: "sample",
+      lastScan: verifiedAt,
+      lastVerification: verifiedAt,
+      appraisalUrl: "/sample-report",
+      certificateUrl: null,
+      passportUrl: "/sample-report",
+      publicVerificationUrl: "/sample-report",
+    },
+  ];
 }
 
 export async function loadVentureOSPassport(identifier: string): Promise<VentureOSPassport | null> {
