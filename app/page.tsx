@@ -39,7 +39,7 @@ const buyerSignals = [
 ];
 
 const trustBuilders = [
-  "Evidence-scoped reports",
+  "Buyer-ready reports",
   "Signed Verification Badge",
   "Buyer-readable limitations",
   "Public registry record",
