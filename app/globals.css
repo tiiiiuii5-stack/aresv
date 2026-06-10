@@ -230,6 +230,14 @@ p {
   margin: 0;
 }
 
+code,
+pre,
+kbd,
+samp,
+.font-mono {
+  font-family: var(--vos-font-mono);
+}
+
 button,
 a[href] {
   transition:
@@ -237,17 +245,33 @@ a[href] {
     border-color 180ms ease,
     background-color 180ms ease,
     color 180ms ease,
+    opacity 180ms ease,
+    filter 180ms ease,
     box-shadow 180ms ease;
 }
 
 button:hover,
 a[href]:hover {
+  opacity: 0.9;
   border-color: rgb(var(--vos-border-strong));
+}
+
+button:hover {
+  filter: brightness(1.1);
 }
 
 button:active,
 a[href]:active {
   transform: translateY(1px) scale(0.99);
+}
+
+button:focus-visible,
+a[href]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgb(var(--vos-primary));
+  outline-offset: 3px;
 }
 
 button:not([class]),

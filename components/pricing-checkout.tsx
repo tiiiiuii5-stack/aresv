@@ -101,9 +101,6 @@ export function PricingCheckout() {
     <InstitutionalPageShell
       purposeLabel="Build Your Verified Report"
       actions={[
-        { label: "Free Review", href: "/free-review" },
-        { label: "Tutorial", href: "/tutorial", variant: "outline" },
-        { label: "Sample", href: "/sample-appraisal" },
         { label: "Build Report", href: "/software-appraisal", variant: "default" },
       ]}
       breadcrumbs={[

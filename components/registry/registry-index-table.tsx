@@ -152,7 +152,7 @@ function RegistryRow({
         <Badge variant={stateBadge(asset.currentState)}>{asset.currentState}</Badge>
       </td>
       <td className="px-3 py-2 align-middle">
-        <Badge variant={asset.certificateStatus === "Active" ? "ready" : asset.certificateStatus === "Missing" ? "muted" : "risky"}>{asset.certificateStatus}</Badge>
+        <Badge variant={asset.certificateStatus === "Active" ? "ready" : asset.certificateStatus === "Pending" ? "muted" : "risky"}>{asset.certificateStatus}</Badge>
       </td>
       <td className="px-3 py-2 text-right align-middle font-black text-[rgb(var(--vos-text))]">{asset.transparencyEntries}</td>
       <td className="px-3 py-2 text-right align-middle font-black text-[rgb(var(--vos-text))]">{asset.eventCount}</td>

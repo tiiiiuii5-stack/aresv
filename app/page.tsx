@@ -61,7 +61,7 @@ export default function HomePage() {
               Free software trust check
             </div>
             <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.02] tracking-normal text-[rgb(var(--vos-text))] sm:text-5xl lg:text-6xl">
-              Paste a repo. See what would worry a buyer.
+              Free buyer-grade software verdict.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-[rgb(var(--vos-text-muted))]">
               VentureOS gives founders and buyers a clear first-pass review of software quality, safety, and launch risk.
@@ -74,7 +74,7 @@ export default function HomePage() {
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <label className="text-sm font-black uppercase tracking-normal text-[rgb(var(--vos-text))]" htmlFor="software-target">
-                  Start here
+                  Paste your public GitHub repo
                 </label>
                 <span className="rounded-full border border-[rgb(var(--vos-verified))]/50 bg-[rgb(var(--vos-verified-bg))]/70 px-3 py-1 text-xs font-black text-[rgb(var(--vos-verified))]">
                   Free review
@@ -88,7 +88,7 @@ export default function HomePage() {
                     name="repo"
                     value={target}
                     onChange={(event) => setTarget(event.target.value)}
-                    placeholder="https://github.com/company/app"
+                    placeholder="https://github.com/username/repo"
                     className="h-16 min-w-0 flex-1 border-0 bg-transparent text-base font-bold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))]"
                   />
                 </div>

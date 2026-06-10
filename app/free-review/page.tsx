@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CheckCircle2, Code2, FileText, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, FileText, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { InstitutionalPageShell } from "@/components/institutional/institutional-shell";
-import { BuyerJourneyStrip } from "@/components/buyer-journey-strip";
-import { StickyConversionBar } from "@/components/sticky-conversion-bar";
 import { Button } from "@/components/ui/button";
 import { buttonClassName } from "@/components/ui/button";
 
@@ -67,22 +65,32 @@ export default function FreeReviewPage() {
   const [code, setCode] = useState(starterCode);
   const [repoUrl, setRepoUrl] = useState("");
   const [framework, setFramework] = useState("nextjs");
-  const [email, setEmail] = useState("");
-  const [feedback, setFeedback] = useState("");
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [scanBusy, setScanBusy] = useState(false);
-  const [feedbackBusy, setFeedbackBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const viewTracked = useRef(false);
 
   const topIssues = useMemo(() => (result?.issues || []).slice(0, 3), [result]);
   const readiness = Number(result?.productionReadinessScore || 0);
+  const qualityScore = result ? clampScore(result.failureScore ? 100 - Number(result.failureScore) : readiness) : 0;
+  const safetyScore = result ? clampScore(result.securityScore || readiness) : 0;
+  const buyerScore = result ? clampScore(Math.round((readiness + qualityScore + safetyScore) / 3)) : 0;
   const state = readiness >= 85 ? "READY" : readiness >= 65 ? "RISKY" : "BLOCKED";
+  const verdict = verdictFor(readiness, result?.riskLevel);
+  const decision = decisionFor(state);
+  const primaryFixes = useMemo(() => {
+    const fixes = [
+      ...(result?.launchVerdict?.blockers || []),
+      ...(result?.launchVerdict?.warnings || []),
+      ...(result?.recommendations || []),
+      ...topIssues.map((issue) => issue.fixSuggestion || issue.title || "").filter(Boolean),
+    ];
+    return [...new Set(fixes.map((item) => item.trim()).filter(Boolean))].slice(0, 4);
+  }, [result, topIssues]);
   const repoReady = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+/i.test(repoUrl.trim()) || /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repoUrl.trim());
   const sourceReady = repoReady || code.trim().length >= 40;
   const paidUrl = `/appraisal-intake?offer=buyer-ready${repoUrl.trim() ? `&repo=${encodeURIComponent(repoUrl.trim())}` : ""}&framework=${encodeURIComponent(framework)}`;
-  const instantUrl = `/appraisal-intake?offer=instant${repoUrl.trim() ? `&repo=${encodeURIComponent(repoUrl.trim())}` : ""}&framework=${encodeURIComponent(framework)}`;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -127,7 +135,7 @@ export default function FreeReviewPage() {
       const payload = await response.json().catch(() => ({})) as ReviewResult & { error?: string };
       if (!response.ok) throw new Error(payload.error || "Free review scan failed.");
       setResult(payload);
-      setMessage("Free review scan complete. This preview does not issue a Signed Verification Badge.");
+      setMessage("Buyer verdict ready.");
       await trackProductEvent("free_review.scan_completed", {
         source: "free_review",
         framework,
@@ -154,153 +162,38 @@ export default function FreeReviewPage() {
     }
   }
 
-  async function sendFeedback(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setFeedbackBusy(true);
-    setError("");
-    setMessage("");
-    try {
-      const summary = [
-        "Free review feedback",
-        `score=${readiness || "not_scanned"}`,
-        `state=${result ? state : "not_scanned"}`,
-        feedback.trim(),
-      ].filter(Boolean).join(" | ").slice(0, 500);
-
-      const response = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, role: "free-reviewer", useCase: summary }),
-      });
-      const payload = await response.json().catch(() => ({})) as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Could not submit feedback.");
-      setMessage("Feedback submitted. You are on the reviewer list.");
-      setFeedback("");
-      await trackProductEvent("free_review.feedback_submitted", {
-        source: "free_review",
-        framework,
-        counts: { hadScanResult: Boolean(result), readinessScore: readiness || 0 },
-      });
-    } catch (feedbackError) {
-      setError(feedbackError instanceof Error ? feedbackError.message : "Could not submit feedback.");
-    } finally {
-      setFeedbackBusy(false);
-    }
-  }
-
   return (
     <InstitutionalPageShell
       purposeLabel="Free Review"
       maxWidth="max-w-6xl"
       actions={[
-        { label: "Paid Options", href: "/software-appraisal", variant: "outline" },
         { label: "Sample", href: "/sample-appraisal", variant: "outline" },
-        { label: "Upgrade", href: "/software-appraisal", variant: "default" },
+        { label: "Pricing", href: "/pricing", variant: "outline" },
+        { label: "Buyer Report", href: paidUrl, variant: "default" },
       ]}
       breadcrumbs={[
         { label: "Home", href: "/" },
         { label: "Free Review" },
       ]}
     >
-        <BuyerJourneyStrip current="choose" />
-
-        <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Free limited software review</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
-              Check whether a software asset has obvious launch risk.
-            </h1>
-            <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-300">
-              Paste a public GitHub URL or a small code sample. The free review runs a real limited scan and shows top risks. It is free to test, capped in scope, and does not issue a Signed Verification Badge.
-            </p>
-          </div>
-
-          <aside className="rounded-lg border border-slate-800 bg-slate-950 p-5">
-            <div className="relative overflow-hidden rounded-lg border border-emerald-300/25 bg-slate-900/70 p-4">
-              <div className="absolute inset-x-0 top-8 h-px bg-emerald-300/50 shadow-[0_0_24px_rgba(52,211,153,0.65)]" />
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-mono text-[10px] font-black uppercase text-slate-500">VOS Free Review</p>
-                  <p className="mt-3 text-3xl font-black text-emerald-100">$0</p>
-                  <p className="mt-1 text-xs font-bold text-slate-400">Limited evidence scan</p>
-                </div>
-                <div className="grid h-14 w-14 place-items-center rounded-lg border border-emerald-300/30 bg-emerald-300/10">
-                  <ShieldCheck className="h-7 w-7 text-emerald-200" />
-                </div>
-              </div>
-              <div className="mt-5 grid grid-cols-3 gap-2">
-                {["Repo", "Code", "Risk"].map((item) => (
-                  <div key={item} className="rounded-md border border-slate-800 bg-slate-950/70 p-2 text-center">
-                    <p className="font-mono text-[10px] font-black text-slate-400">{item}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-              <ShieldCheck className="h-4 w-4" />
-              Boundaries
-            </p>
-            <div className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-slate-300">
-              <p className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />Accepts public GitHub repos or pasted code.</p>
-              <p className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />Short samples work best for the free preview.</p>
-              <p className="flex gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-200" />No Signed Verification Badge, buyer-ready report, or full repository coverage.</p>
-            </div>
-            <Link
-              href={paidUrl}
-              onClick={() => void trackProductEvent("free_review.paid_cta_clicked", {
-                source: "free_review_boundary_card",
-                framework,
-                repositoryUrl: repoUrl,
-                counts: { hadScanResult: Boolean(result), readinessScore: readiness || 0 },
-              })}
-              className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}
-            >
-              Buyer-Ready Verified Report
-            </Link>
-          </aside>
+        <section className="py-8">
+          <p className="text-xs font-black uppercase tracking-normal text-emerald-300">Free software verdict</p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
+            Run the scan. Get the buyer answer.
+          </h1>
+          <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-300">
+            One input. One verdict. VentureOS shows quality, safety, buyer readiness, top risks, and what to fix next.
+          </p>
         </section>
 
-        <section className="mb-5 grid gap-4 lg:grid-cols-3">
-          <OfferCell
-          title="Free Limited Review"
-            price="$0"
-            description="Public repo or small pasted sample. Shows top risks and launch blockers. No Signed Verification Badge."
-            actionLabel="Run Free Review"
-            href="#source-input"
-          />
-          <OfferCell
-            title="Verified System Report"
-            price="Free"
-            description="Automated verified report, readiness score, evidence scope, and Signed Verification Badge."
-            actionLabel="Start $49 Report"
-            href={instantUrl}
-          />
-          <OfferCell
-            title="Buyer-Ready Verified Report"
-            price="Free"
-            description="Deeper buyer-facing report with fix plan, unknowns, evidence limits, and Signed Verification Badge."
-            actionLabel="Start $199 Report"
-            href={paidUrl}
-            primary
-          />
-        </section>
-
-        <section className="mb-5 grid gap-3 md:grid-cols-4">
-          <SignalCard icon={<Code2 className="h-4 w-4" />} label="Input" value="Repo or code" />
-          <SignalCard icon={<ShieldCheck className="h-4 w-4" />} label="Output" value="Top launch risks" />
-          <SignalCard icon={<FileText className="h-4 w-4" />} label="Upgrade" value="Free report" />
-          <SignalCard icon={<CheckCircle2 className="h-4 w-4" />} label="Payment" value="Not required" />
-        </section>
-
-        <section id="source-input" className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="rounded-lg border border-slate-800 bg-slate-950 p-5">
+        <section id="source-input" className="rounded-xl border border-emerald-300/30 bg-slate-950 p-5 shadow-2xl shadow-emerald-950/20">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-normal text-emerald-300">
                   <Code2 className="h-4 w-4" />
-                  Source input
+                  Paste software
                 </p>
-                <h2 className="mt-2 text-2xl font-black text-white">Run a free review scan.</h2>
+                <h2 className="mt-2 text-2xl font-black text-white">Public GitHub repo or code sample</h2>
               </div>
               <div className="flex gap-2">
                 <select
@@ -316,7 +209,7 @@ export default function FreeReviewPage() {
                 </select>
                 <Button type="button" onClick={runReviewScan} disabled={scanBusy}>
                   {scanBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  Scan
+                  {scanBusy ? "Scanning" : "Get Verdict"}
                 </Button>
               </div>
             </div>
@@ -326,11 +219,11 @@ export default function FreeReviewPage() {
                 value={repoUrl}
                 onChange={(event) => setRepoUrl(event.target.value)}
                 type="url"
-                placeholder="https://github.com/company/app"
+                placeholder="https://github.com/username/repo"
                 className="mt-2 h-11 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-white outline-none focus:border-emerald-300"
               />
               <span className="mt-2 block text-xs font-semibold leading-5 text-slate-500">
-                Public repos only. Private repos need the GitHub App, upload, or paste flow.
+                Public GitHub repos produce the strongest free verdict.
               </span>
             </label>
             <textarea
@@ -340,115 +233,100 @@ export default function FreeReviewPage() {
               aria-label="Code to scan"
             />
             <p className="mt-2 text-xs font-semibold text-slate-500">
-              Paste a small code sample only if you do not have a public repo. Full reports review a broader evidence package.
+              No repo? Paste a small code sample here.
             </p>
+        </section>
+
+        {message ? <p className="mt-4 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-sm font-semibold text-emerald-100">{message}</p> : null}
+        {error ? <p className="mt-4 rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-100">{error}</p> : null}
+
+        <section className="mt-5 rounded-xl border border-slate-800 bg-slate-950 p-5">
+          <div className="flex flex-col gap-3 border-b border-slate-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-normal text-slate-500">
+                <FileText className="h-4 w-4" />
+                Buyer verdict
+              </p>
+              <h2 className="mt-2 text-3xl font-black text-white">{result ? verdict.title : "Waiting for scan"}</h2>
+              <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-400">
+                {result ? verdict.detail : "Run the free scan to generate the verdict, scorecard, risks, and recommended next step."}
+              </p>
+            </div>
+            <span className={["rounded-full border px-4 py-2 text-sm font-black", result ? verdict.className : "border-slate-700 bg-slate-900 text-slate-300"].join(" ")}>
+              {result ? state : "NOT SCANNED"}
+            </span>
           </div>
 
-          <aside className="rounded-lg border border-slate-800 bg-slate-950 p-5">
-            <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-              <FileText className="h-4 w-4" />
-              Review result
-            </p>
-            {result ? (
-              <div className="mt-4">
-                {result.repositorySource ? (
-                  <div className="mb-3 rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-3 text-sm font-semibold leading-6 text-cyan-50">
-                    Scanned {result.repositorySource.filesLoaded || 0} of {result.repositorySource.totalFilesDiscovered || 0} discovered repo files from {result.repositorySource.owner}/{result.repositorySource.repo}.
-                    {result.repositorySource.truncated ? " Free review coverage was capped." : ""}
-                  </div>
-                ) : null}
-                <div className="grid grid-cols-2 gap-3">
-                  <Metric label="Readiness" value={`${readiness}/100`} />
-                  <Metric label="State" value={state} />
-                  <Metric label="Security" value={`${Number(result.securityScore || 0)}`} />
-                  <Metric label="Risk" value={String(result.riskLevel || "unknown").toUpperCase()} />
-                </div>
-                {result.inputTruncated ? (
-                  <p className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-50">
-                    Input was truncated for the free review limit.
-                  </p>
-                ) : null}
-                <div className="mt-4 grid gap-2">
-                  {topIssues.length ? topIssues.map((issue) => (
-                    <div key={`${issue.severity}:${issue.title}`} className="rounded-lg border border-amber-300/25 bg-amber-300/10 p-3">
-                      <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-100">{issue.severity || "issue"}</p>
-                      <p className="mt-1 text-sm font-black text-white">{issue.title || "Untitled issue"}</p>
-                      <p className="mt-2 text-xs font-semibold leading-5 text-amber-50">{issue.evidence || issue.fixSuggestion || "Evidence returned by free review scan."}</p>
-                    </div>
-                  )) : (
-                    <p className="rounded-lg border border-slate-800 bg-slate-900/50 p-3 text-sm font-semibold text-slate-300">No top issues returned in this limited scan.</p>
-                  )}
-                </div>
-                <div className="mt-4 rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-3">
-                  <p className="text-sm font-black text-emerald-50">Want the professional version?</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-emerald-100">
-                    Move from preview to a verified report when a buyer, customer, or auditor needs evidence.
-                  </p>
-                </div>
-                <Link
-                  href={paidUrl}
-                  onClick={() => void trackProductEvent("free_review.paid_cta_clicked", {
-                    source: "free_review_result_card",
-                    framework,
-                    repositoryUrl: repoUrl,
-                    riskLevel: result.riskLevel,
-                    counts: { hadScanResult: true, readinessScore: readiness, issueCount: topIssues.length },
-                  })}
-                  className={buttonClassName({ className: "mt-3 w-full" })}
-                >
-                  Generate Buyer-Ready Report <ArrowRight className="h-4 w-4" />
-                </Link>
+          {result ? (
+            <div className="mt-5 grid gap-5">
+              <div className="grid gap-3 md:grid-cols-4">
+                <ScoreMeter label="Buyer Readiness" value={buyerScore} />
+                <ScoreMeter label="Quality" value={qualityScore} />
+                <ScoreMeter label="Safety" value={safetyScore} />
+                <ScoreMeter label="Launch Risk" value={riskLabel(result.riskLevel)} text />
               </div>
-            ) : (
-              <p className="mt-4 text-sm font-semibold leading-6 text-slate-400">
-                The free review result appears here after the scan. It is a preview for feedback, not a buyer-ready signed report.
-              </p>
-            )}
-          </aside>
-        </section>
 
-        <section className="mt-5 rounded-lg border border-slate-800 bg-slate-950 p-5">
-          <form className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)_180px]" onSubmit={sendFeedback}>
-            <label>
-              <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Email</span>
-              <input
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                type="email"
-                required
-                placeholder="reviewer@example.com"
-                className="mt-2 h-11 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-white outline-none focus:border-emerald-300"
-              />
-            </label>
-            <label>
-              <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Feedback</span>
-              <input
-                value={feedback}
-                onChange={(event) => setFeedback(event.target.value)}
-                required
-                placeholder="What was useful, confusing, or worth paying for?"
-                className="mt-2 h-11 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-white outline-none focus:border-emerald-300"
-              />
-            </label>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full" disabled={feedbackBusy}>
-                {feedbackBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Send
-              </Button>
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+                  <p className="text-xs font-black uppercase tracking-normal text-slate-500">Decision</p>
+                  <h3 className="mt-2 text-2xl font-black text-white">{decision.title}</h3>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">{decision.detail}</p>
+                  {result.repositorySource ? (
+                    <p className="mt-3 rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-3 text-sm font-semibold leading-6 text-cyan-50">
+                      Evidence read: {result.repositorySource.filesLoaded || 0} of {result.repositorySource.totalFilesDiscovered || 0} repo files from {result.repositorySource.owner}/{result.repositorySource.repo}.
+                    </p>
+                  ) : null}
+                  {result.inputTruncated ? (
+                    <p className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-50">
+                      Free scan coverage was capped. Use Buyer-Ready Report for broader evidence.
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-4">
+                  <p className="text-xs font-black uppercase tracking-normal text-emerald-200">Recommended next step</p>
+                  <p className="mt-2 text-lg font-black text-white">{decision.cta}</p>
+                  <Link
+                    href={paidUrl}
+                    onClick={() => void trackProductEvent("free_review.paid_cta_clicked", {
+                      source: "free_review_verdict",
+                      framework,
+                      repositoryUrl: repoUrl,
+                      riskLevel: result.riskLevel,
+                      counts: { hadScanResult: true, readinessScore: readiness, issueCount: topIssues.length },
+                    })}
+                    className={buttonClassName({ className: "mt-4 w-full" })}
+                  >
+                    Generate Buyer Report <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <FindingPanel title="Top risks" empty="No major risks returned in this limited scan.">
+                  {topIssues.map((issue) => (
+                    <Finding key={`${issue.severity}:${issue.title}`} eyebrow={issue.severity || issue.category || "issue"} title={issue.title || "Untitled risk"} detail={issue.evidence || issue.fixSuggestion || "Evidence returned by free review scan."} />
+                  ))}
+                </FindingPanel>
+
+                <FindingPanel title="Fix next" empty="No specific fixes returned in this limited scan.">
+                  {primaryFixes.map((fix) => (
+                    <Finding key={fix} eyebrow="recommended" title={fix} detail="Complete this before sharing the software with a serious buyer or production reviewer." />
+                  ))}
+                </FindingPanel>
+              </div>
             </div>
-          </form>
-          {message ? <p className="mt-3 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-sm font-semibold text-emerald-100">{message}</p> : null}
-          {error ? <p className="mt-3 rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-100">{error}</p> : null}
+          ) : (
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              {["Buyer verdict", "Quality / Safety scores", "Top risks + fixes"].map((item) => (
+                <div key={item} className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+                  <p className="mt-3 text-sm font-black text-white">{item}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
-        <StickyConversionBar
-          eyebrow="Free first step"
-          title="Run the preview, then generate a buyer-ready passport."
-          primaryLabel="Start Free Review"
-          primaryHref="#source-input"
-          secondaryLabel="Upgrade"
-          secondaryHref="/software-appraisal"
-          source="free_review_sticky"
-        />
     </InstitutionalPageShell>
   );
 }
@@ -476,62 +354,91 @@ async function trackProductEvent(
   }
 }
 
-function SignalCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+function ScoreMeter({ label, value, text = false }: { label: string; value: number | string; text?: boolean }) {
+  const numeric = typeof value === "number" ? value : 0;
   return (
-    <article className="rounded-lg border border-slate-800 bg-slate-950 p-4">
-      <div className="flex items-center gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-emerald-300/25 bg-emerald-300/10 text-emerald-200">
-          {icon}
-        </span>
-        <span className="min-w-0">
-          <span className="block text-xs font-black uppercase tracking-[0.14em] text-slate-500">{label}</span>
-          <span className="mt-1 block truncate text-sm font-black text-white">{value}</span>
-        </span>
+    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+      <p className="text-xs font-black uppercase tracking-normal text-slate-500">{label}</p>
+      <p className="mt-3 text-3xl font-black text-white">{text ? value : `${numeric}/100`}</p>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-full rounded-full bg-emerald-300" style={{ width: text ? "100%" : `${numeric}%` }} />
       </div>
-    </article>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-2 text-xl font-black text-white">{value}</p>
     </div>
   );
 }
 
-function OfferCell({
-  title,
-  price,
-  description,
-  actionLabel,
-  href,
-  primary = false,
-}: {
-  title: string;
-  price: string;
-  description: string;
-  actionLabel: string;
-  href: string;
-  primary?: boolean;
-}) {
+function FindingPanel({ title, empty, children }: { title: string; empty: string; children: ReactNode }) {
+  const hasChildren = Boolean(children) && (!Array.isArray(children) || children.length > 0);
   return (
-    <article className={["rounded-lg border p-4", primary ? "border-emerald-300/40 bg-emerald-300/10" : "border-slate-800 bg-slate-950"].join(" ")}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-            <FileText className="h-4 w-4" />
-            Public price
-          </p>
-          <h2 className="mt-2 text-xl font-black text-white">{title}</h2>
-        </div>
-        <p className="text-2xl font-black text-emerald-100">{price}</p>
+    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+      <p className="text-xs font-black uppercase tracking-normal text-slate-500">{title}</p>
+      <div className="mt-3 grid gap-3">
+        {hasChildren ? children : <p className="text-sm font-semibold text-slate-300">{empty}</p>}
       </div>
-      <p className="mt-3 min-h-[72px] text-sm font-semibold leading-6 text-slate-300">{description}</p>
-      <Link href={href} className={buttonClassName({ variant: primary ? "default" : "outline", className: "mt-4 w-full" })}>
-        {actionLabel}
-      </Link>
-    </article>
+    </div>
   );
+}
+
+function Finding({ eyebrow, title, detail }: { eyebrow: string; title: string; detail: string }) {
+  return (
+    <div className="rounded-lg border border-amber-300/25 bg-amber-300/10 p-3">
+      <p className="text-xs font-black uppercase tracking-normal text-amber-100">{eyebrow}</p>
+      <p className="mt-1 text-sm font-black text-white">{title}</p>
+      <p className="mt-2 text-xs font-semibold leading-5 text-amber-50">{detail}</p>
+    </div>
+  );
+}
+
+function clampScore(value: number) {
+  const number = Math.round(Number(value || 0));
+  return Math.max(0, Math.min(100, Number.isFinite(number) ? number : 0));
+}
+
+function verdictFor(score: number, riskLevel: unknown) {
+  const risk = String(riskLevel || "").toLowerCase();
+  if (score >= 85 && !/high|critical/.test(risk)) {
+    return {
+      title: "Looks buyer-ready for first review.",
+      detail: "The free scan found enough positive signals for a serious conversation, subject to normal internal diligence.",
+      className: "border-emerald-300/40 bg-emerald-300/10 text-emerald-100",
+    };
+  }
+  if (score >= 65) {
+    return {
+      title: "Promising, but needs cleanup before buyer review.",
+      detail: "The software has useful signals, but the scan found risks or unknowns that should be fixed before sharing broadly.",
+      className: "border-amber-300/40 bg-amber-300/10 text-amber-100",
+    };
+  }
+  return {
+    title: "Do not present this as buyer-ready yet.",
+    detail: "The free scan found enough risk that you should fix fundamentals before using this in a buyer, customer, or production review.",
+    className: "border-red-300/40 bg-red-500/10 text-red-100",
+  };
+}
+
+function decisionFor(state: string) {
+  if (state === "READY") {
+    return {
+      title: "Proceed to signed report.",
+      detail: "Use the paid report when you need a shareable artifact with stronger evidence boundaries and buyer-facing language.",
+      cta: "Generate the buyer-ready report.",
+    };
+  }
+  if (state === "RISKY") {
+    return {
+      title: "Fix the top issues, then rescan.",
+      detail: "This is not a rejection. It means the software needs targeted cleanup before it will read as credible to a buyer.",
+      cta: "Create the report after cleanup.",
+    };
+  }
+  return {
+    title: "Block buyer sharing for now.",
+    detail: "Treat this as an internal repair list. Do not lead with a public trust claim until the high-risk findings are addressed.",
+    cta: "Use the report as a fix plan.",
+  };
+}
+
+function riskLabel(value: unknown) {
+  return String(value || "unknown").replace(/[_-]+/g, " ").toUpperCase();
 }

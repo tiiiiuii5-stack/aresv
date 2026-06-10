@@ -13,6 +13,7 @@ export default async function DashboardPage() {
   const registry = await buildRegistryItems({ limit: 6 });
   const verified = registry.items.filter((item) => item.currentState === "ISSUED" || item.currentState === "VERIFIED").length;
   const avgTrust = average(registry.items.map((item) => item.trustScore).filter((score) => score > 0));
+  const hasRecords = registry.items.length > 0;
 
   return (
     <InstitutionalPageShell
@@ -44,17 +45,29 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      {!hasRecords ? (
+        <section className="mt-6 vos-panel p-6">
+          <p className="vos-label">Empty State</p>
+          <h2 className="mt-2 vos-h2">No projects yet.</h2>
+          <p className="mt-3 max-w-2xl vos-body">Start with a Free Review. VentureOS will turn your repo into a buyer-readable verdict, then you can generate a signed report when you need one.</p>
+          <Link href="/free-review" className={buttonClassName({ className: "mt-5" })}>
+            Start a Free Review
+          </Link>
+        </section>
+      ) : null}
+
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
-        <ActionCard title="Start Free Review" detail="Paste a repo or URL and get launch blockers before asking for payment." href="/free-review" primary />
-        <ActionCard title="Build Verified Report" detail="Collect evidence and issue a buyer-facing Signed Verification Badge." href="/software-appraisal" />
-        <ActionCard title="Open Registry" detail="Search public software passports and verification records." href="/registry" />
+        <ActionCard title="Projects" detail="Open software assets and continue reviews." href="/projects" primary />
+        <ActionCard title="Report History" detail="Review generated reports and buyer-ready evidence." href="/software-appraisal" />
+        <ActionCard title="Certificate Downloads" detail="Open signed verification badges and public certificates." href="/registry" />
       </section>
 
-      <section className="mt-6 vos-panel p-5">
+      <section className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="vos-panel p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="vos-label">Recent public records</p>
-            <h2 className="mt-2 vos-h2">Latest passports</h2>
+            <p className="vos-label">User projects</p>
+            <h2 className="mt-2 vos-h2">Latest software assets</h2>
           </div>
           <Link href="/registry" className={buttonClassName({ variant: "outline" })}>
             View Registry
@@ -74,10 +87,24 @@ export default async function DashboardPage() {
             </Link>
           )) : (
             <div className="vos-cell p-5">
-              <p className="text-sm font-bold text-[rgb(var(--vos-text-muted))]">No public records yet. Start with a free review.</p>
+              <p className="text-sm font-bold text-[rgb(var(--vos-text-muted))]">No projects yet. Start a Free Review.</p>
+              <Link href="/free-review" className={buttonClassName({ className: "mt-4" })}>
+                Start a Free Review
+              </Link>
             </div>
           )}
         </div>
+      </div>
+
+      <aside className="vos-panel p-5">
+        <p className="vos-label">Trust scores</p>
+        <h2 className="mt-2 vos-h2">Score summary</h2>
+        <div className="mt-5 grid gap-3">
+          <DashboardMetric label="Average trust" value={avgTrust ? `${avgTrust}/100` : "Pending"} />
+          <DashboardMetric label="Reports" value={registry.count || 0} />
+          <DashboardMetric label="Certificates" value={registry.items.filter((item) => item.certificateStatus === "Active").length} />
+        </div>
+      </aside>
       </section>
     </InstitutionalPageShell>
   );

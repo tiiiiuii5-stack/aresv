@@ -6,7 +6,7 @@ export type RegistryItem = RegistryAsset & {
   registryItemId: string;
   currentState: string;
   trustScore: number;
-  certificateStatus: "Active" | "Missing" | "Expired" | "Revoked" | "Superseded";
+  certificateStatus: "Active" | "Pending" | "Expired" | "Revoked" | "Superseded";
   transparencyEntries: number;
   eventCount: number;
   queueHealth: {
@@ -163,7 +163,7 @@ function certificateStatusFor(asset: RegistryAsset): RegistryItem["certificateSt
   if (asset.status === "EXPIRED") return "Expired";
   if (asset.status === "REVOKED") return "Revoked";
   if (asset.status === "SUPERSEDED") return "Superseded";
-  return asset.certificateId ? "Active" : "Missing";
+  return asset.certificateId ? "Active" : "Pending";
 }
 
 function numberValue(value: number | bigint | null | undefined) {

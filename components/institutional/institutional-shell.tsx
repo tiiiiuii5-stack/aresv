@@ -77,7 +77,7 @@ export function InstitutionalShell({
       <div className="relative flex min-h-screen">
         <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-slate-800/90 bg-[#0B0F19]/95 px-4 py-5 backdrop-blur xl:block">
           <Link href="/" className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-            <span className="grid h-10 w-10 place-items-center rounded-md border border-emerald-400/30 bg-emerald-400/10 font-mono text-sm font-black text-emerald-200">
+            <span aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-md border border-emerald-400/30 bg-emerald-400/10 font-mono text-sm font-black text-emerald-200">
               V
             </span>
             <span className="min-w-0">
@@ -130,7 +130,7 @@ export function InstitutionalShell({
             <div className="mx-auto flex min-h-14 w-full max-w-[1440px] items-center justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 xl:hidden">
-                  <span className="grid h-8 w-8 place-items-center rounded-md border border-emerald-400/30 bg-emerald-400/10 font-mono text-xs font-black text-emerald-200">V</span>
+                  <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-md border border-emerald-400/30 bg-emerald-400/10 font-mono text-xs font-black text-emerald-200">V</span>
                   <span className={["rounded-full border px-2.5 py-1 text-[10px] font-black uppercase", tierStyles[subscriptionTier]].join(" ")}>{subscriptionTier}</span>
                 </div>
                 {pageTitle ? <h1 className="mt-2 truncate text-lg font-black text-slate-50 xl:mt-0">{pageTitle}</h1> : null}
@@ -175,7 +175,7 @@ export function VentureOSHeader({
     <header className="print-hide fixed left-0 right-[calc(100%-100vw)] top-0 z-50 max-w-full overflow-hidden border-b border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-surface))]">
       <div className="mx-auto flex h-20 w-full min-w-0 max-w-[100vw] items-center justify-between gap-4 overflow-hidden px-4 sm:max-w-[1280px] sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 flex-1 items-center gap-3 text-sm font-black text-[rgb(var(--vos-text))] sm:flex-none">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-primary))] text-[rgb(var(--vos-primary-text))]">
+          <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-primary))] text-[rgb(var(--vos-primary-text))]">
             V
           </span>
           <span className="min-w-0">
