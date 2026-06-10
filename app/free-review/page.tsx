@@ -242,7 +242,7 @@ export default function FreeReviewPage() {
             </p>
             <div className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-slate-300">
               <p className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />Accepts public GitHub repos or pasted code.</p>
-              <p className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />Input is capped at 6,000 characters.</p>
+              <p className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />Short samples work best for the free preview.</p>
               <p className="flex gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-200" />No Signed Verification Badge, buyer-ready report, or full repository coverage.</p>
             </div>
             <Link
@@ -262,21 +262,21 @@ export default function FreeReviewPage() {
 
         <section className="mb-5 grid gap-4 lg:grid-cols-3">
           <OfferCell
-          title="Step 2: Free Limited Review"
+          title="Free Limited Review"
             price="$0"
             description="Public repo or small pasted sample. Shows top risks and launch blockers. No Signed Verification Badge."
             actionLabel="Run Free Review"
             href="#source-input"
           />
           <OfferCell
-            title="Step 3: Verified System Report"
+            title="Verified System Report"
             price="Free"
             description="Automated verified report, readiness score, evidence scope, and Signed Verification Badge."
             actionLabel="Start $49 Report"
             href={instantUrl}
           />
           <OfferCell
-            title="Step 3: Buyer-Ready Verified Report"
+            title="Buyer-Ready Verified Report"
             price="Free"
             description="Deeper buyer-facing report with fix plan, unknowns, evidence limits, and Signed Verification Badge."
             actionLabel="Start $199 Report"
@@ -340,7 +340,7 @@ export default function FreeReviewPage() {
               aria-label="Code to scan"
             />
             <p className="mt-2 text-xs font-semibold text-slate-500">
-              {code.length.toLocaleString()} / 6,000 pasted characters. Repo scans are also capped at 6,000 extracted characters.
+              Preview sample: {Math.min(code.length, 6_000).toLocaleString()} characters used for this free scan. Full reports review a broader evidence package.
             </p>
           </div>
 

@@ -22,7 +22,7 @@ export default async function VentureOSRegistryPage({
   const { q = "" } = await searchParams;
   const registry = await buildRegistryItems({ query: q, limit: 24 });
   const verifiedCount = registry.items.filter((asset) => asset.status === "VERIFIED").length;
-  const averageTrust = average(registry.items.map((asset) => asset.trustScore));
+  const averageTrust = average(registry.items.map((asset) => asset.trustScore).filter((score) => score > 0));
   const lastVerified = latestDate(registry.items.map((asset) => asset.lastVerification));
   const eventCount = registry.items.reduce((sum, item) => sum + item.eventCount, 0);
 

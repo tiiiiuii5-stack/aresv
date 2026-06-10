@@ -37,7 +37,7 @@ const plans = [
     name: "Buyer Ready",
     priceMonthly: "$199",
     priceAnnual: "$199",
-    features: ["Buyer-facing report", "Fix plan", "Risk explanation", "Certificate and badge", "Audit-ready unknowns"],
+    features: ["Buyer-facing report", "Fix plan", "Risk explanation", "Signed Verification Badge", "Audit-ready unknowns"],
     signal: "For sales, acquisition, or audit review",
     action: "Start buyer report",
     href: "/appraisal-intake?offer=buyer-ready",
@@ -134,14 +134,14 @@ export function PricingCheckout() {
                   Annual
                 </button>
               </div>
-              <span className="vos-badge vos-badge-ready">Save 17%</span>
+              <span className="vos-badge vos-badge-muted">No subscription required</span>
             </>
           }
         />
 
         <section className="grid gap-3 md:grid-cols-3">
           <TrustPill icon={<Check className="h-4 w-4" />} label="Free first" value="Risk preview before commitment" />
-          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} label="Buyer artifact" value="Reports, badges, certificates" />
+          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} label="Buyer artifact" value="Reports and verification badges" />
           <TrustPill icon={<FileText className="h-4 w-4" />} label="Founder path" value="Free -> $49 -> $199" />
         </section>
 

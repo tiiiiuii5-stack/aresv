@@ -86,7 +86,7 @@ export async function searchVentureOSRegistry(input: { query?: string; limit?: n
   const query = cleanQuery(input.query);
   const limit = boundedLimit(input.limit);
   const rows = await loadRegistryRows({ query: looksLikeVentureOSId(query) ? "" : query, limit: query ? MAX_PREFILTER_LIMIT : limit });
-  const assets = rows.map(rowToRegistryAsset);
+  const assets = dedupeRegistryAssets(rows.map(rowToRegistryAsset));
   const filtered = query ? assets.filter((asset) => assetMatchesQuery(asset, query)).slice(0, limit) : assets.slice(0, limit);
 
   return {
@@ -102,7 +102,7 @@ export async function loadVentureOSPassport(identifier: string): Promise<Venture
   if (!clean) return null;
 
   const rows = await loadRegistryRows({ query: looksLikeVentureOSId(clean) ? "" : clean, limit: MAX_PREFILTER_LIMIT });
-  const current = rows.map(rowToRegistryAsset).find((asset) => assetMatchesQuery(asset, clean));
+  const current = dedupeRegistryAssets(rows.map(rowToRegistryAsset)).find((asset) => assetMatchesQuery(asset, clean));
   if (!current) return null;
 
   const historyRows = current.publicAssetId
@@ -264,8 +264,8 @@ function rowToRegistryAsset(row: RegistryRow): RegistryAsset {
     domain,
     status: statusFor(row.certificateStatus),
     trustRating: stringValue(summary.grade) || row.grade,
-    trustScore: numberValue(row.readinessScore),
-    readinessScore: numberValue(row.readinessScore),
+    trustScore: publicTrustScore(row, summary),
+    readinessScore: publicTrustScore(row, summary),
     evidenceCoverage: numberValue(coverage.score as number | bigint | null | undefined) || 50,
     evidenceCoverageLevel: stringValue(coverage.level) || "limited",
     lastScan: row.lastScanAt ? isoDate(row.lastScanAt) : null,
@@ -319,6 +319,27 @@ function assetMatchesQuery(asset: RegistryAsset, query: string) {
     asset.repository,
     asset.domain,
   ].some((value) => String(value || "").toLowerCase().includes(clean));
+}
+
+function dedupeRegistryAssets(assets: RegistryAsset[]) {
+  const byKey = new Map<string, RegistryAsset>();
+  for (const asset of assets) {
+    const key = [
+      asset.repository?.toLowerCase(),
+      asset.domain?.toLowerCase(),
+      asset.name.toLowerCase().replace(/\s+\d+$/g, "").replace(/[^a-z0-9]+/g, "-"),
+    ].filter(Boolean).join(":");
+    const existing = byKey.get(key);
+    if (!existing || betterRegistryAsset(asset, existing)) byKey.set(key, asset);
+  }
+  return [...byKey.values()].sort((left, right) => new Date(right.lastVerification).getTime() - new Date(left.lastVerification).getTime());
+}
+
+function betterRegistryAsset(candidate: RegistryAsset, existing: RegistryAsset) {
+  if (candidate.certificateId && !existing.certificateId) return true;
+  if (!candidate.certificateId && existing.certificateId) return false;
+  if (candidate.trustScore !== existing.trustScore) return candidate.trustScore > existing.trustScore;
+  return new Date(candidate.lastVerification).getTime() > new Date(existing.lastVerification).getTime();
 }
 
 function statusFor(status: string | null): RegistryAssetStatus {
@@ -379,6 +400,17 @@ function stringValue(value: unknown) {
 function numberValue(value: number | bigint | null | undefined) {
   const number = typeof value === "bigint" ? Number(value) : Number(value || 0);
   return Number.isFinite(number) ? Math.round(number) : 0;
+}
+
+function publicTrustScore(row: RegistryRow, summary: Record<string, unknown>) {
+  const raw = numberValue(row.readinessScore);
+  if (raw > 0) return raw;
+  const summaryScore = numberValue(summary.readinessScore as number | bigint | null | undefined);
+  if (summaryScore > 0) return summaryScore;
+  const qualityScore = numberValue(summary.qualityScore as number | bigint | null | undefined);
+  const safetyScore = numberValue(summary.safetyScore as number | bigint | null | undefined);
+  if (qualityScore > 0 || safetyScore > 0) return Math.round((qualityScore + safetyScore) / [qualityScore, safetyScore].filter(Boolean).length);
+  return 0;
 }
 
 function isoDate(value: Date | string) {

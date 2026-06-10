@@ -12,12 +12,12 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonClassName } from "@/components/ui/button";
 
 const investigationSteps = [
-  { label: "Discover identity", icon: FileText },
-  { label: "Verify repository", icon: CheckCircle2 },
-  { label: "Check ownership", icon: ShieldCheck },
-  { label: "Inspect security", icon: ShieldCheck },
-  { label: "Review maturity", icon: CheckCircle2 },
-  { label: "Issue passport", icon: FileText },
+  { label: "Know who owns it", icon: FileText },
+  { label: "See what was checked", icon: CheckCircle2 },
+  { label: "Spot buyer blockers", icon: ShieldCheck },
+  { label: "Find safety gaps", icon: ShieldCheck },
+  { label: "Understand launch risk", icon: CheckCircle2 },
+  { label: "Share verification", icon: FileText },
 ];
 
 const buyerSignals = [
@@ -87,6 +87,24 @@ export default function HomePage() {
               VentureOS turns repositories, code, and product evidence into a clear Software Passport with trust status, risks, limitations, and signed verification.
             </p>
 
+          <form action="/free-review" className="mt-8 grid max-w-3xl gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/95 p-3 shadow-2xl shadow-black/20 sm:grid-cols-[minmax(0,1fr)_190px]">
+            <label className="sr-only" htmlFor="software-target">Software target</label>
+            <div className="flex min-w-0 items-center gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] px-4">
+              <FileText className="h-5 w-5 shrink-0 text-[rgb(var(--vos-text-subtle))]" />
+              <input
+                id="software-target"
+                name="repo"
+                value={target}
+                onChange={(event) => setTarget(event.target.value)}
+                placeholder="Paste your GitHub repo or app URL"
+                className="h-14 min-w-0 flex-1 border-0 bg-transparent text-sm font-bold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))]"
+              />
+            </div>
+            <Link href={passportHref} className={buttonClassName({ size: "lg", className: "h-14 w-full" })}>
+              Start Free Review <ArrowRight className="h-4 w-4" />
+            </Link>
+          </form>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/free-review" className={buttonClassName({ size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
                 Start Free Review <ArrowRight className="h-4 w-4" />
@@ -98,24 +116,6 @@ export default function HomePage() {
                 Book Demo
               </a>
             </div>
-
-          <form action="/free-review" className="mt-10 grid max-w-3xl gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/95 p-3 shadow-2xl shadow-black/20 sm:grid-cols-[minmax(0,1fr)_190px]">
-            <label className="sr-only" htmlFor="software-target">Software target</label>
-            <div className="flex min-w-0 items-center gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] px-4">
-              <FileText className="h-5 w-5 shrink-0 text-[rgb(var(--vos-text-subtle))]" />
-              <input
-                id="software-target"
-                name="repo"
-                value={target}
-                onChange={(event) => setTarget(event.target.value)}
-                placeholder="Paste a URL, repository, application endpoint, SaaS product, API, or software company."
-                className="h-14 min-w-0 flex-1 border-0 bg-transparent text-sm font-bold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))]"
-              />
-            </div>
-            <Link href={passportHref} className={buttonClassName({ size: "lg", className: "h-14 w-full" })}>
-              Start Free Review <ArrowRight className="h-4 w-4" />
-            </Link>
-          </form>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {buyerSignals.map((signal) => {
@@ -196,9 +196,9 @@ export default function HomePage() {
           <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--vos-border))] pb-3">
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5 text-[rgb(var(--vos-verified))]" />
-              <p className="text-xs font-black uppercase tracking-normal text-[rgb(var(--vos-text-muted))]">Passport Investigation Feed</p>
+              <p className="text-xs font-black uppercase tracking-normal text-[rgb(var(--vos-text-muted))]">What your review checks</p>
             </div>
-            <p className="text-xs font-black uppercase tracking-normal text-[rgb(var(--vos-text-subtle))]">Live Protocol</p>
+            <p className="text-xs font-black uppercase tracking-normal text-[rgb(var(--vos-text-subtle))]">Buyer-readable</p>
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
             {investigationSteps.map((step) => {

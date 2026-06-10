@@ -115,7 +115,7 @@ export function ArtifactPageLayout({
             <div className="vos-cell p-6 lg:text-right">
               <p className="vos-label">Trust Score</p>
               <p className={["mt-3 text-6xl font-black leading-none", textClassByStatus[status]].join(" ")}>{trustScore}</p>
-              <p className="mt-1 vos-label">of 100</p>
+              {typeof trustScore === "number" ? <p className="mt-1 vos-label">of 100</p> : null}
               {trustRating ? (
                 <>
                   <p className="mt-6 vos-label">Trust Rating</p>
@@ -292,7 +292,7 @@ export function RiskBlock({
     <section className={["vos-panel p-6 sm:p-8", className].filter(Boolean).join(" ")}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <BlockHeader eyebrow={eyebrow} title={title} description={description} />
-        <Badge variant={visibleRisks.length ? "risky" : "ready"}>{visibleRisks.length} shown</Badge>
+        <Badge variant={visibleRisks.length ? "risky" : "ready"}>{visibleRisks.length ? `${visibleRisks.length} shown` : "Clear"}</Badge>
       </div>
       <div className="mt-6 grid gap-4">
         {visibleRisks.length ? (
@@ -314,8 +314,9 @@ export function RiskBlock({
             </article>
           ))
         ) : (
-          <div className="vos-cell p-4">
-            <p className="vos-body">{emptyState}</p>
+          <div className="vos-cell border-[rgb(var(--vos-verified))]/45 bg-[rgb(var(--vos-verified-bg))]/25 p-5">
+            <p className="text-sm font-black text-[rgb(var(--vos-verified))]">No confirmed risks found</p>
+            <p className="mt-2 vos-body">{emptyState}</p>
           </div>
         )}
       </div>

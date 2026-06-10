@@ -161,34 +161,23 @@ export default async function TransparencyLogPage({
           </div>
         </section>
 
-        <section className="mt-3 overflow-x-auto border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]">
-          <table className="vos-table min-w-[1160px] text-left text-sm">
-            <caption className="sr-only">VentureOS public attestation transparency log entries</caption>
-            <thead className="bg-[rgb(var(--vos-panel-raised))]">
-              <tr className="border-b border-[rgb(var(--vos-border))]">
-                <Header label="#" className="w-[60px]" />
-                <Header label="Type" className="w-[190px]" />
-                <Header label="Attestation" className="w-[210px]" />
-                <Header label="Timestamp" className="w-[150px]" />
-                <Header label="Payload / Source Hash" />
-                <Header label="Previous Hash" />
-                <Header label="Entry Hash" />
-                <Header label="Attestation" className="w-[180px]" />
-                <Header label="Evidence" className="w-[240px]" />
-              </tr>
-            </thead>
-            <tbody>
-              {log.entries.length ? (
-                log.entries.map((entry) => <EntryRow key={`${entry.index}:${entry.entryHash}`} entry={entry} />)
-              ) : (
-                <tr>
-                  <td colSpan={9} className="px-3 py-8 text-center text-sm font-bold text-[rgb(var(--vos-text-muted))]">
-                    No public transparency entries matched this query.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <section className="mt-3 vos-panel p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="vos-label">Public Log Entries</p>
+              <h2 className="mt-2 vos-h2">Verification history</h2>
+            </div>
+            <Badge variant={log.verified ? "ready" : "blocked"}>{log.verified ? "Chain verified" : "Needs review"}</Badge>
+          </div>
+          <div className="mt-5 grid gap-3">
+            {log.entries.length ? (
+              log.entries.map((entry) => <EntryCard key={`${entry.index}:${entry.entryHash}`} entry={entry} />)
+            ) : (
+              <div className="vos-cell p-6 text-center">
+                <p className="text-sm font-bold text-[rgb(var(--vos-text-muted))]">No public transparency entries matched this query.</p>
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="mt-3 grid gap-3 md:grid-cols-2">
@@ -204,47 +193,48 @@ export default async function TransparencyLogPage({
   );
 }
 
-function EntryRow({ entry }: { entry: TransparencyLogEntry }) {
+function EntryCard({ entry }: { entry: TransparencyLogEntry }) {
   const primaryHash = entry.payloadHash || entry.sourceSnapshotHash || entry.publicSummaryHash || "-";
   return (
-    <tr className="border-b border-[rgb(var(--vos-border))] last:border-b-0 hover:bg-[rgb(var(--vos-panel-raised))]">
-      <td className="px-3 py-2 align-top font-black text-[rgb(var(--vos-text))]">{entry.index + 1}</td>
-      <td className="px-3 py-2 align-top">
-        <Badge variant={entry.type === "CERTIFICATE_ISSUED" ? "ready" : "muted"}>{entry.type.replace(/_/g, " ")}</Badge>
-        {entry.sourceVersion ? <p className="mt-1 text-xs font-bold text-[rgb(var(--vos-text-subtle))]">v{entry.sourceVersion}</p> : null}
-      </td>
-      <td className="px-3 py-2 align-top font-black text-[rgb(var(--vos-text))]">
-        {entry.certificateId ? (
-          <Link href={`/certificate/${encodeURIComponent(entry.certificateId)}`} className="underline-offset-4 hover:underline">
-            {entry.certificateId}
-          </Link>
-        ) : "-"}
-      </td>
-      <td className="px-3 py-2 align-top text-xs font-black uppercase text-[rgb(var(--vos-text-muted))]">{formatDate(entry.timestamp)}</td>
-      <td className="px-3 py-2 align-top font-mono text-xs font-bold text-[rgb(var(--vos-text-muted))]">{shortHash(primaryHash)}</td>
-      <td className="px-3 py-2 align-top font-mono text-xs font-bold text-[rgb(var(--vos-text-muted))]">{shortHash(entry.previousEntryHash)}</td>
-      <td className="px-3 py-2 align-top font-mono text-xs font-bold text-[rgb(var(--vos-text))]">{shortHash(entry.entryHash)}</td>
-      <td className="px-3 py-2 align-top">
-        <Badge variant={entry.attestation.status === "ingestion_signed" || entry.attestation.status === "certificate_payload_signed" ? "ready" : "muted"}>
-          {entry.attestation.status.replace(/_/g, " ")}
-        </Badge>
-        <p className="mt-1 text-[11px] font-black uppercase text-[rgb(var(--vos-text-subtle))]">{entry.attestation.source.replace(/_/g, " ")}</p>
-      </td>
-      <td className="px-3 py-2 align-top">
-        <p className="text-xs font-bold text-[rgb(var(--vos-text-muted))]">{entry.evidence.reason}</p>
-        <p className="mt-1 text-[11px] font-black uppercase text-[rgb(var(--vos-text-subtle))]">
-          {entry.evidence.source} / {Math.round(entry.evidence.confidence * 100)}%
-        </p>
-      </td>
-    </tr>
+    <article className="vos-cell p-4 transition hover:border-[rgb(var(--vos-border-strong))]">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">#{entry.index + 1}</Badge>
+            <Badge variant={entry.type === "CERTIFICATE_ISSUED" ? "ready" : "muted"}>{entry.type.replace(/_/g, " ")}</Badge>
+            <Badge variant={entry.attestation.status === "ingestion_signed" || entry.attestation.status === "certificate_payload_signed" ? "ready" : "muted"}>
+              {entry.attestation.status.replace(/_/g, " ")}
+            </Badge>
+          </div>
+          <h3 className="mt-3 text-base font-black text-[rgb(var(--vos-text))]">
+            {entry.certificateId ? (
+              <Link href={`/certificate/${encodeURIComponent(entry.certificateId)}`} className="hover:underline">
+                {entry.certificateId}
+              </Link>
+            ) : "Registry proof entry"}
+          </h3>
+          <p className="mt-2 text-sm font-semibold leading-6 text-[rgb(var(--vos-text-muted))]">{entry.evidence.reason}</p>
+        </div>
+        <p className="shrink-0 text-xs font-black uppercase text-[rgb(var(--vos-text-muted))]">{formatDate(entry.timestamp)}</p>
+      </div>
+      <div className="mt-4 grid gap-2 md:grid-cols-3">
+        <HashCell label="Payload" value={primaryHash} />
+        <HashCell label="Previous" value={entry.previousEntryHash} />
+        <HashCell label="Entry" value={entry.entryHash} strong />
+      </div>
+      <p className="mt-3 text-[11px] font-black uppercase text-[rgb(var(--vos-text-subtle))]">
+        {entry.evidence.source} / confidence {Math.round(entry.evidence.confidence * 100)}%
+      </p>
+    </article>
   );
 }
 
-function Header({ label, className = "" }: { label: string; className?: string }) {
+function HashCell({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <th scope="col" className={["px-3 py-2 text-xs font-black uppercase text-[rgb(var(--vos-text-subtle))]", className].filter(Boolean).join(" ")}>
-      {label}
-    </th>
+    <div className="rounded-md border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))] p-3">
+      <p className="vos-label">{label}</p>
+      <p className={["mt-1 break-all font-mono text-xs font-bold", strong ? "text-[rgb(var(--vos-text))]" : "text-[rgb(var(--vos-text-muted))]"].join(" ")}>{shortHash(value)}</p>
+    </div>
   );
 }
 

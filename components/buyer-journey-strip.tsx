@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 
-import { InfoTooltip } from "@/components/institutional/institutional-shell";
-
 const steps = [
   {
     label: "Choose Report Type",
@@ -47,15 +45,14 @@ export function BuyerJourneyStrip({ current }: { current: "choose" | "evidence" 
               "flex min-h-20 items-center gap-3 rounded-lg border p-3 transition",
               active ? "border-[rgb(var(--vos-primary))] bg-[rgb(var(--vos-verified-bg))]/30" : "border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))]",
             ].join(" ")}
+            title={step.detail}
           >
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]">
               <Icon className="h-4 w-4 text-[rgb(var(--vos-verified))]" />
             </span>
             <span className="min-w-0">
-              <span className="block text-[10px] font-black uppercase tracking-[0.14em] text-[rgb(var(--vos-text-subtle))]">{index + 1}.</span>
-              <span className="mt-1 flex items-center gap-2 text-sm font-black text-[rgb(var(--vos-text))]">
-                {step.label}
-                <InfoTooltip text={step.detail} />
+              <span className="block text-sm font-black text-[rgb(var(--vos-text))]">
+                {index + 1}. {step.label}
               </span>
               <span className="mt-0.5 block text-xs font-semibold text-[rgb(var(--vos-text-muted))]">{step.detail}</span>
             </span>

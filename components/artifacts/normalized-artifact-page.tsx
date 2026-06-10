@@ -31,6 +31,7 @@ export function NormalizedArtifactPage({ artifact }: NormalizedArtifactPageProps
             title="Trust Overview"
             rating={artifact.trustOverview.rating}
             score={artifact.trustOverview.score}
+            scoreLabel={artifact.trustOverview.scoreLabel}
             status={artifact.trustOverview.status}
             rows={artifact.trustOverview.rows}
             actions={artifact.trustOverview.actions}

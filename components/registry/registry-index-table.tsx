@@ -60,7 +60,7 @@ export function RegistryIndexTable({ assets, query }: RegistryIndexTableProps) {
               <RegistryHeader label="Compare" className="w-[92px]" />
               <RegistryHeader label="Passport ID" className="w-[190px]" />
               <RegistryHeader label="Name" />
-              <RegistryHeader label="Trust Score" className="w-[132px] text-right" />
+              <RegistryHeader label="Trust" className="w-[132px] text-right" />
               <RegistryHeader label="State" className="w-[142px]" />
               <RegistryHeader label="Certificate" className="w-[130px]" />
               <RegistryHeader label="Transparency" className="w-[132px] text-right" />
@@ -146,7 +146,7 @@ function RegistryRow({
         </div>
       </td>
       <td className={["px-3 py-2 text-right align-middle text-base font-black", scoreClass(asset.trustScore)].join(" ")}>
-        {asset.trustScore}/100
+        {formatTrustScore(asset.trustScore)}
       </td>
       <td className="px-3 py-2 align-middle">
         <Badge variant={stateBadge(asset.currentState)}>{asset.currentState}</Badge>
@@ -205,7 +205,7 @@ function ComparisonPanel({ assets }: { assets: RegistryItem[] }) {
         <tbody>
           <ComparisonRow label="Asset ID" left={left.ventureOsId} right={right.ventureOsId} delta="-" />
           <ComparisonRow label="Name" left={left.name} right={right.name} delta="-" />
-          <ComparisonRow label="Trust Score" left={`${left.trustScore}/100`} right={`${right.trustScore}/100`} delta={`${scoreDelta >= 0 ? "+" : ""}${scoreDelta}`} />
+          <ComparisonRow label="Trust" left={formatTrustScore(left.trustScore)} right={formatTrustScore(right.trustScore)} delta={left.trustScore && right.trustScore ? `${scoreDelta >= 0 ? "+" : ""}${scoreDelta}` : "Pending"} />
           <ComparisonRow label="Evidence Coverage" left={`${left.evidenceCoverage}%`} right={`${right.evidenceCoverage}%`} delta={`${evidenceDelta >= 0 ? "+" : ""}${evidenceDelta}%`} />
           <ComparisonRow label="State" left={left.currentState} right={right.currentState} delta={left.currentState === right.currentState ? "Same" : "Changed"} />
           <ComparisonRow label="Event Count" left={`${left.eventCount}`} right={`${right.eventCount}`} delta={`${right.eventCount - left.eventCount}`} />
@@ -255,9 +255,14 @@ function stateBadge(state: string) {
 }
 
 function scoreClass(score: number) {
+  if (score <= 0) return "vos-status-unknown";
   if (score >= 85) return "vos-status-verified";
   if (score >= 60) return "vos-status-risk";
   return "vos-status-danger";
+}
+
+function formatTrustScore(score: number) {
+  return score > 0 ? `${score}/100` : "Pending";
 }
 
 function dateDeltaLabel(left: string, right: string) {

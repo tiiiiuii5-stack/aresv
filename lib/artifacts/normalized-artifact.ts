@@ -72,6 +72,7 @@ export type NormalizedArtifact = {
   trustOverview: {
     rating: string;
     score: number | string;
+    scoreLabel?: string;
     status: NormalizedArtifactStatus;
     rows: NormalizedArtifactMetric[];
     actions: NormalizedArtifactAction[];
@@ -155,8 +156,8 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
         label: "Coverage Score",
         value: `${coverage.score}/100`,
         detail: coverage.scoreCapped
-          ? `Readiness capped at ${coverage.scoreCap}/100 because submitted evidence was incomplete.`
-          : `No evidence cap was applied. Score cap ${coverage.scoreCap}/100.`,
+          ? "Readiness was limited because submitted evidence was incomplete."
+          : "Evidence was sufficient for this public report.",
         status: statusForCoverage(coverage.score),
       },
       sections: [
@@ -247,14 +248,17 @@ export function normalizeCertificateArtifact(
   const trustRating = trustRatingForGrade(payload.appraisal.grade, coverage.score);
   const chainStatus = verification.valid ? "VERIFIED" : "FAILED";
   const chainStatusValue = verification.valid ? "verified" : "danger";
+  const trustScore = Number(payload.appraisal.readinessScore || 0);
+  const trustScoreDisplay = trustScore > 0 ? trustScore : "Pending";
+  const trustScoreLabel = trustScore > 0 ? "of 100" : "awaiting score";
 
   return {
     purposeLabel: "Signed Verification Badge",
     assetName: payload.softwareAsset.name,
     assetId,
-    statusLabel: chainStatus,
+    statusLabel: verification.valid ? "SIGNATURE VERIFIED" : "SIGNATURE FAILED",
     status: chainStatusValue,
-    trustScore: payload.appraisal.readinessScore,
+    trustScore: trustScoreDisplay,
     trustRating,
     generatedAt: formatDate(certificate.issuedAt),
     headerActions: [
@@ -265,7 +269,8 @@ export function normalizeCertificateArtifact(
     ],
     trustOverview: {
       rating: trustRating,
-      score: payload.appraisal.readinessScore,
+      score: trustScoreDisplay,
+      scoreLabel: trustScoreLabel,
       status: chainStatusValue,
       rows: [
         { label: "Signature", value: verification.signatureValid ? "VALID" : "INVALID", status: verification.signatureValid ? "verified" : "danger" },
@@ -283,7 +288,7 @@ export function normalizeCertificateArtifact(
       metric: {
         label: "Evidence Coverage",
         value: `${coverage.score}/100`,
-        detail: `${scopeLabel(coverage.scope)} evidence scope. Score cap ${coverage.scoreCap}/100${coverage.scoreCapped ? " was applied" : " was not applied"}.`,
+        detail: coverage.scoreCapped ? "Final score was limited because submitted evidence was incomplete." : "Evidence was sufficient for this public verification record.",
         status: statusForCoverage(coverage.score),
       },
       sections: [
