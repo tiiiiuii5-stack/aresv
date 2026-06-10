@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { VentureOSHeader } from "@/components/institutional/institutional-shell";
+import { InstitutionalPageShell } from "@/components/institutional/institutional-shell";
 import { RegistryIndexTable } from "@/components/registry/registry-index-table";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "VentureOS Software Passport Registry",
-  description: "Search public VentureOS software passports, trust records, signed certificates, and verification history.",
+  description: "Search public VentureOS software passports, trust records, Signed Verification Badges, and verification history.",
 };
 
 export default async function VentureOSRegistryPage({
@@ -27,28 +27,31 @@ export default async function VentureOSRegistryPage({
   const eventCount = registry.items.reduce((sum, item) => sum + item.eventCount, 0);
 
   return (
-    <main className="vos-page min-h-screen">
-      <VentureOSHeader
+    <InstitutionalPageShell
         purposeLabel="Software Passport Registry"
+        maxWidth="max-w-[1280px]"
         actions={[
           { label: "Transparency Log", href: "/transparency-log", variant: "outline" },
-          { label: "Build Passport", href: "/build", variant: "outline" },
-          { label: "Generate Passport", href: "/appraisal-intake?offer=buyer-ready", variant: "default" },
+          { label: "Free Review", href: "/free-review", variant: "outline" },
+          { label: "Generate Report", href: "/software-appraisal", variant: "default" },
         ]}
-      />
-
-      <section className="mx-auto w-full max-w-[1280px] px-4 pb-12 pt-28 sm:px-6 lg:px-8">
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Free Review", href: "/free-review" },
+          { label: "Public Registry" },
+        ]}
+      >
         <section className="vos-panel">
           <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_380px]">
             <div className="border-b border-[rgb(var(--vos-border))] p-8 lg:border-b-0 lg:border-r">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">Software Passport Registry</Badge>
                 <Badge variant="muted">Public Index</Badge>
-                <Badge variant="muted">Trust Graph Enabled</Badge>
+                <Badge variant="muted">Public Verification</Badge>
               </div>
               <h1 className="mt-5 vos-h1">The public identity layer for software trust.</h1>
               <p className="mt-4 max-w-3xl vos-body">
-                Search software passports by identity, certificate, organization, repository, or domain. Each record links trust status, evidence history, signed certificates, and a permanent public passport.
+                Search software passports by identity, badge, organization, repository, or domain. Each record links trust status, evidence history, Signed Verification Badges, and a permanent public passport.
               </p>
             </div>
             <div className="grid grid-cols-2">
@@ -67,7 +70,7 @@ export default async function VentureOSRegistryPage({
               <input
                 name="q"
                 defaultValue={q}
-                placeholder="Passport ID, certificate ID, company, repository, domain"
+                placeholder="Passport ID, badge ID, company, repository, domain"
                 className="h-9 w-full border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] px-3 text-sm font-bold text-[rgb(var(--vos-text))] outline-none"
               />
             </label>
@@ -99,8 +102,7 @@ export default async function VentureOSRegistryPage({
         <section className="mt-3">
           <RegistryIndexTable assets={registry.items} query={registry.query} />
         </section>
-      </section>
-    </main>
+    </InstitutionalPageShell>
   );
 }
 

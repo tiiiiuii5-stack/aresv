@@ -40,17 +40,17 @@ const buyerSignals = [
 
 const trustBuilders = [
   "Evidence-scoped reports",
-  "Signed verification links",
+  "Signed Verification Badge",
   "Buyer-readable limitations",
-  "Registry-ready certificates",
+  "Public registry record",
 ];
 
 export default function HomePage() {
   const [target, setTarget] = useState("");
   const query = target.trim();
   const passportHref = query
-    ? `/appraisal-intake?${new URLSearchParams({ offer: "buyer-ready", target: query }).toString()}`
-    : "/appraisal-intake?offer=buyer-ready";
+    ? `/free-review?${new URLSearchParams({ repo: query }).toString()}`
+    : "/free-review";
 
   return (
     <main className="vos-page min-h-screen">
@@ -99,14 +99,13 @@ export default function HomePage() {
               </a>
             </div>
 
-          <form action="/appraisal-intake" className="mt-10 grid max-w-3xl gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/95 p-3 shadow-2xl shadow-black/20 sm:grid-cols-[minmax(0,1fr)_190px]">
-            <input type="hidden" name="offer" value="buyer-ready" />
+          <form action="/free-review" className="mt-10 grid max-w-3xl gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/95 p-3 shadow-2xl shadow-black/20 sm:grid-cols-[minmax(0,1fr)_190px]">
             <label className="sr-only" htmlFor="software-target">Software target</label>
             <div className="flex min-w-0 items-center gap-3 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] px-4">
               <FileText className="h-5 w-5 shrink-0 text-[rgb(var(--vos-text-subtle))]" />
               <input
                 id="software-target"
-                name="target"
+                name="repo"
                 value={target}
                 onChange={(event) => setTarget(event.target.value)}
                 placeholder="Paste a URL, repository, application endpoint, SaaS product, API, or software company."
@@ -114,7 +113,7 @@ export default function HomePage() {
               />
             </div>
             <Link href={passportHref} className={buttonClassName({ size: "lg", className: "h-14 w-full" })}>
-              Build Report <ArrowRight className="h-4 w-4" />
+              Start Free Review <ArrowRight className="h-4 w-4" />
             </Link>
           </form>
 
@@ -150,9 +149,6 @@ export default function HomePage() {
             <Link href="/api/github/install" className={buttonClassName({ variant: "outline", size: "sm" })}>
               Connect GitHub
             </Link>
-            <Link href="/build" className={buttonClassName({ variant: "outline", size: "sm" })}>
-              Build New Passport
-            </Link>
             <Link href="/sample-appraisal" className={buttonClassName({ variant: "outline", size: "sm" })}>
               View Sample Passport
             </Link>
@@ -182,7 +178,7 @@ export default function HomePage() {
                 What buyers get
               </p>
               <div className="mt-4 grid gap-3">
-                {["Verified evidence summary", "Plain-English risk reasons", "Signed certificate link", "Unknowns clearly called out"].map((item) => (
+                {["Verified evidence summary", "Plain-English risk reasons", "Signed Verification Badge", "Unknowns clearly called out"].map((item) => (
                   <p key={item} className="flex gap-2 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--vos-verified))]" />
                     {item}

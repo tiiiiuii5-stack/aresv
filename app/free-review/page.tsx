@@ -85,6 +85,12 @@ export default function FreeReviewPage() {
   const instantUrl = `/appraisal-intake?offer=instant${repoUrl.trim() ? `&repo=${encodeURIComponent(repoUrl.trim())}` : ""}&framework=${encodeURIComponent(framework)}`;
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const incomingRepo = params.get("repo");
+    if (incomingRepo && !repoUrl) setRepoUrl(incomingRepo);
+  }, [repoUrl]);
+
+  useEffect(() => {
     if (viewTracked.current) return;
     viewTracked.current = true;
     void trackProductEvent("free_review.view", {

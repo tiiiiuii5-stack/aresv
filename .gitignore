@@ -3,9 +3,9 @@ node_modules/
 
 # Next.js / build output
 .next/
-out/
-dist/
-build/
+/out/
+/dist/
+/build/
 *.tsbuildinfo
 
 # local env and deployment state
