@@ -2,8 +2,10 @@ export type ClipboardCopyResult =
   | { ok: true }
   | { ok: false; error: string };
 
-export async function copyToClipboard(text: string): Promise<ClipboardCopyResult> {
-  if (!text.trim()) {
+export async function copyToClipboard(text: unknown): Promise<ClipboardCopyResult> {
+  const normalizedText = normalizeClipboardText(text);
+
+  if (!normalizedText.trim()) {
     return { ok: false, error: "Nothing is available to copy." };
   }
 
@@ -12,16 +14,28 @@ export async function copyToClipboard(text: string): Promise<ClipboardCopyResult
 
   if (clipboard?.writeText && secureContext) {
     try {
-      await clipboard.writeText(text);
+      await clipboard.writeText(normalizedText);
       return { ok: true };
     } catch (error) {
-      const fallbackResult = copyWithTextareaFallback(text);
+      const fallbackResult = copyWithTextareaFallback(normalizedText);
       if (fallbackResult.ok) return fallbackResult;
       return { ok: false, error: clipboardErrorMessage(error) };
     }
   }
 
-  return copyWithTextareaFallback(text);
+  return copyWithTextareaFallback(normalizedText);
+}
+
+export function normalizeClipboardText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") return String(value);
+
+  try {
+    return JSON.stringify(value, null, 2) || "";
+  } catch {
+    return String(value);
+  }
 }
 
 function copyWithTextareaFallback(text: string): ClipboardCopyResult {

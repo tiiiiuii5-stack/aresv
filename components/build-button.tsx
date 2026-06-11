@@ -46,6 +46,8 @@ export function BuildButton({ prompt = "", appName = "New VentureOS App", runtim
   const [error, setError] = useState<string | null>(null);
   const [upgradeMessage, setUpgradeMessage] = useState<string | null>(null);
   const passportIdRef = useRef<string | null>(null);
+  const promptText = normalizeBuilderText(prompt);
+  const appNameText = normalizeBuilderText(appName) || "New VentureOS App";
 
   useEffect(() => {
     return () => {
@@ -55,17 +57,17 @@ export function BuildButton({ prompt = "", appName = "New VentureOS App", runtim
   }, []);
 
   async function handleBuild() {
-    if (!prompt.trim() && onClick) {
+    if (!promptText.trim() && onClick) {
       await onClick();
       return;
     }
 
-    if (prompt.trim().length < 12) {
+    if (promptText.trim().length < 12) {
       reportError("Add more detail before building.");
       return;
     }
 
-    const clarityQuestions = promptClarityQuestions(prompt);
+    const clarityQuestions = promptClarityQuestions(promptText);
     if (clarityQuestions.length) {
       reportError(`Spec is unclear. Answer before generation: ${clarityQuestions.join(" ")}`);
       setStatus("ready");
@@ -85,16 +87,16 @@ export function BuildButton({ prompt = "", appName = "New VentureOS App", runtim
 
     try {
       const passport = await api.createPassport({
-        source: prompt,
-        sourceType: sourceTypeFromPrompt(prompt),
-        name: appName,
-        owner: ownerFromPrompt(prompt),
+        source: promptText,
+        sourceType: sourceTypeFromPrompt(promptText),
+        name: appNameText,
+        owner: ownerFromPrompt(promptText),
       });
       passportIdRef.current = passport.passportId;
       onPassportChange?.(passport, "Passport shell created");
       setStep("Generating or importing software");
 
-      const created = await api.createJob({ action: "build", prompt: passportPrompt(prompt, passport.passportId), appName, runtimeFactory, passportId: passport.passportId });
+      const created = await api.createJob({ action: "build", prompt: passportPrompt(promptText, passport.passportId), appName: appNameText, runtimeFactory, passportId: passport.passportId });
       setJobId(created.jobId);
       setStatus("queued");
       setStep("queued: software generation and evidence capture");
@@ -107,7 +109,7 @@ export function BuildButton({ prompt = "", appName = "New VentureOS App", runtim
         status: created.status,
         progress: 0,
         currentStep: "queued",
-        appName,
+        appName: appNameText,
       };
       if (!deferJobChangeUntilDone) onJobChange?.(queuedJob);
       startPolling(created.jobId);
@@ -356,6 +358,18 @@ function promptClarityQuestions(prompt: string) {
       : "",
     !/\b(database|data|record|records|client|clients|project|projects|task|tasks|order|orders|booking|bookings|product|products|metric|metrics|post|posts|member|members|deal|deals|invoice|invoices|slot|slots|listing|listings|item|items|request|requests|review|reviews|report|reports)\b/i.test(source)
       ? "What real data or records must be stored?"
-      : "",
+    : "",
   ].filter(Boolean);
+}
+
+function normalizeBuilderText(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") return String(value);
+
+  try {
+    return JSON.stringify(value, null, 2) || "";
+  } catch {
+    return String(value);
+  }
 }

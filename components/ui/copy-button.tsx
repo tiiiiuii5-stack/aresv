@@ -2,11 +2,11 @@
 
 import { AlertTriangle, Check, Copy, Loader2 } from "lucide-react";
 import { useId, useState } from "react";
-import { copyToClipboard } from "@/lib/clipboard";
+import { copyToClipboard, normalizeClipboardText } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
 
 type CopyButtonProps = {
-  value: string;
+  value: unknown;
   label?: string;
   copiedLabel?: string;
   failedLabel?: string;
@@ -27,7 +27,8 @@ export function CopyButton({
   const [state, setState] = useState<CopyState>("idle");
   const [message, setMessage] = useState("");
   const statusId = useId();
-  const canCopy = value.trim().length > 0;
+  const copyValue = normalizeClipboardText(value);
+  const canCopy = copyValue.trim().length > 0;
 
   async function handleCopy() {
     if (!canCopy || state === "copying") return;
@@ -35,7 +36,7 @@ export function CopyButton({
     setState("copying");
     setMessage("");
 
-    const result = await copyToClipboard(value);
+    const result = await copyToClipboard(copyValue);
     if (result.ok) {
       setState("success");
       setMessage(successMessage);
