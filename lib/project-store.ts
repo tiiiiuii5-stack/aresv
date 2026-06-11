@@ -400,7 +400,7 @@ export async function mutateProjectRuntimeState(projectId: string, input: { acti
 }
 
 export async function renameProject(projectId: string, name: string, ownerUserId?: string) {
-  const cleanName = name.trim();
+  const cleanName = String(name || "").trim();
   if (cleanName.length < 3) throw new Error("Name must be at least 3 characters.");
   const projects = await listProjects(true);
   const project = projects.find((item) => item.id === projectId);
@@ -581,7 +581,7 @@ export async function runProjectQualityGate(projectId: string, ownerUserId?: str
 
 export async function generateProject(prompt: string, category = "custom", ownerUserId?: string) {
   const action = "project.generate";
-  const cleanPrompt = prompt.trim();
+  const cleanPrompt = String(prompt || "").trim();
   if (cleanPrompt.length < 12) throw new Error("Describe the app in at least 12 characters.");
   const clarity = assessPromptClarity(cleanPrompt);
   if (!clarity.clear) {

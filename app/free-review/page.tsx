@@ -86,7 +86,7 @@ export default function FreeReviewPage() {
       ...(result?.recommendations || []),
       ...topIssues.map((issue) => issue.fixSuggestion || issue.title || "").filter(Boolean),
     ];
-    return [...new Set(fixes.map((item) => item.trim()).filter(Boolean))].slice(0, 4);
+    return [...new Set(fixes.map((item) => safeText(item)).filter(Boolean))].slice(0, 4);
   }, [result, topIssues]);
   const repoReady = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+/i.test(repoUrl.trim()) || /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repoUrl.trim());
   const sourceReady = repoReady || code.trim().length >= 40;
@@ -441,4 +441,16 @@ function decisionFor(state: string) {
 
 function riskLabel(value: unknown) {
   return String(value || "unknown").replace(/[_-]+/g, " ").toUpperCase();
+}
+
+function safeText(value: unknown) {
+  if (typeof value === "string") return value.trim();
+  if (value == null) return "";
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") return String(value);
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }

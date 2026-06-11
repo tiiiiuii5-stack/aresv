@@ -8,8 +8,8 @@ import { api, type JobRecord, type PassportRecord } from "@/lib/api";
 import { UpgradeModal } from "@/components/upgrade-modal";
 
 type BuildButtonProps = {
-  prompt?: string;
-  appName?: string;
+  prompt?: unknown;
+  appName?: unknown;
   runtimeFactory?: unknown;
   busy?: boolean;
   idleLabel?: string;

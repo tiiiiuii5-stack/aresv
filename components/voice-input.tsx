@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useVoice } from "@/lib/hooks/useVoice";
 
 type VoiceInputProps = {
-  value: string;
+  value: unknown;
   onChange: (value: string) => void;
   onAgentResponse?: (message: string) => void;
 };
@@ -93,7 +93,7 @@ export function VoiceInput({ value, onChange, onAgentResponse }: VoiceInputProps
   }, [voice.waveform, voice.recording]);
 
   const status = voice.recording ? "Listening..." : voice.error ? "Voice fallback active" : voice.speechSupported ? "Voice ready" : "Text fallback active";
-  const transcript = [value, voice.interimTranscript].filter(Boolean).join(" ");
+  const transcript = [safeVoiceInputText(value), safeVoiceInputText(voice.interimTranscript)].filter(Boolean).join(" ");
 
   return (
     <div className={`vos-cell p-4 transition ${voice.recording ? "border-[rgb(var(--vos-risk))]" : ""}`}>
@@ -131,10 +131,11 @@ export function VoiceInput({ value, onChange, onAgentResponse }: VoiceInputProps
   );
 }
 
-function responseForTranscript(transcript: string) {
-  const hasUser = /\b(user|users|customer|client|admin|team|manager|staff|owner|member)\b/i.test(transcript);
-  const hasAction = /\b(create|edit|delete|submit|book|buy|track|assign|move|deploy|generate|save|upload)\b/i.test(transcript);
-  const hasData = /\b(data|record|database|client|deal|task|order|booking|file|history|schema)\b/i.test(transcript);
+function responseForTranscript(transcript: unknown) {
+  const cleanTranscript = safeVoiceInputText(transcript);
+  const hasUser = /\b(user|users|customer|client|admin|team|manager|staff|owner|member)\b/i.test(cleanTranscript);
+  const hasAction = /\b(create|edit|delete|submit|book|buy|track|assign|move|deploy|generate|save|upload)\b/i.test(cleanTranscript);
+  const hasData = /\b(data|record|database|client|deal|task|order|booking|file|history|schema)\b/i.test(cleanTranscript);
   if (!hasUser) return "Who are the real users? Name the person using this app every day.";
   if (!hasAction) return "What real actions must those users perform? Include create, edit, submit, move, or save behavior.";
   if (!hasData) return "What data should persist? Mention the records, relationships, or history this app owns.";
@@ -145,4 +146,16 @@ function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName.toLowerCase();
   return tag === "input" || tag === "textarea" || target.isContentEditable;
+}
+
+function safeVoiceInputText(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") return String(value);
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }

@@ -151,7 +151,7 @@ export async function POST(request: NextRequest, context: Context) {
       const reasons = message
         .replace(/^Generated app rejected:\s*/i, "")
         .split(/(?=(?:Execution Binding Test|Domain Gate|Static Build|API Map|Runtime Factory|Button Interaction Test|State Persistence Test|Generated source))/)
-        .map((item) => item.trim())
+        .map((item) => String(item || "").trim())
         .filter(Boolean);
       trace("projects.POST", "quality gate rejected generated app", { traceId, reasons });
       return NextResponse.json(

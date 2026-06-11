@@ -50,10 +50,11 @@ const silenceThreshold = 0.018;
 export function useSpeechSynthesis() {
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
 
-  const speak = useCallback((message: string, lang = "en-US") => {
-    if (!supported || !message.trim()) return;
+  const speak = useCallback((message: unknown, lang = "en-US") => {
+    const cleanMessage = safeVoiceText(message);
+    if (!supported || !cleanMessage.trim()) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(message);
+    const utterance = new SpeechSynthesisUtterance(cleanMessage);
     utterance.lang = lang;
     utterance.rate = 0.96;
     utterance.pitch = 1.02;
@@ -103,20 +104,23 @@ export function useSpeechRecognition(options: { lang?: string; onTranscript?: (t
       let interimText = "";
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const result = event.results[index];
-        const text = result[0]?.transcript || "";
+        const text = safeVoiceText(result[0]?.transcript);
         if (result.isFinal) finalText += text;
         else interimText += text;
       }
-      if (finalText.trim()) {
+      const cleanFinalText = finalText.trim();
+      const cleanInterimText = interimText.trim();
+
+      if (cleanFinalText) {
         setTranscript((current) => {
-          const next = `${current} ${finalText}`.trim();
+          const next = `${safeVoiceText(current)} ${cleanFinalText}`.trim();
           callbacksRef.current.onTranscript?.(next);
           callbacksRef.current.onFinalTranscript?.(next);
           return next;
         });
       }
-      setInterimTranscript(interimText.trim());
-      if (interimText.trim()) callbacksRef.current.onTranscript?.(`${transcript} ${interimText}`.trim());
+      setInterimTranscript(cleanInterimText);
+      if (cleanInterimText) callbacksRef.current.onTranscript?.(`${safeVoiceText(transcript)} ${cleanInterimText}`.trim());
     };
     recognition.onerror = (event) => {
       setError(event.error ? `Speech recognition error: ${event.error}` : "Speech recognition failed.");
@@ -137,6 +141,18 @@ export function useSpeechRecognition(options: { lang?: string; onTranscript?: (t
   }, []);
 
   return { supported, listening, transcript, interimTranscript, error, start, stop, reset };
+}
+
+function safeVoiceText(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") return String(value);
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }
 
 export function useVoice(options: { onTranscript?: (transcript: string) => void; onFinalTranscript?: (transcript: string) => void; onSilence?: () => void } = {}) {

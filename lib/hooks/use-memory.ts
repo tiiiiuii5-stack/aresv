@@ -8,12 +8,13 @@ export function useMemory() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const recall = useCallback(async (query: string, projectId?: string) => {
-    if (!query.trim()) return [];
+  const recall = useCallback(async (query: unknown, projectId?: string) => {
+    const cleanQuery = typeof query === "string" ? query.trim() : String(query ?? "").trim();
+    if (!cleanQuery) return [];
     setLoading(true);
     setError(null);
     try {
-      const data = await api.recallMemory({ query, projectId, limit: 5 });
+      const data = await api.recallMemory({ query: cleanQuery, projectId, limit: 5 });
       setMemories(data.memories);
       return data.memories;
     } catch (err) {
