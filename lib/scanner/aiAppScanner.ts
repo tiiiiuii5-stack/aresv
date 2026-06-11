@@ -4,6 +4,12 @@ import { buildActionableFixes, type ActionableFix } from "@/lib/intelligence/act
 import type { FindingFileEvidence, FindingProofBundle, ReproducibleProof } from "@/lib/intelligence/finding-proof";
 import { attachFindingProof } from "@/lib/intelligence/finding-proof";
 import { buildProductionReadinessScore, type ProductionReadinessScoreReport } from "@/lib/intelligence/readiness-score";
+import {
+  apiDynamicPrefixMatchesRoute,
+  apiPathMatchesRoute,
+  apiRouteFromFilePath,
+  isDynamicApiExpression,
+} from "@/lib/scanner/api-route-matcher";
 
 export type AIAppScannerFile = {
   path: string;
@@ -442,7 +448,7 @@ function architectureRules(context: ScannerContext): IssueDraft[] {
   }
 
   for (const call of collectApiCalls(context.files)) {
-    if (!apiRouteExists(context.apiRoutes, call.route)) {
+    if (!apiRouteExists(context.apiRoutes, call.route, call.dynamicPrefix)) {
       issues.push(issue({
         ruleId: "architecture.phantom-api-route",
         category: "architecture",
@@ -652,44 +658,32 @@ function inferApiRoutes(files: NormalizedFile[]) {
 }
 
 function routePathForApiFile(path: string) {
-  const normalized = path.replace(/\\/g, "/");
-  const match = normalized.match(/(?:^|\/)app\/api\/(.+)\/route\.(?:ts|tsx|js|mjs|cjs)$/i);
-  if (!match) return "";
-  return `/api/${match[1]}`
-    .replace(/\/route$/, "")
-    .replace(/\/index$/, "")
-    .replace(/\/+/g, "/");
+  return apiRouteFromFilePath(path) || "";
 }
 
 function collectApiCalls(files: NormalizedFile[]) {
-  const calls: Array<{ file: NormalizedFile; route: string }> = [];
+  const calls: Array<{ file: NormalizedFile; route: string; dynamicPrefix: boolean }> = [];
   for (const file of files) {
     const regex = /\b(?:fetch|axios\.(?:get|post|put|patch|delete))\(\s*["'`]((?:\/api\/)[^"'`?\s)]+)["'`]/g;
     for (const match of file.content.matchAll(regex)) {
       const route = match[1]?.replace(/\/+$/, "");
-      if (route) calls.push({ file, route });
+      if (route) calls.push({
+        file,
+        route,
+        dynamicPrefix: isDynamicApiExpression(file.content, (match.index ?? 0) + match[0].length),
+      });
     }
   }
   return calls.sort((a, b) => a.route.localeCompare(b.route) || a.file.path.localeCompare(b.file.path));
 }
 
-function apiRouteExists(apiRoutes: string[], route: string) {
+function apiRouteExists(apiRoutes: string[], route: string, dynamicPrefix = false) {
   const cleanRoute = route.replace(/\/+$/, "");
   return apiRoutes.some((candidate) => {
     if (candidate === cleanRoute) return true;
-    if (/\[\[\.\.\.[^\]]+\]\]$/.test(candidate)) {
-      const base = candidate.replace(/\/\[\[\.\.\.[^\]]+\]\]$/, "");
-      return cleanRoute === base || cleanRoute.startsWith(`${base}/`);
-    }
-    if (/\[\.\.\.[^\]]+\]$/.test(candidate)) {
-      const base = candidate.replace(/\/\[\.\.\.[^\]]+\]$/, "");
-      return cleanRoute.startsWith(`${base}/`);
-    }
-    if (/\[[^\]]+\]/.test(candidate)) {
-      const pattern = new RegExp(`^${escapeRegex(candidate).replace(/\\\[[^\]]+\\\]/g, "[^/]+")}$`);
-      return pattern.test(cleanRoute);
-    }
-    return false;
+    return dynamicPrefix
+      ? apiDynamicPrefixMatchesRoute(candidate, cleanRoute)
+      : apiPathMatchesRoute(candidate, cleanRoute);
   });
 }
 

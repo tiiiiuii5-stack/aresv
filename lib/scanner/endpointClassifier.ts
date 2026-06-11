@@ -1,3 +1,10 @@
+import {
+  apiDynamicPrefixMatchesRoute,
+  apiPathMatchesRoute,
+  apiRouteFromFilePath,
+  isDynamicApiExpression,
+} from "@/lib/scanner/api-route-matcher";
+
 export type EndpointClassificationKind =
   | "internal_api"
   | "third_party_endpoint"
@@ -36,7 +43,11 @@ export function classifyRepositoryEndpoints(files: EndpointFile[]): EndpointClas
     for (const fallback of extractEnvFallbacks(file)) classifications.push(fallback);
     for (const endpoint of extractEndpointReferences(file)) {
       if (endpoint.url.startsWith("/api/")) {
-        const implemented = routePaths.some((routePath) => apiPathMatchesRoute(routePath, endpoint.url));
+        const implemented = routePaths.some((routePath) =>
+          endpoint.dynamicPrefix
+            ? apiDynamicPrefixMatchesRoute(routePath, endpoint.url)
+            : apiPathMatchesRoute(routePath, endpoint.url),
+        );
         classifications.push({
           kind: "internal_api",
           status: implemented ? "implemented" : "missing_internal_api",
@@ -90,7 +101,7 @@ export function classifyRepositoryEndpoints(files: EndpointFile[]): EndpointClas
 }
 
 function extractEndpointReferences(file: EndpointFile) {
-  const output: Array<{ url: string; line: number }> = [];
+  const output: Array<{ url: string; line: number; dynamicPrefix: boolean }> = [];
   const executableLines = stripCommentLines(file.content);
   for (const item of executableLines) {
     const patterns = [
@@ -101,7 +112,11 @@ function extractEndpointReferences(file: EndpointFile) {
     for (const pattern of patterns) {
       for (const match of item.text.matchAll(pattern)) {
         const url = match[1]?.trim();
-        if (url) output.push({ url, line: item.line });
+        if (url) output.push({
+          url,
+          line: item.line,
+          dynamicPrefix: isDynamicApiExpression(item.text, (match.index ?? 0) + match[0].length),
+        });
       }
     }
   }
@@ -206,31 +221,7 @@ function findCommentTokenOutsideString(text: string, token: "//" | "/*", start: 
 }
 
 function apiRouteFromPath(path: string) {
-  const normalized = path.replace(/\\/g, "/");
-  const appRoute = normalized.match(/(?:^|\/)app\/api\/(.+)\/route\.(?:ts|tsx|js|jsx|mjs|cjs)$/i);
-  if (appRoute?.[1]) return `/api/${appRoute[1].replace(/\/index$/i, "")}`;
-
-  const pagesRoute = normalized.match(/(?:^|\/)pages\/api\/(.+)\.(?:ts|tsx|js|jsx|mjs|cjs)$/i);
-  if (pagesRoute?.[1]) return `/api/${pagesRoute[1].replace(/\/index$/i, "")}`;
-
-  return null;
-}
-
-function apiPathMatchesRoute(routePath: string, apiPath: string) {
-  const routeParts = routePath.split("/").filter(Boolean);
-  const apiParts = apiPath.split(/[?#]/)[0]?.split("/").filter(Boolean) || [];
-
-  for (let index = 0; index < routeParts.length; index += 1) {
-    const routePart = routeParts[index];
-    const apiPart = apiParts[index];
-    if (routePart?.startsWith("[[...") && routePart.endsWith("]]")) return apiParts.length >= index;
-    if (routePart?.startsWith("[...") && routePart.endsWith("]")) return apiParts.length >= index;
-    if (!apiPart) return false;
-    if (routePart?.startsWith("[") && routePart.endsWith("]")) continue;
-    if (routePart !== apiPart) return false;
-  }
-
-  return routeParts.length === apiParts.length;
+  return apiRouteFromFilePath(path);
 }
 
 function safeEndpoint(value: string) {

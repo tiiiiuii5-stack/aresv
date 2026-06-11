@@ -16,6 +16,12 @@ import { sanitizeMetadata } from "@/lib/services/platformSupport";
 import { countCriticalFindings, recordScanHistory } from "@/lib/services/scanHistory";
 import { ingestScanEvolutionLoop } from "@/lib/evolution/scanEvolutionLoop";
 import { sbomExternalEvidenceSource, type SoftwareBillOfMaterialsEvidence } from "@/lib/sbom/software-bom";
+import {
+  apiDynamicPrefixMatchesRoute,
+  apiPathMatchesRoute as sharedApiPathMatchesRoute,
+  apiRouteFromFilePath,
+  isDynamicApiExpression,
+} from "@/lib/scanner/api-route-matcher";
 
 export type AnalyzeAppInput = {
   projectId?: string | null;
@@ -510,47 +516,22 @@ function isApiRouteSegment(segment: SourceSegment) {
 }
 
 function apiRouteFromPath(path: string) {
-  const normalized = path.replace(/\\/g, "/");
-  const appRoute = normalized.match(/(?:^|\/)app\/api\/(.+)\/route\.(?:ts|tsx|js|jsx)$/i);
-  if (appRoute?.[1]) return `/api/${appRoute[1].replace(/\/index$/i, "")}`;
-
-  const pagesRoute = normalized.match(/(?:^|\/)pages\/api\/(.+)\.(?:ts|tsx|js|jsx)$/i);
-  if (pagesRoute?.[1]) return `/api/${pagesRoute[1].replace(/\/index$/i, "")}`;
-
-  return null;
+  return apiRouteFromFilePath(path);
 }
 
 function apiPathMatchesRoute(routePath: string, apiPath: string) {
-  const routeParts = routePath.split("/").filter(Boolean);
-  const apiParts = apiPath.split(/[?#]/)[0]?.split("/").filter(Boolean) || [];
-
-  for (let index = 0; index < routeParts.length; index += 1) {
-    const routePart = routeParts[index];
-    const apiPart = apiParts[index];
-    if (isCatchAllRoutePart(routePart)) return apiParts.length >= index;
-    if (isOptionalCatchAllRoutePart(routePart)) return apiParts.length >= index;
-    if (!apiPart) return false;
-    if (routePart?.startsWith("[") && routePart.endsWith("]")) continue;
-    if (routePart !== apiPart) return false;
-  }
-
-  return routeParts.length === apiParts.length;
-}
-
-function isCatchAllRoutePart(value: string | undefined) {
-  return Boolean(value?.startsWith("[...") && value.endsWith("]"));
-}
-
-function isOptionalCatchAllRoutePart(value: string | undefined) {
-  return Boolean(value?.startsWith("[[...") && value.endsWith("]]"));
+  return sharedApiPathMatchesRoute(routePath, apiPath);
 }
 
 function extractStaticApiFetches(source: string) {
   const executable = stripCommentsStringsAndRegex(source);
-  return [...source.matchAll(/\bfetch\s*\(\s*["'](\/api\/[A-Za-z0-9_./\-[\]]+)["']/g)]
+  return [...source.matchAll(/\bfetch\s*\(\s*(["'])(\/api\/[A-Za-z0-9_./\-[\]]+)["']/g)]
     .filter((match) => executable.slice(match.index ?? 0, (match.index ?? 0) + 5) === "fetch")
-    .map((match) => match[1])
-    .filter((path): path is string => Boolean(path));
+    .map((match) => ({
+      path: match[2] || "",
+      dynamicPrefix: isDynamicApiExpression(source, (match.index ?? 0) + match[0].length),
+    }))
+    .filter((item) => Boolean(item.path));
 }
 
 function hasPhantomApiCall(source: string) {
@@ -560,7 +541,13 @@ function hasPhantomApiCall(source: string) {
 
   return segments.some((segment) =>
     isLikelyProductionSegment(segment) &&
-    extractStaticApiFetches(segment.content).some((apiPath) => !routePaths.some((routePath) => apiPathMatchesRoute(routePath, apiPath))),
+    extractStaticApiFetches(segment.content).some((apiCall) =>
+      !routePaths.some((routePath) =>
+        apiCall.dynamicPrefix
+          ? apiDynamicPrefixMatchesRoute(routePath, apiCall.path)
+          : apiPathMatchesRoute(routePath, apiCall.path),
+      ),
+    ),
   );
 }
 

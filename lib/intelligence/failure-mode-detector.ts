@@ -4,6 +4,12 @@ import {
   type ExecutionGraph,
   type ExecutionPath,
 } from "@/lib/intelligence/execution-path-mapper";
+import {
+  apiDynamicPrefixMatchesRoute,
+  apiPathMatchesRoute,
+  apiRouteFromFilePath,
+  isDynamicApiExpression,
+} from "@/lib/scanner/api-route-matcher";
 
 export type FailureModeCategory =
   | "BROKEN USER FLOW"
@@ -55,7 +61,7 @@ type DetectionContext = {
   graph: ExecutionGraph;
   paths: ExecutionPath[];
   apiRoutes: Set<string>;
-  staticApiCalls: Array<{ apiRoute: string; file: NormalizedFile; snippet: string }>;
+  staticApiCalls: Array<{ apiRoute: string; dynamicPrefix: boolean; file: NormalizedFile; snippet: string }>;
 };
 
 export function detectFailureModes(input: FailureModeDetectorInput): FailureModeFinding[] {
@@ -96,7 +102,7 @@ function detectBrokenUserFlows(context: DetectionContext): FailureModeFinding[] 
   const findings: FailureModeFinding[] = [];
 
   for (const call of context.staticApiCalls) {
-    if (!hasMatchingApiRoute(call.apiRoute, context.apiRoutes)) {
+    if (!hasMatchingApiRoute(call.apiRoute, context.apiRoutes, call.dynamicPrefix)) {
       findings.push(finding({
         category: "BROKEN USER FLOW",
         title: "UI action calls a missing API route",
@@ -357,11 +363,15 @@ function detectUnusedServices(context: DetectionContext): FailureModeFinding[] {
 }
 
 function detectOrphanApis(context: DetectionContext): FailureModeFinding[] {
-  const calledRoutes = new Set(context.staticApiCalls.map((call) => call.apiRoute));
   const findings: FailureModeFinding[] = [];
   for (const file of context.files.filter(isApiRouteFile)) {
     const route = apiRouteFromPath(file.path);
-    if (calledRoutes.has(route) || isExpectedPublicRoute(route)) continue;
+    const referenced = context.staticApiCalls.some((call) =>
+      call.dynamicPrefix
+        ? apiDynamicPrefixMatchesRoute(route, call.apiRoute)
+        : apiPathMatchesRoute(route, call.apiRoute),
+    );
+    if (referenced || isExpectedPublicRoute(route)) continue;
     findings.push(finding({
       category: "AI GENERATED CODE FAILURE",
       title: "API route is not connected to a UI action",
@@ -500,6 +510,7 @@ function extractStaticApiCalls(files: NormalizedFile[]) {
   return files.flatMap((file) =>
     [...file.content.matchAll(/\bfetch\s*\(\s*["'](\/api\/[A-Za-z0-9_./\-[\]]+)["']/g)].map((match) => ({
       apiRoute: match[1] || "",
+      dynamicPrefix: isDynamicApiExpression(file.content, (match.index ?? 0) + match[0].length),
       file,
       snippet: snippetAt(file.content, match.index || 0),
     })),
@@ -547,21 +558,13 @@ function hasLocalFile(filesByPath: Set<string>, importPath: string) {
   );
 }
 
-function hasMatchingApiRoute(apiRoute: string, routes: Set<string>) {
+function hasMatchingApiRoute(apiRoute: string, routes: Set<string>, dynamicPrefix = false) {
   if (routes.has(apiRoute)) return true;
-  return [...routes].some((route) => apiPathMatchesRoute(route, apiRoute));
-}
-
-function apiPathMatchesRoute(routePath: string, apiPath: string) {
-  const routeParts = routePath.split("/").filter(Boolean);
-  const apiParts = apiPath.split(/[?#]/)[0]?.split("/").filter(Boolean) || [];
-  if (routeParts.length !== apiParts.length && !routeParts.some((part) => part.startsWith("[..."))) return false;
-  return routeParts.every((routePart, index) => {
-    const apiPart = apiParts[index];
-    if (routePart.startsWith("[...")) return true;
-    if (routePart.startsWith("[") && routePart.endsWith("]")) return Boolean(apiPart);
-    return routePart === apiPart;
-  });
+  return [...routes].some((route) =>
+    dynamicPrefix
+      ? apiDynamicPrefixMatchesRoute(route, apiRoute)
+      : apiPathMatchesRoute(route, apiRoute),
+  );
 }
 
 function isApiRouteFile(file: NormalizedFile) {
@@ -577,12 +580,7 @@ function isServiceFile(file: NormalizedFile) {
 }
 
 function apiRouteFromPath(path: string) {
-  const normalized = path.replace(/\\/g, "/");
-  const appMatch = normalized.match(/(?:^|\/)app\/api\/(.+)\/route\.(?:ts|tsx|js|jsx)$/i);
-  if (appMatch?.[1]) return `/api/${appMatch[1].replace(/\/index$/i, "")}`;
-  const pagesMatch = normalized.match(/(?:^|\/)pages\/api\/(.+)\.(?:ts|tsx|js|jsx)$/i);
-  if (pagesMatch?.[1]) return `/api/${pagesMatch[1].replace(/\/index$/i, "")}`;
-  return normalized;
+  return apiRouteFromFilePath(path) || path.replace(/\\/g, "/");
 }
 
 function hasMutatingRoute(source: string) {

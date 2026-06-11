@@ -90,6 +90,37 @@ assert.ok(ruleIds.has("deployment.missing-health-route"));
 assert.ok(ruleIds.has("architecture.phantom-api-route"));
 assert.ok(ruleIds.has("architecture.browser-only-persistence"));
 
+const dynamicRouteScan = scanAIApp({
+  files: [
+    {
+      path: "package.json",
+      content: JSON.stringify({ dependencies: { next: "16.0.0", react: "19.0.0" }, scripts: { build: "next build" } }),
+    },
+    {
+      path: "app/page.tsx",
+      content: `"use client";
+export function DeleteButton({ projectId }: { projectId: string }) {
+  return <button onClick={() => fetch('/api/projects/' + projectId, { method: 'DELETE' })}>Delete</button>;
+}`,
+    },
+    {
+      path: "app/api/projects/[id]/route.ts",
+      content: `export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+  return Response.json({ ok: true, id: params.id });
+}`,
+    },
+  ],
+  metadata: { framework: "nextjs" },
+});
+
+const dynamicRouteIssueIds = new Set([
+  ...dynamicRouteScan.securityIssues,
+  ...dynamicRouteScan.deploymentIssues,
+  ...dynamicRouteScan.architectureIssues,
+].map((issue) => issue.ruleId));
+
+assert.equal(dynamicRouteIssueIds.has("architecture.phantom-api-route"), false);
+
 for (const issue of [...first.securityIssues, ...first.deploymentIssues, ...first.architectureIssues]) {
   assert.ok(issue.id);
   assert.ok(issue.evidence.length > 0);
