@@ -413,10 +413,14 @@ function normalizeFindings(issues: ScoredIssue[], source: string): IntelligenceI
 
   return [...bestByKey.values()]
     .sort((a, b) => issueRank(b) - issueRank(a))
-    .map(({ dedupeGroup: _dedupeGroup, ...issue }) => attachFindingProof(issue, {
-      source,
-      scanner: "ventureos-intelligence-analysis",
-    }));
+    .map((issue) => {
+      const publicIssue: IntelligenceIssue = { ...issue };
+      delete (publicIssue as ScoredIssue).dedupeGroup;
+      return attachFindingProof(publicIssue, {
+        source,
+        scanner: "ventureos-intelligence-analysis",
+      });
+    });
 }
 
 function calibrateIssue(issue: ScoredIssue): ScoredIssue {

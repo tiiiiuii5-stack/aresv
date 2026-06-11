@@ -32,17 +32,14 @@ type GitHubTreeResponse = {
   }>;
 };
 
-type GitHubBlobResponse = {
-  content?: string;
-  encoding?: string;
-  size?: number;
-};
+type GitHubTreeItem = NonNullable<GitHubTreeResponse["tree"]>[number];
 
 type LoadPublicGitHubRepositorySourceInput = {
   repositoryUrl: string;
   maxChars: number;
   maxFiles?: number;
   maxFileBytes?: number;
+  maxCharsPerFile?: number;
 };
 
 type ParsedGitHubRepositoryUrl = {
@@ -53,8 +50,10 @@ type ParsedGitHubRepositoryUrl = {
 };
 
 const GITHUB_API_BASE = "https://api.github.com";
+const GITHUB_RAW_BASE = "https://raw.githubusercontent.com";
 const DEFAULT_MAX_FILES = 80;
 const DEFAULT_MAX_FILE_BYTES = 120_000;
+const DEFAULT_MAX_CHARS_PER_FILE = 6_000;
 
 export function parsePublicGitHubRepositoryUrl(value: string): ParsedGitHubRepositoryUrl | null {
   const clean = value.trim();
@@ -88,6 +87,7 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
   const maxChars = Math.max(1_000, Math.min(input.maxChars, 250_000));
   const maxFiles = Math.max(1, Math.min(input.maxFiles || DEFAULT_MAX_FILES, 200));
   const maxFileBytes = Math.max(1_000, Math.min(input.maxFileBytes || DEFAULT_MAX_FILE_BYTES, 250_000));
+  const maxCharsPerFile = Math.max(800, Math.min(input.maxCharsPerFile || DEFAULT_MAX_CHARS_PER_FILE, 20_000));
   const repository = await githubRequest<GitHubRepositoryInfo>(`/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`);
   if (repository.private) {
     throw new Error("This repository is private. Connect the GitHub App or upload source files instead.");
@@ -98,12 +98,11 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
     `/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/git/trees/${encodeURIComponent(ref)}?recursive=1`,
   );
   const discovered = (tree.tree || []).filter((item) => item.type === "blob" && item.path && item.sha);
-  const candidates = discovered
+  const eligible = discovered
     .filter((item) => !ignoredRepositoryPath(String(item.path)))
     .filter((item) => sourceExtensionAllowed(String(item.path)))
-    .filter((item) => Number(item.size || 0) <= maxFileBytes)
-    .sort((a, b) => filePriority(String(a.path)) - filePriority(String(b.path)))
-    .slice(0, maxFiles);
+    .filter((item) => Number(item.size || 0) <= maxFileBytes);
+  const candidates = selectRepositorySample(eligible, maxFiles);
 
   const files: PublicGitHubRepositorySource["files"] = [];
   const codeParts: string[] = [];
@@ -112,8 +111,8 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
   let truncated = Boolean(tree.truncated) || discovered.length > candidates.length;
 
   for (const candidate of candidates) {
-    if (!candidate.sha || !candidate.path) continue;
-    const content = await loadBlobContent(parsed.owner, parsed.repo, candidate.sha);
+    if (!candidate.path) continue;
+    const content = await loadRawFileContent(parsed.owner, parsed.repo, ref, candidate.path);
     if (!isTextContent(content)) continue;
 
     const header = `// FILE: ${candidate.path}\n`;
@@ -123,7 +122,8 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
       break;
     }
 
-    const included = content.length > remaining ? content.slice(0, remaining) : content;
+    const perFileLimit = Math.min(remaining, perFileCharacterLimit(String(candidate.path), maxCharsPerFile));
+    const included = content.length > perFileLimit ? content.slice(0, perFileLimit) : content;
     if (included.length < content.length) truncated = true;
 
     codeParts.push(`${header}${included}`);
@@ -158,14 +158,6 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
   };
 }
 
-async function loadBlobContent(owner: string, repo: string, sha: string) {
-  const blob = await githubRequest<GitHubBlobResponse>(
-    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/blobs/${encodeURIComponent(sha)}`,
-  );
-  if (blob.encoding !== "base64" || !blob.content) return "";
-  return Buffer.from(blob.content.replace(/\s+/g, ""), "base64").toString("utf8");
-}
-
 async function githubRequest<T>(path: string): Promise<T> {
   const token = process.env.GITHUB_PUBLIC_TOKEN?.trim();
   const response = await fetch(`${GITHUB_API_BASE}${path}`, {
@@ -185,6 +177,18 @@ async function githubRequest<T>(path: string): Promise<T> {
   return payload as T;
 }
 
+async function loadRawFileContent(owner: string, repo: string, ref: string, filePath: string) {
+  const rawPath = filePath.split("/").map(encodeURIComponent).join("/");
+  const response = await fetch(`${GITHUB_RAW_BASE}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURI(ref)}/${rawPath}`, {
+    headers: {
+      Accept: "text/plain,*/*",
+      "User-Agent": "VentureOS-Appraisal-Intake",
+    },
+  });
+  if (!response.ok) return "";
+  return response.text();
+}
+
 function ignoredRepositoryPath(path: string) {
   return (
     /(^|\/)(node_modules|\.next|dist|build|coverage|\.git|vendor|generated-apps|tmp|temp|logs?)\//i.test(path) ||
@@ -200,6 +204,38 @@ function sourceExtensionAllowed(path: string) {
   );
 }
 
+function selectRepositorySample(
+  files: GitHubTreeItem[],
+  maxFiles: number,
+) {
+  const sorted = [...files].sort((a, b) => {
+    const priority = filePriority(String(a.path)) - filePriority(String(b.path));
+    if (priority !== 0) return priority;
+    return Number(a.size || 0) - Number(b.size || 0);
+  });
+  const selected = new Map<string, GitHubTreeItem>();
+  const pick = (predicate: (path: string) => boolean, limit: number) => {
+    for (const file of sorted) {
+      if (selected.size >= maxFiles) return;
+      const path = String(file.path || "");
+      if (!path || selected.has(path) || !predicate(path)) continue;
+      selected.set(path, file);
+      if ([...selected.values()].filter((item) => predicate(String(item.path || ""))).length >= limit) return;
+    }
+  };
+
+  pick((path) => filePriority(path) <= 2, Math.min(8, maxFiles));
+  pick((path) => /^app\/api\//i.test(path) || /\/app\/api\//i.test(path), Math.min(18, maxFiles));
+  pick((path) => /^app\/(?!api\/)/i.test(path) || /\/app\/(?!api\/)/i.test(path), Math.min(18, maxFiles));
+  pick((path) => /^lib\//i.test(path) || /\/lib\//i.test(path), Math.min(18, maxFiles));
+  pick((path) => /^components\//i.test(path) || /\/components\//i.test(path), Math.min(12, maxFiles));
+  pick((path) => /^prisma\//i.test(path) || /\/prisma\//i.test(path), Math.min(8, maxFiles));
+  pick((path) => /^docs\//i.test(path) || /\.(md|mdx)$/i.test(path), Math.min(8, maxFiles));
+  pick(() => true, maxFiles);
+
+  return [...selected.values()].slice(0, maxFiles);
+}
+
 function filePriority(path: string) {
   const lower = path.toLowerCase();
   if (lower.endsWith("package.json")) return 0;
@@ -212,6 +248,17 @@ function filePriority(path: string) {
   if (lower.startsWith("lib/") || lower.includes("/lib/")) return 7;
   if (lower.startsWith("components/") || lower.includes("/components/")) return 8;
   return 20;
+}
+
+function perFileCharacterLimit(path: string, defaultLimit: number) {
+  const lower = path.toLowerCase();
+  if (lower.endsWith("package.json")) return Math.max(defaultLimit, 14_000);
+  if (lower.endsWith("prisma/schema.prisma")) return Math.max(defaultLimit, 14_000);
+  if (lower === ".env.example" || lower.endsWith("/.env.example")) return Math.max(defaultLimit, 4_000);
+  if (/(^|\/)(next\.config\.(js|mjs|ts)|vercel\.json|tsconfig\.json|postcss\.config\.(js|mjs|ts)|tailwind\.config\.(js|ts))$/i.test(path)) {
+    return Math.max(defaultLimit, 6_000);
+  }
+  return defaultLimit;
 }
 
 function isTextContent(value: string) {

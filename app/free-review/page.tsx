@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Code2, FileText, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, FileText, Loader2, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -32,6 +32,7 @@ type ReviewResult = {
     level?: string;
     confidence?: number;
     coverageRatio?: number | null;
+    coveragePercent?: number | null;
     filesLoaded?: number | null;
     totalFilesDiscovered?: number | null;
     scoreCap?: number;
@@ -124,7 +125,9 @@ export default function FreeReviewPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const incomingRepo = params.get("repo");
-    if (incomingRepo && !repoUrl) setRepoUrl(incomingRepo);
+    if (!incomingRepo || repoUrl) return;
+    const timeout = window.setTimeout(() => setRepoUrl(incomingRepo), 0);
+    return () => window.clearTimeout(timeout);
   }, [repoUrl]);
 
   useEffect(() => {
@@ -363,6 +366,7 @@ export default function FreeReviewPage() {
                       <p className="font-black uppercase">Evidence confidence: {Number(result.evidenceCoverage.confidence || 0)}/100</p>
                       <p className="mt-1">
                         Coverage is {String(result.evidenceCoverage.level || "limited")}
+                        {typeof result.evidenceCoverage.coveragePercent === "number" ? ` (${result.evidenceCoverage.coveragePercent}% of discovered files)` : ""}
                         {typeof result.evidenceCoverage.scoreCap === "number" ? `, so preview scores are capped at ${result.evidenceCoverage.scoreCap}/100.` : "."}
                       </p>
                       {result.rawScores?.productionReadinessScore && result.rawScores.productionReadinessScore > readiness ? (

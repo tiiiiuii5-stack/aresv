@@ -393,7 +393,7 @@ export function buildDecisionExplanation(input: {
   };
 }
 
-export function buildTrustRegressionReport(previousScan: Record<string, any>, newScan: Record<string, any>) {
+export function buildTrustRegressionReport(previousScan: Record<string, unknown>, newScan: Record<string, unknown>) {
   const trustDelta = numberValue(newScan.trustScore) - numberValue(previousScan.trustScore);
   const qualityDelta = numberValue(newScan.qualityScore) - numberValue(previousScan.qualityScore);
   const safetyDelta = numberValue(newScan.safetyScore) - numberValue(previousScan.safetyScore);
@@ -501,7 +501,7 @@ function scoreDeltas(previous: Record<string, number>, next: Record<string, numb
   return Object.fromEntries([...keys].map((key) => [key, numberValue(next[key]) - numberValue(previous[key])]));
 }
 
-function confidenceValue(value: Record<string, any>) {
+function confidenceValue(value: Record<string, unknown>) {
   const confidence = String(value.confidence || "").toLowerCase();
   if (confidence === "high") return 3;
   if (confidence === "medium") return 2;

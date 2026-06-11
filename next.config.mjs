@@ -3,9 +3,6 @@ import path from "node:path";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
-  typescript: {
-    ignoreBuildErrors: true
-  },
   serverExternalPackages: ["bullmq", "ioredis"],
   images: {
     unoptimized: true

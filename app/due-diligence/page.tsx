@@ -250,7 +250,3 @@ function WorkflowCard({ title, detail, href }: { title: string; detail: string; 
 function EmptyMessage({ text }: { text: string }) {
   return <p className="vos-cell p-5 text-sm font-bold text-[rgb(var(--vos-text-muted))]">{text}</p>;
 }
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}

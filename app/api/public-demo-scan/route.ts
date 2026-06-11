@@ -18,7 +18,7 @@ import { compileTrust } from "@/lib/trust/compiler";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_DEMO_CODE_LENGTH = 40_000;
+const MAX_DEMO_CODE_LENGTH = 120_000;
 
 export async function GET() {
   return jsonResponse({
@@ -42,10 +42,16 @@ export async function POST(request: NextRequest) {
       repositoryUrl?: unknown;
       repoUrl?: unknown;
       repository?: unknown;
-    }>(request, { maxBytes: 80_000 });
+    }>(request, { maxBytes: 180_000 });
     const repositoryUrl = cleanText(body.repositoryUrl || body.repoUrl || body.repository, 260);
     const repositorySource = repositoryUrl
-      ? await loadPublicGitHubRepositorySource({ repositoryUrl, maxChars: MAX_DEMO_CODE_LENGTH, maxFiles: 24, maxFileBytes: 80_000 })
+      ? await loadPublicGitHubRepositorySource({
+        repositoryUrl,
+        maxChars: MAX_DEMO_CODE_LENGTH,
+        maxFiles: 120,
+        maxFileBytes: 180_000,
+        maxCharsPerFile: 900,
+      })
       : null;
 
     const scanInput = sanitizeScanInput(

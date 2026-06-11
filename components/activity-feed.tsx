@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BarChart3, CheckCircle2, FileText, Sparkles } from "lucide-react";
 import type { Job } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
+import type { BadgeVariant } from "@/components/ui/badge";
 
 interface ActivityItem {
   id: string;
@@ -65,7 +66,7 @@ export function ActivityFeed({ items = [], jobs = [] }: ActivityFeedProps) {
   };
 
   const getStatusBadge = (status: ActivityItem["status"]) => {
-    const variants: Record<ActivityItem["status"], string> = {
+    const variants: Record<ActivityItem["status"], BadgeVariant> = {
       completed: "ready",
       failed: "muted",
       pending: "outline",
@@ -78,7 +79,7 @@ export function ActivityFeed({ items = [], jobs = [] }: ActivityFeedProps) {
       in_progress: "Running",
     };
     return (
-      <Badge variant={variants[status] as any}>{labels[status]}</Badge>
+      <Badge variant={variants[status]}>{labels[status]}</Badge>
     );
   };
 

@@ -406,7 +406,7 @@ function extractUiActions(file: NormalizedFile): UiAction[] {
     const attrs = match[1] || "";
     const body = stripJsx(match[2] || "");
     const evidence = compact(`${match[0] || ""}`).slice(0, 500);
-    const action = actionFromAttributes(attrs, file.content, file.path);
+    const action = actionFromAttributes(attrs, file.content);
     actions.push({
       id: stableId(["button", file.path, evidence]),
       kind: "button",
@@ -422,7 +422,7 @@ function extractUiActions(file: NormalizedFile): UiAction[] {
   for (const match of file.content.matchAll(/<form\b([\s\S]*?)>([\s\S]*?)<\/form>/gi)) {
     const attrs = match[1] || "";
     const evidence = compact(`${match[0] || ""}`).slice(0, 500);
-    const action = actionFromAttributes(attrs, file.content, file.path);
+    const action = actionFromAttributes(attrs, file.content);
     actions.push({
       id: stableId(["form", file.path, evidence]),
       kind: "form",
@@ -438,7 +438,7 @@ function extractUiActions(file: NormalizedFile): UiAction[] {
   return actions;
 }
 
-function actionFromAttributes(attrs: string, source: string, filePath: string) {
+function actionFromAttributes(attrs: string, source: string) {
   const directApi = attributeValue(attrs, "data-api") || attributeValue(attrs, "formAction");
   const onClick = jsxHandler(attrs, "onClick");
   const onSubmit = jsxHandler(attrs, "onSubmit");
@@ -447,7 +447,7 @@ function actionFromAttributes(attrs: string, source: string, filePath: string) {
   const handlerSource = handler ? resolveHandlerSource(handler, source) : "";
   const inlineSource = `${attrs}\n${handlerSource}`;
   const apiRoute = extractApiFetches(inlineSource)[0] || (directApi?.startsWith("/api/") ? directApi : null);
-  const serverAction = action && !String(action).startsWith("/") ? cleanHandlerName(action) : inferServerAction(handler, source, filePath);
+  const serverAction = action && !String(action).startsWith("/") ? cleanHandlerName(action) : inferServerAction(handler, source);
   return { handler: cleanHandlerName(handler), apiRoute, serverAction };
 }
 
@@ -460,7 +460,7 @@ function resolveHandlerSource(handler: string, source: string) {
   return functionMatch?.[0] || constMatch?.[0] || handler;
 }
 
-function inferServerAction(handler: string | null, source: string, _filePath: string) {
+function inferServerAction(handler: string | null, source: string) {
   const clean = cleanHandlerName(handler);
   if (!clean) return null;
   if (/(^|\n)\s*["']use server["']/.test(source)) return clean;

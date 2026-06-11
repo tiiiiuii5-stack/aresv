@@ -3,7 +3,6 @@ import {
   type CodeFile,
   type ExecutionGraph,
   type ExecutionGraphNode,
-  type ExecutionPath,
 } from "@/lib/intelligence/execution-path-mapper";
 import { buildEvidenceReport, type EvidenceEngineResult, type TraceableFinding } from "@/lib/intelligence/evidence-engine";
 

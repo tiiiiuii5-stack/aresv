@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    return window.localStorage.getItem("ventureos-theme") === "light" ? "light" : "dark";
+  });
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("ventureos-theme");
-    const nextTheme = stored === "light" ? "light" : "dark";
-    setTheme(nextTheme);
-    document.documentElement.classList.toggle("light", nextTheme === "light");
-    document.documentElement.classList.toggle("dark", nextTheme === "dark");
-  }, []);
+    document.documentElement.classList.toggle("light", theme === "light");
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";

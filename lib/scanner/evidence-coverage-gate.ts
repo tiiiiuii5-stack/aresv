@@ -15,6 +15,7 @@ export type EvidenceCoverageAssessment = {
   level: "thin" | "limited" | "partial" | "broad" | "complete";
   confidence: number;
   coverageRatio: number | null;
+  coveragePercent: number | null;
   filesLoaded: number | null;
   totalFilesDiscovered: number | null;
   inputLength: number;
@@ -47,26 +48,24 @@ export function assessEvidenceCoverage(input: EvidenceCoverageInput): EvidenceCo
     const repositoryTruncated = Boolean(input.repository.truncated);
     const capped = repositoryTruncated || input.inputTruncated;
 
+    const coveragePercent = coverageRatio == null ? null : Math.round(coverageRatio * 10_000) / 100;
     let level: EvidenceCoverageAssessment["level"] = "complete";
-    let confidence = 90;
-    let scoreCap = 85;
+    let confidence = coverageRatio == null ? 25 : Math.min(90, Math.max(20, Math.round(20 + Math.sqrt(coverageRatio) * 75)));
+    let scoreCap = coverageRatio == null ? 50 : Math.min(85, Math.max(50, Math.round(50 + Math.sqrt(coverageRatio) * 35)));
 
     if (coverageRatio == null || coverageRatio < 0.05) {
       level = "thin";
-      confidence = 25;
-      scoreCap = 55;
     } else if (coverageRatio < 0.15) {
       level = "limited";
-      confidence = 40;
-      scoreCap = 65;
     } else if (coverageRatio < 0.35) {
       level = "partial";
-      confidence = 55;
-      scoreCap = 72;
     } else if (coverageRatio < 0.8 || capped) {
       level = "broad";
-      confidence = 72;
-      scoreCap = 80;
+    }
+
+    if (level === "complete") {
+      confidence = 90;
+      scoreCap = 85;
     }
 
     const warnings = [];
@@ -85,6 +84,7 @@ export function assessEvidenceCoverage(input: EvidenceCoverageInput): EvidenceCo
       level,
       confidence,
       coverageRatio,
+      coveragePercent,
       filesLoaded,
       totalFilesDiscovered,
       inputLength: input.inputLength,
@@ -130,6 +130,7 @@ export function assessEvidenceCoverage(input: EvidenceCoverageInput): EvidenceCo
     level,
     confidence,
     coverageRatio: null,
+    coveragePercent: null,
     filesLoaded: null,
     totalFilesDiscovered: null,
     inputLength,

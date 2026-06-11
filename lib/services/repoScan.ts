@@ -586,10 +586,14 @@ function normalizeRepoIssues(issues: RepoScanIssue[], files: NormalizedRepoFile[
 
   return [...bestByKey.values()]
     .sort((a, b) => repoIssueRank(b) - repoIssueRank(a))
-    .map(({ dedupeGroup: _dedupeGroup, ...issue }) => attachFindingProof(issue, {
-      files: files.map((file) => ({ path: file.path, content: file.content })),
-      scanner: "ventureos-repo-scan",
-    }));
+    .map((issue) => {
+      const publicIssue: RepoScanIssue = { ...issue };
+      delete publicIssue.dedupeGroup;
+      return attachFindingProof(publicIssue, {
+        files: files.map((file) => ({ path: file.path, content: file.content })),
+        scanner: "ventureos-repo-scan",
+      });
+    });
 }
 
 function buildRepoSeverityBreakdown(issues: RepoScanIssue[]): SeverityBreakdown {

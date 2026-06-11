@@ -198,8 +198,8 @@ function cleanText(value: unknown, max: number) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
-function objectValue(value: unknown): Record<string, any> {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
 function numberValue(value: unknown) {

@@ -81,7 +81,7 @@ export function BillingWidget({
           </div>
           {isNearLimit && (
             <p className="mt-2 text-xs font-semibold text-red-300">
-              You're near your scan limit. Upgrade to continue.
+              You are near your scan limit. Upgrade to continue.
             </p>
           )}
         </div>

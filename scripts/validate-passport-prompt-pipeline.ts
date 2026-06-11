@@ -9,6 +9,7 @@ import {
   reduceTrustState,
   securityNormalizeInput,
   validatePipelineOutput,
+  type PassportPipelineStageId,
 } from "../lib/passport/prompt-pipeline";
 
 const hash = "a".repeat(64);
@@ -17,7 +18,7 @@ const pipeline = buildPassportPromptPipeline({
   passportId: "VOS-2026-123456",
 });
 
-const requiredStages = [
+const requiredStages: PassportPipelineStageId[] = [
   "evidence_ingestion",
   "deterministic_analysis",
   "consensus_reduction",
@@ -26,7 +27,7 @@ const requiredStages = [
 ];
 
 for (const stageId of requiredStages) {
-  const stage = getPassportPipelineStage(stageId as any, { source: "https://github.com/stackdigitz/ventureos-demo" });
+  const stage = getPassportPipelineStage(stageId, { source: "https://github.com/stackdigitz/ventureos-demo" });
   assert(stage, `missing stage ${stageId}`);
   assert(stage.prompt.length > 120, `stage ${stageId} prompt is too short`);
   assert(stage.promptVersion.version === "3.0.0", `stage ${stageId} missing v3 prompt version`);

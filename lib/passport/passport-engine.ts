@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { Prisma } from "@prisma/client";
 
 import { tryDatabase } from "@/lib/prisma";
 import { buildRegistryItem } from "@/lib/registry/registry-pipeline";
@@ -620,14 +621,14 @@ function cleanText(value: unknown, max: number) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
-function objectValue(value: unknown): Record<string, any> {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
 function hash(parts: unknown[]) {
   return createHash("sha256").update(JSON.stringify(parts)).digest("hex");
 }
 
-function jsonValue<T>(value: T): any {
-  return JSON.parse(JSON.stringify(value));
+function jsonValue<T>(value: T): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }

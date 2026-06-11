@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       traceId,
       jobs: jobs
         .filter((job) => canAccessJob(job, session))
-        .map(({ project: _project, ...job }) => withMutationTracking(job)),
+        .map((job) => withMutationTracking(stripProjectRelation(job))),
     });
   } catch (error) {
     return errorResponse("jobs.GET", traceId, error, statusForJobError(error));
@@ -242,6 +242,12 @@ function withMutationTracking<T extends object>(job: T) {
     ...job,
     mutationTracking: mutationTrackingFor(job),
   };
+}
+
+function stripProjectRelation<T extends { project?: unknown }>(job: T) {
+  const sanitized = { ...job };
+  delete sanitized.project;
+  return sanitized;
 }
 
 function mutationTrackingFor(job: object) {

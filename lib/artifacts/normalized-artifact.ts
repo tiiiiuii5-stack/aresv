@@ -253,7 +253,6 @@ export function normalizeCertificateArtifact(
   const appraisalUrl = `/appraisal/${encodeURIComponent(payload.appraisal.publicId)}`;
   const transparencyUrl = `/transparency-log?certificateId=${encodeURIComponent(certificate.certificateId)}`;
   const trustRating = trustRatingForGrade(payload.appraisal.grade, coverage.score);
-  const chainStatus = verification.valid ? "VERIFIED" : "FAILED";
   const chainStatusValue = verification.valid ? "verified" : "danger";
   const trustScore = Number(payload.appraisal.readinessScore || 0);
   const trustScoreDisplay = trustScore > 0 ? trustScore : "Pending";

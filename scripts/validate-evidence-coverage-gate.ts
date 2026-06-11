@@ -15,8 +15,9 @@ const thinRepoCoverage = assessEvidenceCoverage({
 });
 
 assert.equal(thinRepoCoverage.level, "thin");
-assert.equal(thinRepoCoverage.scoreCap, 55);
-assert.equal(thinRepoCoverage.confidence, 25);
+assert.equal(thinRepoCoverage.scoreCap, 52);
+assert.equal(thinRepoCoverage.confidence, 23);
+assert.equal(thinRepoCoverage.coveragePercent, 0.21);
 assert.equal(thinRepoCoverage.scoreCapped, true);
 
 const adjustedThinRepo = applyEvidenceCoverageGate({
@@ -26,9 +27,9 @@ const adjustedThinRepo = applyEvidenceCoverageGate({
   riskLevel: "low",
 }, thinRepoCoverage);
 
-assert.equal(adjustedThinRepo.securityScore, 55);
-assert.equal(adjustedThinRepo.productionReadinessScore, 55);
-assert.equal(adjustedThinRepo.failureScore, 45);
+assert.equal(adjustedThinRepo.securityScore, 52);
+assert.equal(adjustedThinRepo.productionReadinessScore, 52);
+assert.equal(adjustedThinRepo.failureScore, 48);
 assert.equal(adjustedThinRepo.riskLevel, "high");
 assert.equal(adjustedThinRepo.rawScores.productionReadinessScore, 100);
 
