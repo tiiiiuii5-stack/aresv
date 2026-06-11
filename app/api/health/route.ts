@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { probeDurableKvStore } from "@/lib/persistence/durable-kv";
 import { probeDatabaseRead } from "@/lib/persistence/database";
 import { compileTrust } from "@/lib/trust/compiler";
 
@@ -8,7 +9,26 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   await compileTrust(request, { mode: "publicRead" });
-  const database = await probeDatabaseRead();
+  const deep = new URL(request.url).searchParams.get("deep") === "1";
+  const primaryDatabase = await probeDatabaseRead();
+  const durableFallback = deep ? await probeDurableKvStore() : null;
+  const usingDurableFallback = Boolean(!primaryDatabase.verifiedRead && durableFallback?.verifiedRead && durableFallback.verifiedWrite);
+  const database = {
+    configured: primaryDatabase.configured || Boolean(durableFallback?.configured),
+    disabled: primaryDatabase.disabled && !usingDurableFallback,
+    reachable: primaryDatabase.reachable || Boolean(durableFallback?.reachable),
+    verifiedRead: primaryDatabase.verifiedRead || Boolean(durableFallback?.verifiedRead),
+    verifiedWrite: Boolean(durableFallback?.verifiedWrite),
+    provider: primaryDatabase.verifiedRead ? "postgres" : usingDurableFallback ? "upstash-kv" : "none",
+    circuit: primaryDatabase.circuit,
+    reason: primaryDatabase.verifiedRead
+      ? null
+      : usingDurableFallback
+        ? "postgres_unavailable_using_durable_kv"
+        : primaryDatabase.reason || durableFallback?.reason || "database_unavailable",
+    primary: primaryDatabase,
+    fallback: durableFallback,
+  };
   return NextResponse.json({
     ok: true,
     service: "ventureos-backend",
@@ -46,8 +66,12 @@ export async function GET(request: Request) {
         disabled: database.disabled,
         reachable: database.reachable,
         verifiedRead: database.verifiedRead,
+        verifiedWrite: database.verifiedWrite,
+        provider: database.provider,
         circuit: database.circuit,
         reason: database.reason,
+        primary: database.primary,
+        fallback: database.fallback,
       },
       stripe: {
         checkoutEnabled: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),

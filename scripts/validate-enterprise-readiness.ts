@@ -16,9 +16,9 @@ main().catch((error) => {
 async function main() {
   const gates: Gate[] = [];
 
-  const health = await getJson("/api/health") as {
+  const health = await getJson("/api/health?deep=1") as {
     configuration?: {
-      database?: { configured?: boolean; disabled?: boolean; reachable?: boolean; verifiedRead?: boolean; reason?: string | null; circuit?: { open?: boolean; reason?: string | null } };
+      database?: { configured?: boolean; disabled?: boolean; reachable?: boolean; verifiedRead?: boolean; verifiedWrite?: boolean; provider?: string; reason?: string | null; circuit?: { open?: boolean; reason?: string | null } };
       stripe?: { checkoutEnabled?: boolean; webhookEnabled?: boolean; appraisalPriceIdsConfigured?: { instant?: boolean; buyerReady?: boolean } };
     };
   };
@@ -27,8 +27,8 @@ async function main() {
 
   gates.push({
     name: "production_db_flow",
-    passed: Boolean(database?.configured && !database.disabled && database.reachable && database.verifiedRead && !database.circuit?.open),
-    detail: `configured=${Boolean(database?.configured)} disabled=${Boolean(database?.disabled)} reachable=${Boolean(database?.reachable)} verifiedRead=${Boolean(database?.verifiedRead)} circuitOpen=${Boolean(database?.circuit?.open)} reason=${database?.reason || database?.circuit?.reason || "none"}`,
+    passed: Boolean(database?.configured && !database.disabled && database.reachable && database.verifiedRead && database.verifiedWrite),
+    detail: `provider=${database?.provider || "none"} configured=${Boolean(database?.configured)} disabled=${Boolean(database?.disabled)} reachable=${Boolean(database?.reachable)} verifiedRead=${Boolean(database?.verifiedRead)} verifiedWrite=${Boolean(database?.verifiedWrite)} circuitOpen=${Boolean(database?.circuit?.open)} reason=${database?.reason || database?.circuit?.reason || "none"}`,
   });
 
   gates.push({
