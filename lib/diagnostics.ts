@@ -26,7 +26,15 @@ export function traceError(action: string, message: string, error: unknown, fiel
 }
 
 export function errorResponse(action: string, traceId: string, error: unknown, status = 500) {
-  traceError(action, "request failed", error, { traceId });
+  if (status >= 500) {
+    traceError(action, "request failed", error, { traceId });
+  } else {
+    trace(action, "request rejected", {
+      traceId,
+      status,
+      error: redactSensitiveText(error instanceof Error ? error.message : String(error)),
+    });
+  }
   return NextResponse.json(
     {
       ok: false,

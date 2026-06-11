@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { redactSensitiveText, traceError } from "@/lib/diagnostics";
+import { redactSensitiveText, trace, traceError } from "@/lib/diagnostics";
 import { SecurityError } from "@/lib/security/errors";
 
 export function jsonResponse(payload: unknown, init: ResponseInit = {}) {
@@ -11,9 +11,17 @@ export function jsonResponse(payload: unknown, init: ResponseInit = {}) {
 }
 
 export function secureErrorResponse(action: string, traceId: string, error: unknown, init: { fallbackStatus?: number; headers?: HeadersInit } = {}) {
-  traceError(action, "request failed", error, { traceId });
   const securityError = error instanceof SecurityError ? error : null;
   const status = securityError?.status ?? init.fallbackStatus ?? 500;
+  if (status >= 500) {
+    traceError(action, "request failed", error, { traceId });
+  } else {
+    trace(action, "request rejected", {
+      traceId,
+      status,
+      error: redactSensitiveText(error instanceof Error ? error.message : String(error)),
+    });
+  }
   const message = securityError ? securityError.message : status >= 500 ? "Unexpected server error." : "Request failed.";
 
   return jsonResponse(
