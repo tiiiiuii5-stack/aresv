@@ -31,6 +31,9 @@ export type EvidenceAdjustedScores = {
   securityScore: number;
   failureScore: number;
   productionReadinessScore: number;
+  confidence: number;
+  coverageRatio: number | null;
+  verdict: "FULL_REVIEW_READY" | "LIMITED_EVIDENCE" | "INSUFFICIENT_EVIDENCE" | "HIGH_RISK";
   riskLevel: "low" | "medium" | "high" | "critical";
   rawScores: {
     securityScore: number;
@@ -66,6 +69,9 @@ export function assessEvidenceCoverage(input: EvidenceCoverageInput): EvidenceCo
     if (level === "complete") {
       confidence = 90;
       scoreCap = 85;
+    }
+    if (coverageRatio != null && coverageRatio < 0.5) {
+      scoreCap = Math.min(scoreCap, 60);
     }
 
     const warnings = [];
@@ -158,6 +164,9 @@ export function applyEvidenceCoverageGate(
     securityScore,
     failureScore: clampScore(100 - securityScore),
     productionReadinessScore,
+    confidence: coverage.confidence,
+    coverageRatio: coverage.coverageRatio,
+    verdict: verdictForEvidenceAdjustedScore(productionReadinessScore, coverage),
     riskLevel: riskLevelForEvidenceAdjustedScore(productionReadinessScore, coverage),
     rawScores: {
       securityScore: clampScore(scores.securityScore),
@@ -166,6 +175,13 @@ export function applyEvidenceCoverageGate(
       riskLevel: String(scores.riskLevel || "unknown"),
     },
   };
+}
+
+function verdictForEvidenceAdjustedScore(score: number, coverage: EvidenceCoverageAssessment): EvidenceAdjustedScores["verdict"] {
+  if (score < 45) return "HIGH_RISK";
+  if (coverage.level === "thin" || coverage.confidence < 30) return "INSUFFICIENT_EVIDENCE";
+  if (coverage.level === "limited" || coverage.level === "partial" || coverage.confidence < 70) return "LIMITED_EVIDENCE";
+  return "FULL_REVIEW_READY";
 }
 
 function riskLevelForEvidenceAdjustedScore(score: number, coverage: EvidenceCoverageAssessment): EvidenceAdjustedScores["riskLevel"] {

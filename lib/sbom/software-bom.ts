@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-export type SbomDependencyScope = "dependencies" | "devDependencies" | "peerDependencies" | "optionalDependencies";
+export type SbomDependencyScope = "dependencies" | "devDependencies" | "peerDependencies" | "optionalDependencies" | "transitiveDependencies";
 
 export type SoftwareBillOfMaterialsComponent = {
   name: string;
@@ -51,9 +51,12 @@ export function generateSoftwareBillOfMaterials(input: GenerateSoftwareBillOfMat
   const generatedAt = input.generatedAt || new Date().toISOString();
   const files = splitSourceFiles(input.sourceCode);
   const manifestFiles = files.filter((file) => /(^|\/)package\.json$/i.test(file.path)).slice(0, 20);
-  const lockfilePresent = files.some((file) => /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb)$/i.test(file.path));
+  const lockfileFiles = files.filter((file) => /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb)$/i.test(file.path)).slice(0, 10);
+  const lockfilePresent = lockfileFiles.length > 0;
   const sourceHash = sha256(input.sourceCode);
-  const components = dedupeComponents(manifestFiles.flatMap((file) => componentsFromPackageJson(file)));
+  const manifestComponents = manifestFiles.flatMap((file) => componentsFromPackageJson(file));
+  const lockfileComponents = lockfileFiles.flatMap((file) => componentsFromLockfile(file, manifestComponents));
+  const components = dedupeComponents([...manifestComponents, ...lockfileComponents]);
   const packageManagers = packageManagersFor(manifestFiles);
   const directDependencyCount = components.filter((component) => component.scope === "dependencies" || component.scope === "peerDependencies" || component.scope === "optionalDependencies").length;
   const devDependencyCount = components.filter((component) => component.scope === "devDependencies").length;
@@ -84,6 +87,7 @@ export function generateSoftwareBillOfMaterials(input: GenerateSoftwareBillOfMat
       properties: [
         { name: "ventureos:sourceHash", value: sourceHash },
         { name: "ventureos:evidenceScope", value: "submitted-source-manifests" },
+        { name: "ventureos:lockfileCount", value: String(lockfileFiles.length) },
       ],
     },
     components: components.map((component) => ({
@@ -187,6 +191,64 @@ function componentsFromPackageJson(file: SourceFile): SoftwareBillOfMaterialsCom
   return components;
 }
 
+function componentsFromLockfile(file: SourceFile, manifestComponents: SoftwareBillOfMaterialsComponent[]): SoftwareBillOfMaterialsComponent[] {
+  if (!/(^|\/)package-lock\.json$/i.test(file.path)) return [];
+  const lock = parseJsonObject(file.content);
+  if (!lock) return [];
+
+  const directNames = new Set(manifestComponents.map((component) => component.name));
+  const rootPackage = objectValue(objectValue(lock.packages)[""]);
+  for (const scope of dependencyScopes) {
+    for (const name of Object.keys(objectValue(rootPackage[scope]))) directNames.add(name);
+  }
+
+  const components: SoftwareBillOfMaterialsComponent[] = [];
+  const packages = objectValue(lock.packages);
+  for (const [packagePath, rawPackage] of Object.entries(packages)) {
+    if (!packagePath.startsWith("node_modules/")) continue;
+    const packageInfo = objectValue(rawPackage);
+    const version = String(packageInfo.version || "").trim();
+    if (!version) continue;
+    const name = packageNameFromNodeModulesPath(packagePath);
+    if (!name) continue;
+    const dev = Boolean(packageInfo.dev);
+    const scope: SbomDependencyScope = directNames.has(name)
+      ? dev ? "devDependencies" : "dependencies"
+      : "transitiveDependencies";
+    components.push({
+      name,
+      version,
+      scope,
+      manifestPath: file.path,
+      packageManager: "npm",
+      purl: packageUrlFor(name, version),
+      bomRef: `pkg:${sha256(`${file.path}:${scope}:${name}:${version}`).slice(0, 20)}`,
+    });
+  }
+
+  const legacyDependencies = objectValue(lock.dependencies);
+  for (const [name, rawPackage] of Object.entries(legacyDependencies)) {
+    const packageInfo = objectValue(rawPackage);
+    const version = String(packageInfo.version || "").trim();
+    if (!version) continue;
+    const dev = Boolean(packageInfo.dev);
+    const scope: SbomDependencyScope = directNames.has(name)
+      ? dev ? "devDependencies" : "dependencies"
+      : "transitiveDependencies";
+    components.push({
+      name,
+      version,
+      scope,
+      manifestPath: file.path,
+      packageManager: "npm",
+      purl: packageUrlFor(name, version),
+      bomRef: `pkg:${sha256(`${file.path}:legacy:${scope}:${name}:${version}`).slice(0, 20)}`,
+    });
+  }
+
+  return components;
+}
+
 function packageManagersFor(files: SourceFile[]) {
   const managers = files.map((file) => packageManagerFor(parseJsonObject(file.content) || {}));
   return [...new Set(managers.filter(Boolean))].slice(0, 5);
@@ -217,15 +279,19 @@ function riskFlagsFor(input: { components: SoftwareBillOfMaterialsComponent[]; m
   }
   if (!input.components.length) flags.push("Package manifest was observed, but no dependency sections were found.");
   if (!input.lockfilePresent) flags.push("Lockfile evidence was not included; transitive dependency versions could not be confirmed.");
+  if (input.lockfilePresent && !input.components.some((component) => component.scope === "transitiveDependencies")) {
+    flags.push("Lockfile was observed, but no transitive dependency packages were extracted.");
+  }
   if (input.components.length > 75) flags.push("Large dependency surface observed; supply-chain review should be prioritized.");
   if (input.components.some((component) => rangedVersion(component.version))) flags.push("Ranged dependency specs observed; exact installed versions require lockfile or build evidence.");
   return flags;
 }
 
 function limitationsFor(input: { status: SoftwareBillOfMaterialsEvidence["status"]; lockfilePresent: boolean }) {
-  const limitations = ["Built-in SBOM extraction is based on submitted manifests only; it does not execute package managers or inspect deployed containers."];
+  const limitations = ["Built-in SBOM extraction is based on submitted manifests and lockfiles; it does not execute package managers or inspect deployed containers."];
   if (input.status === "not_found") limitations.push("No supported package manifest was present in the submitted evidence.");
   if (!input.lockfilePresent) limitations.push("Transitive dependencies and exact resolved versions require lockfile, build artifact, or CI-generated SBOM evidence.");
+  if (input.lockfilePresent) limitations.push("Lockfile packages were parsed from submitted evidence; deployed container contents were not independently inspected.");
   return limitations;
 }
 
@@ -241,6 +307,15 @@ function packageUrlFor(name: string, version: string) {
     : encodeURIComponent(name);
   const exact = exactVersion(version);
   return exact ? `pkg:npm/${encodedName}@${encodeURIComponent(exact)}` : `pkg:npm/${encodedName}?requested=${encodeURIComponent(version)}`;
+}
+
+function packageNameFromNodeModulesPath(packagePath: string) {
+  const parts = packagePath.split("/").filter(Boolean);
+  const nodeModulesIndex = parts.lastIndexOf("node_modules");
+  const first = parts[nodeModulesIndex + 1] || "";
+  const second = parts[nodeModulesIndex + 2] || "";
+  if (!first) return "";
+  return first.startsWith("@") && second ? `${first}/${second}` : first;
 }
 
 function exactVersion(value: string) {

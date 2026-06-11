@@ -14,6 +14,11 @@ export const dynamic = "force-dynamic";
 const productEventRateLimit = { name: "product-events", limit: 120, windowMs: 60_000 };
 
 const allowedEvents = new Set([
+  "preview_started",
+  "preview_completed",
+  "checkout_started",
+  "report_generated",
+  "report_opened",
   "free_review.view",
   "free_review.scan_started",
   "free_review.scan_completed",
