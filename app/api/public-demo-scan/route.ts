@@ -10,6 +10,7 @@ import {
   secureErrorResponse,
 } from "@/lib/security/backendSecurity";
 import { loadPublicGitHubRepositorySource } from "@/lib/repositories/public-github-source";
+import { applyEvidenceCoverageGate, assessEvidenceCoverage } from "@/lib/scanner/evidence-coverage-gate";
 import { ventureOSIntelligenceService } from "@/lib/services/intelligenceAnalysis";
 import { generateSoftwareBillOfMaterials } from "@/lib/sbom/software-bom";
 import { compileTrust } from "@/lib/trust/compiler";
@@ -17,7 +18,7 @@ import { compileTrust } from "@/lib/trust/compiler";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_DEMO_CODE_LENGTH = 6_000;
+const MAX_DEMO_CODE_LENGTH = 40_000;
 
 export async function GET() {
   return jsonResponse({
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       repositoryUrl?: unknown;
       repoUrl?: unknown;
       repository?: unknown;
-    }>(request, { maxBytes: 32_000 });
+    }>(request, { maxBytes: 80_000 });
     const repositoryUrl = cleanText(body.repositoryUrl || body.repoUrl || body.repository, 260);
     const repositorySource = repositoryUrl
       ? await loadPublicGitHubRepositorySource({ repositoryUrl, maxChars: MAX_DEMO_CODE_LENGTH, maxFiles: 24, maxFileBytes: 80_000 })
@@ -78,6 +79,30 @@ export async function POST(request: NextRequest) {
         sandbox: scanInput.sandbox,
       },
     });
+    const evidenceCoverage = assessEvidenceCoverage({
+      inputSource: repositorySource ? "public_github_repository" : "pasted_code",
+      inputLength: scanInput.appCode.length,
+      inputLimit: MAX_DEMO_CODE_LENGTH,
+      inputTruncated: scanInput.inputTruncated,
+      repository: repositorySource ? {
+        filesLoaded: repositorySource.filesLoaded,
+        totalFilesDiscovered: repositorySource.totalFilesDiscovered,
+        truncated: repositorySource.truncated,
+      } : null,
+    });
+    const adjustedScores = applyEvidenceCoverageGate({
+      securityScore: result.securityScore,
+      failureScore: result.failureScore,
+      productionReadinessScore: result.productionReadinessScore,
+      riskLevel: result.riskLevel,
+    }, evidenceCoverage);
+    const evidenceWarnings = evidenceCoverage.warnings.map((warning) => ({
+      title: "Evidence coverage limit",
+      severity: evidenceCoverage.level === "thin" ? "high" : "medium",
+      category: "evidence",
+      evidence: warning,
+      fixSuggestion: "Use the paid report flow, GitHub App connection, upload, or CI-generated SBOM to increase coverage.",
+    }));
 
     return jsonResponse({
       ok: true,
@@ -98,16 +123,18 @@ export async function POST(request: NextRequest) {
         warnings: repositorySource.warnings,
       } : null,
       securityWarnings: scanInput.promptInjectionSignals,
+      evidenceCoverage,
       sbom: sbomResponse(sbom),
       sandbox: scanInput.sandbox,
-      securityScore: result.securityScore,
-      failureScore: result.failureScore,
-      productionReadinessScore: result.productionReadinessScore,
+      securityScore: adjustedScores.securityScore,
+      failureScore: adjustedScores.failureScore,
+      productionReadinessScore: adjustedScores.productionReadinessScore,
+      rawScores: adjustedScores.rawScores,
       launchReadinessScore: result.launchReadinessScore,
-      riskLevel: result.riskLevel,
+      riskLevel: adjustedScores.riskLevel,
       severityBreakdown: result.severityBreakdown,
-      issues: result.issues.slice(0, 5),
-      recommendations: result.recommendations.slice(0, 5),
+      issues: [...evidenceWarnings, ...result.issues].slice(0, 5),
+      recommendations: [...evidenceCoverage.warnings, ...result.recommendations].slice(0, 5),
       externalIntelligence: {
         engine: result.externalIntelligence.engine,
         networkAccess: result.externalIntelligence.networkAccess,

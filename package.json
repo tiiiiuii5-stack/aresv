@@ -31,6 +31,7 @@
     "test:global-benchmark": "tsx scripts/validate-global-benchmark.ts",
     "test:ai-scanner": "tsx scripts/validate-ai-app-scanner.ts",
     "test:phantom-api": "tsx scripts/validate-phantom-api-regression.ts",
+    "test:evidence-coverage": "tsx scripts/validate-evidence-coverage-gate.ts",
     "test:intelligence-precision": "tsx scripts/validate-intelligence-precision.ts",
     "test:scan-evolution": "tsx scripts/validate-scan-evolution-loop.ts",
     "test:github-integration": "tsx scripts/validate-github-integration.ts",

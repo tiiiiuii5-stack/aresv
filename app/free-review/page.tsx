@@ -22,6 +22,22 @@ type ReviewResult = {
   ok?: boolean;
   inputLimit?: number;
   inputTruncated?: boolean;
+  rawScores?: {
+    securityScore?: number;
+    failureScore?: number;
+    productionReadinessScore?: number;
+    riskLevel?: string;
+  };
+  evidenceCoverage?: {
+    level?: string;
+    confidence?: number;
+    coverageRatio?: number | null;
+    filesLoaded?: number | null;
+    totalFilesDiscovered?: number | null;
+    scoreCap?: number;
+    scoreCapped?: boolean;
+    warnings?: string[];
+  };
   securityScore?: number;
   failureScore?: number;
   productionReadinessScore?: number;
@@ -342,6 +358,20 @@ export default function FreeReviewPage() {
                   <p className="text-xs font-black uppercase tracking-normal text-slate-500">Decision</p>
                   <h3 className="mt-2 text-2xl font-black text-white">{decision.title}</h3>
                   <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">{decision.detail}</p>
+                  {result.evidenceCoverage ? (
+                    <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-sm font-semibold leading-6 text-amber-50">
+                      <p className="font-black uppercase">Evidence confidence: {Number(result.evidenceCoverage.confidence || 0)}/100</p>
+                      <p className="mt-1">
+                        Coverage is {String(result.evidenceCoverage.level || "limited")}
+                        {typeof result.evidenceCoverage.scoreCap === "number" ? `, so preview scores are capped at ${result.evidenceCoverage.scoreCap}/100.` : "."}
+                      </p>
+                      {result.rawScores?.productionReadinessScore && result.rawScores.productionReadinessScore > readiness ? (
+                        <p className="mt-1 text-xs text-amber-100/85">
+                          Raw scanner readiness was {result.rawScores.productionReadinessScore}/100 before evidence coverage was applied.
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {result.repositorySource ? (
                     <p className="mt-3 rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-3 text-sm font-semibold leading-6 text-cyan-50">
                       Evidence read: {result.repositorySource.filesLoaded || 0} of {result.repositorySource.totalFilesDiscovered || 0} repo files from {result.repositorySource.owner}/{result.repositorySource.repo}.
