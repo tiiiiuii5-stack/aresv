@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "VentureOS Software Passport Registry",
-  description: "Search public VentureOS software passports, trust records, Signed Verification Badges, and verification history.",
+  description: "Search public VentureOS software evidence records, trust records, signed evidence receipts, and review history.",
 };
 
 export default async function VentureOSRegistryPage({
@@ -51,7 +51,7 @@ export default async function VentureOSRegistryPage({
               </div>
               <h1 className="mt-5 vos-h1">The public identity layer for software trust.</h1>
               <p className="mt-4 max-w-3xl vos-body">
-                Search software passports by identity, badge, organization, repository, or domain. Each record links trust status, evidence history, Signed Verification Badges, and a permanent public passport.
+                Search software evidence records by identity, receipt, organization, repository, or domain. Each record links trust status, evidence history, signed evidence receipts, and a permanent public record.
               </p>
             </div>
             <div className="grid grid-cols-2">

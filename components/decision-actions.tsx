@@ -97,8 +97,8 @@ export function GenerateLaunchReportButton({
       setState("success");
       showToast({
         type: "success",
-        title: "Verified report generated",
-        description: "Opening the public Signed Verification Badge.",
+        title: "Evidence review generated",
+        description: "Opening the public signed evidence receipt.",
       });
       if (certificateUrl) window.location.assign(certificateUrl);
     } catch (error) {
@@ -106,7 +106,7 @@ export function GenerateLaunchReportButton({
       showToast({
         type: "error",
         title: "Report failed",
-        description: error instanceof Error ? error.message : "Unable to generate this verified report.",
+        description: error instanceof Error ? error.message : "Unable to generate this evidence review.",
       });
     } finally {
       window.setTimeout(() => setState("idle"), 1800);
@@ -114,7 +114,7 @@ export function GenerateLaunchReportButton({
   }
 
   return (
-    <Button type="button" variant="default" size="lg" onClick={generate} disabled={disabled} aria-disabled={unavailable || disabled} title={disabledReason || "Generate a VentureOS verified report from latest scan evidence."}>
+    <Button type="button" variant="default" size="lg" onClick={generate} disabled={disabled} aria-disabled={unavailable || disabled} title={disabledReason || "Generate a VentureOS evidence review from latest scan evidence."}>
       {state === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
       Generate Report
     </Button>

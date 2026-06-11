@@ -36,7 +36,7 @@ export function buildAppraisalUrls(publicId: string) {
 
 export function buildBadgeEmbed(summary: Pick<AppraisalPublicSummary, "publicId" | "appName">) {
   const urls = buildAppraisalUrls(summary.publicId);
-  return `<a href="${escapeAttribute(urls.certificateUrl)}" rel="noopener" target="_blank"><img src="${escapeAttribute(urls.badgeUrl)}" alt="VentureOS verified report badge for ${escapeAttribute(summary.appName)}" /></a>`;
+  return `<a href="${escapeAttribute(urls.certificateUrl)}" rel="noopener" target="_blank"><img src="${escapeAttribute(urls.badgeUrl)}" alt="VentureOS signed evidence receipt for ${escapeAttribute(summary.appName)}" /></a>`;
 }
 
 export function buildBadgeSvg(input: {
@@ -54,7 +54,7 @@ export function buildBadgeSvg(input: {
   const leftWidth = width - rightWidth;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="40" role="img" aria-label="VentureOS ${escapeXml(label)} verified report badge">
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="40" role="img" aria-label="VentureOS ${escapeXml(label)} evidence receipt badge">
   <title>VentureOS ${escapeXml(label)} - ${escapeXml(input.appName)}</title>
   <linearGradient id="vos-badge-bg" x2="100%" y2="0">
     <stop offset="0" stop-color="${tone.left}"/>

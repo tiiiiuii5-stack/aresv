@@ -4,8 +4,8 @@ const sections = [
   {
     title: "Service",
     items: [
-      "VentureOS provides software scans, verified system reports, signed attestations, evidence receipts, immutable evidence packs, and related technical diligence outputs.",
-      "Outputs are evidence summaries and technical analysis. They are not legal, investment, accounting, security certification, or compliance certification advice.",
+      "VentureOS provides software scans, evidence-scoped reviews, signed evidence receipts, immutable evidence packs, and related technical diligence outputs.",
+      "Outputs are evidence summaries and technical analysis. They are not legal, investment, accounting, security audit, security certification, or compliance certification advice.",
     ],
   },
   {
@@ -17,20 +17,20 @@ const sections = [
     ],
   },
   {
-    title: "Reports and signed attestations",
+    title: "Reviews and signed receipts",
     items: [
-      "Scores and verdicts are limited by submitted evidence scope.",
+      "Scores, verdicts, and conclusions are limited by submitted evidence scope.",
       "Unknowns and not-claimed sections are part of the report and must not be removed when representing VentureOS output.",
-      "Public attestation verification confirms signed payload integrity and registry consistency where available; it does not prove legal ownership or compliance certification.",
+      "Public receipt verification confirms signed payload integrity and registry consistency where available; it does not prove legal ownership, production security, or compliance certification.",
     ],
   },
   {
     title: "Report pricing",
     items: [
-      "Free Review: $0 limited preview without signed attestation.",
-      "Verified System Report: $49.",
-      "Buyer-Ready Verified Report: $199.",
-      "CTO-assisted review: scoped separately, currently $750-$1,500.",
+      "Free Review: $0 limited preview.",
+      "Evidence Review Report: $0 during launch.",
+      "Buyer Evidence Review: $0 during launch.",
+      "CTO-assisted review: scoped separately and currently free during launch.",
       "Refund handling is described in the Refund Policy.",
     ],
   },
@@ -45,7 +45,7 @@ export default function TermsPage() {
     <InstitutionalPageShell purposeLabel="Terms" maxWidth="max-w-5xl" actions={[{ label: "Privacy", href: "/privacy", variant: "outline" }, { label: "Refunds", href: "/refund", variant: "outline" }]}>
       <div className="grid gap-5">
         <InstitutionalPanel eyebrow="Legal" title="Terms of Service">
-          <p className="vos-body">Effective date: June 8, 2026. These terms are written for the current VentureOS verified report and evidence platform.</p>
+          <p className="vos-body">Effective date: June 8, 2026. These terms are written for the current VentureOS evidence review and receipt platform.</p>
         </InstitutionalPanel>
         {sections.map((section) => (
           <InstitutionalPanel key={section.title} title={section.title}>

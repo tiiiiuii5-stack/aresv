@@ -43,6 +43,18 @@ type ReviewResult = {
     truncated?: boolean;
     warnings?: string[];
   } | null;
+  sbom?: {
+    status?: string;
+    completeness?: string;
+    bomHash?: string;
+    manifestCount?: number;
+    componentCount?: number;
+    directDependencyCount?: number;
+    devDependencyCount?: number;
+    packageManagers?: string[];
+    riskFlags?: string[];
+    componentsPreview?: Array<{ name?: string; version?: string; scope?: string }>;
+  } | null;
 };
 
 const starterCode = `// app/api/projects/[id]/route.ts
@@ -374,6 +386,7 @@ export default function FreeReviewPage() {
                   ))}
                 </FindingPanel>
               </div>
+              <DependencyHealthPanel sbom={result.sbom} />
             </div>
           ) : (
             <div className="mt-5 grid gap-3 md:grid-cols-3">
@@ -411,6 +424,45 @@ async function trackProductEvent(
   } catch {
     // Product telemetry must never block the review flow.
   }
+}
+
+function DependencyHealthPanel({ sbom }: { sbom?: ReviewResult["sbom"] }) {
+  if (!sbom) return null;
+  const riskFlags = Array.isArray(sbom.riskFlags) ? sbom.riskFlags.slice(0, 3) : [];
+  const components = Array.isArray(sbom.componentsPreview) ? sbom.componentsPreview.slice(0, 6) : [];
+  return (
+    <div className="rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-normal text-cyan-100">Dependency health</p>
+          <h3 className="mt-2 text-2xl font-black text-white">SBOM preview</h3>
+          <p className="mt-2 text-sm font-semibold leading-6 text-cyan-50">
+            {Number(sbom.componentCount || 0)} component(s) from {Number(sbom.manifestCount || 0)} manifest(s). Completeness: {String(sbom.completeness || "unknown")}.
+          </p>
+        </div>
+        <span className="rounded-full border border-cyan-200/35 px-3 py-1 text-xs font-black uppercase text-cyan-50">{String(sbom.status || "unknown")}</span>
+      </div>
+      {riskFlags.length ? (
+        <div className="mt-4 grid gap-2">
+          {riskFlags.map((flag) => (
+            <p key={flag} className="rounded-md border border-cyan-200/20 bg-slate-950/40 px-3 py-2 text-sm font-semibold text-cyan-50">{flag}</p>
+          ))}
+        </div>
+      ) : null}
+      {components.length ? (
+        <details className="mt-4">
+          <summary className="cursor-pointer text-xs font-black uppercase tracking-normal text-cyan-100">View sampled components</summary>
+          <div className="mt-3 grid gap-1.5">
+            {components.map((component) => (
+              <p key={`${component.name}:${component.version}:${component.scope}`} className="font-mono text-xs font-semibold text-cyan-50/85">
+                {component.name}@{component.version} - {component.scope}
+              </p>
+            ))}
+          </div>
+        </details>
+      ) : null}
+    </div>
+  );
 }
 
 function ScoreMeter({ label, value, text = false }: { label: string; value: number | string; text?: boolean }) {

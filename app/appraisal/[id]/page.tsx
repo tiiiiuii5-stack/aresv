@@ -12,11 +12,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const appraisal = await loadPublicSoftwareAppraisal(decodeURIComponent(id || ""));
   if (!appraisal) {
     return {
-      title: "VentureOS Verified Report",
+      title: "VentureOS Evidence Review",
     };
   }
   return {
-    title: `${appraisal.appName} Verified System Report | VentureOS`,
+    title: `${appraisal.appName} Evidence Review Report | VentureOS`,
     description: `${appraisal.appName} is graded ${appraisal.grade} with a ${appraisal.launchVerdict.replace(/_/g, " ")} launch verdict.`,
   };
 }

@@ -15,6 +15,7 @@ import { loadPublicGitHubRepositorySource, type PublicGitHubRepositorySource } f
 import { enforceRateLimit } from "@/lib/security/backendSecurity";
 import { sanitizeMetadata } from "@/lib/services/platformSupport";
 import { ventureOSIntelligenceService } from "@/lib/services/intelligenceAnalysis";
+import { generateSoftwareBillOfMaterials, type SoftwareBillOfMaterialsEvidence } from "@/lib/sbom/software-bom";
 import { compileTrust, readCompiledJson } from "@/lib/trust/compiler";
 import type { ProjectRecord } from "@/lib/project-store";
 
@@ -64,6 +65,11 @@ export async function POST(request: NextRequest) {
         error: "Paste or upload at least 80 characters of source code for the appraisal.",
       }, { status: 400 });
     }
+    const sbom = generateSoftwareBillOfMaterials({
+      sourceCode: code,
+      appName,
+      repositoryUrl: repositorySource?.canonicalUrl || repoUrl || undefined,
+    });
 
     const db = getPrisma();
     const userId = db ? await ensureCheckoutUser(checkout.userId, checkout.ownerEmail) : checkout.userId;
@@ -138,6 +144,7 @@ export async function POST(request: NextRequest) {
             totalFilesDiscovered: repositorySource.totalFilesDiscovered,
             truncated: repositorySource.truncated,
           } : null,
+          sbom,
           codeHash: hashValue(code),
         }),
         validationResults: {
@@ -147,6 +154,8 @@ export async function POST(request: NextRequest) {
           repositorySource: repositorySource ? "public_github_loaded" : "not_used",
           repositoryFilesLoaded: repositorySource?.filesLoaded || 0,
           repositoryInputTruncated: repositorySource?.truncated || false,
+          sbomStatus: sbom.status,
+          sbomComponents: sbom.componentCount,
         },
       }), 30_000);
     if (paymentRequired && db) {
@@ -173,6 +182,7 @@ export async function POST(request: NextRequest) {
         repoUrl,
         code,
         repositorySource,
+        sbom,
       }), { status: 201 });
     }
 
@@ -244,6 +254,7 @@ export async function POST(request: NextRequest) {
           vulnerabilityCount: analysis.externalIntelligence.vulnerabilities.length,
           limitations: analysis.externalIntelligence.limitations.slice(0, 5),
         },
+        sbom: sbomResponse(sbom),
       },
       appraisal,
       certificate,
@@ -367,6 +378,7 @@ function createFreeAppraisalResult(input: {
   repoUrl: string;
   code: string;
   repositorySource: PublicGitHubRepositorySource | null;
+  sbom: SoftwareBillOfMaterialsEvidence;
 }) {
   const origin = canonicalAppUrl().replace(/\/+$/, "");
   const score = Math.max(0, Math.min(100, Math.round(Number(input.analysis.productionReadinessScore || 0))));
@@ -377,6 +389,9 @@ function createFreeAppraisalResult(input: {
   const verifiedClaims = [
     input.repositorySource ? `Public GitHub repository loaded with ${filesLoaded} source file(s).` : "Submitted source code was analyzed.",
     `Readiness scan completed with ${issueCount} returned issue(s).`,
+    input.sbom.status !== "not_found"
+      ? `SBOM generated from ${input.sbom.manifestCount} package manifest(s) with ${input.sbom.componentCount} component(s).`
+      : "SBOM generation ran, but no supported dependency manifest was observed.",
     "Free launch-mode report generated without payment.",
   ];
   const unknowns = [
@@ -386,7 +401,8 @@ function createFreeAppraisalResult(input: {
   ];
   const unverifiedClaims = [
     "This is not a legal, SOC 2, financial, or independent audit certification.",
-    "The Signed Verification Badge is evidence-scoped to submitted source only.",
+    "The signed evidence receipt is scoped to submitted source only.",
+    ...input.sbom.limitations.slice(0, 2),
   ];
   const grade = score >= 85 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : "Review";
   const launchVerdict = score >= 80 ? "READY WITH STANDARD REVIEW" : score >= 65 ? "REVIEW BEFORE LAUNCH" : "REMEDIATION RECOMMENDED";
@@ -418,6 +434,7 @@ function createFreeAppraisalResult(input: {
         vulnerabilityCount: input.analysis.externalIntelligence?.vulnerabilities?.length || 0,
         limitations: (input.analysis.externalIntelligence?.limitations || []).slice(0, 5),
       },
+      sbom: sbomResponse(input.sbom),
     },
     appraisal: {
       id: publicId,
@@ -426,7 +443,7 @@ function createFreeAppraisalResult(input: {
       appraisalUrl: `${origin}/sample-appraisal`,
       certificateUrl: `${origin}/certificate/${encodeURIComponent(certificateId)}`,
       badgeUrl: `${origin}/api/certificates/${encodeURIComponent(certificateId)}/badge.svg`,
-      badgeEmbedHtml: `<a href="${origin}/certificate/${certificateId}" rel="noopener" target="_blank"><img src="${origin}/api/certificates/${certificateId}/badge.svg" alt="VentureOS free verified report badge" /></a>`,
+      badgeEmbedHtml: `<a href="${origin}/certificate/${certificateId}" rel="noopener" target="_blank"><img src="${origin}/api/certificates/${certificateId}/badge.svg" alt="VentureOS signed evidence receipt badge" /></a>`,
       grade,
       launchVerdict,
       readinessScore: score,
@@ -441,6 +458,7 @@ function createFreeAppraisalResult(input: {
           unknowns,
           unverifiedClaims,
         },
+        sbom: input.sbom,
         unknowns,
         unverifiedClaims,
         technicalValue: {
@@ -455,6 +473,27 @@ function createFreeAppraisalResult(input: {
       verificationUrl: `${origin}/certificate/${encodeURIComponent(certificateId)}`,
       badgeUrl: `${origin}/api/certificates/${encodeURIComponent(certificateId)}/badge.svg`,
     },
+  };
+}
+
+function sbomResponse(sbom: SoftwareBillOfMaterialsEvidence) {
+  return {
+    engine: sbom.engine,
+    format: sbom.format,
+    specVersion: sbom.specVersion,
+    generatedAt: sbom.generatedAt,
+    bomHash: sbom.bomHash,
+    status: sbom.status,
+    completeness: sbom.completeness,
+    manifestCount: sbom.manifestCount,
+    componentCount: sbom.componentCount,
+    directDependencyCount: sbom.directDependencyCount,
+    devDependencyCount: sbom.devDependencyCount,
+    packageManagers: sbom.packageManagers,
+    riskFlags: sbom.riskFlags,
+    limitations: sbom.limitations,
+    componentsPreview: sbom.componentsPreview,
+    cyclonedx: sbom.cyclonedx,
   };
 }
 

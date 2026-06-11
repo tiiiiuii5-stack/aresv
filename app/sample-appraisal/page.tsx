@@ -67,17 +67,17 @@ const unknowns = [
 const notClaimed = [
   "Market-backed company valuation.",
   "Large proprietary benchmark percentile.",
-  "Guaranteed production uptime.",
+  "Production uptime guarantee.",
 ];
 
-const sampleBadgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="40" role="img" aria-label="VentureOS sample verified report badge"><rect width="300" height="40" rx="8" fill="#0f172a"/><rect x="1" y="1" width="298" height="38" rx="7" fill="none" stroke="#34d399"/><text x="14" y="25" fill="#ecfdf5" font-family="Arial, sans-serif" font-size="13" font-weight="700">VentureOS Verified Report</text><text x="220" y="25" fill="#fbbf24" font-family="Arial, sans-serif" font-size="13" font-weight="700">RISKY</text></svg>`;
-const badgeEmbed = `<a href="https://ventureos-intelligence-layer.vercel.app/sample-appraisal" rel="noopener" target="_blank"><img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(sampleBadgeSvg)}" alt="VentureOS sample verified report badge" /></a>`;
+const sampleBadgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="40" role="img" aria-label="VentureOS sample evidence receipt badge"><rect width="300" height="40" rx="8" fill="#0f172a"/><rect x="1" y="1" width="298" height="38" rx="7" fill="none" stroke="#34d399"/><text x="14" y="25" fill="#ecfdf5" font-family="Arial, sans-serif" font-size="13" font-weight="700">VentureOS Evidence Review</text><text x="220" y="25" fill="#fbbf24" font-family="Arial, sans-serif" font-size="13" font-weight="700">RISKY</text></svg>`;
+const badgeEmbed = `<a href="https://ventureos-intelligence-layer.vercel.app/sample-appraisal" rel="noopener" target="_blank"><img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(sampleBadgeSvg)}" alt="VentureOS sample evidence receipt badge" /></a>`;
 
 export default function SampleAppraisalPage() {
   return (
     <InstitutionalPageShell
-      purposeLabel="Report + Signed Verification Badge"
-      actions={[{ label: "Build Report", href: "/software-appraisal", variant: "default" }]}
+      purposeLabel="Evidence Review + Signed Receipt"
+      actions={[{ label: "Build Review", href: "/software-appraisal", variant: "default" }]}
       maxWidth="max-w-[1280px]"
       breadcrumbs={[
         { label: "Home", href: "/" },
@@ -89,13 +89,13 @@ export default function SampleAppraisalPage() {
           href="/software-appraisal"
           className="print-hide fixed bottom-24 right-4 z-50 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-300 px-4 text-sm font-black text-slate-950 shadow-2xl shadow-black/35 transition hover:-translate-y-0.5 hover:bg-emerald-200 sm:right-6"
         >
-          Generate Your Own Report <ArrowRight className="h-4 w-4" />
+          Generate Your Own Review <ArrowRight className="h-4 w-4" />
         </Link>
         <BuyerJourneyStrip current="report" />
 
         <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Sample verified report</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Sample evidence review</p>
             <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
               Can this app ship?
             </h1>
@@ -103,18 +103,18 @@ export default function SampleAppraisalPage() {
               <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100">Answer</p>
               <p className="mt-2 text-4xl font-black text-white">Not yet.</p>
               <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-amber-50">
-                The app is commercially reviewable, but ownership, webhook, and deployment evidence must be tightened before this Signed Verification Badge should be used in a buyer process.
+                The app is commercially reviewable, but ownership, webhook, and deployment evidence must be tightened before this evidence review should be used in a buyer process.
               </p>
             </div>
           </div>
 
           <aside className="rounded-lg border border-slate-800 bg-slate-950 p-5">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Signed Verification Badge preview</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Signed Evidence Receipt preview</p>
             <div className="mt-4 overflow-hidden rounded-lg border border-emerald-300/25 bg-slate-900/70">
               <div className="border-b border-slate-800 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-mono text-[10px] font-black uppercase text-slate-500">Software Passport</p>
+                    <p className="font-mono text-[10px] font-black uppercase text-slate-500">Software Evidence Record</p>
                     <p className="mt-2 text-xl font-black text-white">Sample Asset</p>
                   </div>
                   <span className="rounded-md border border-amber-300/40 bg-amber-300/10 px-2.5 py-1 font-mono text-xs font-black text-amber-100">RISKY</span>
@@ -134,7 +134,7 @@ export default function SampleAppraisalPage() {
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <Metric label="Score" value="74/100" />
+              <Metric label="Confidence" value="Medium" />
               <Metric label="State" value="RISKY" />
               <Metric label="Grade" value="B" />
               <Metric label="Coverage" value="68/100" />
@@ -142,15 +142,15 @@ export default function SampleAppraisalPage() {
             <div className="mt-4 rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-4">
               <p className="flex items-center gap-2 text-sm font-black text-emerald-100">
                 <CheckCircle2 className="h-4 w-4" />
-                Signed badge issued after report
+                Signed receipt issued after review
               </p>
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">
-                Real badges include registry verification, payload signature status, and evidence scope.
+                Real receipts include registry match, payload signature status, and evidence scope.
               </p>
             </div>
             <div className="mt-4 grid gap-2">
               <Link href="/software-appraisal" className={buttonClassName({ className: "w-full" })}>
-                Build Your Verified Report <ArrowRight className="h-4 w-4" />
+                Build Your Evidence Review <ArrowRight className="h-4 w-4" />
               </Link>
               <CopyButton value={badgeEmbed} label="Copy sample badge" successMessage="Sample badge embed copied." />
             </div>
@@ -158,7 +158,7 @@ export default function SampleAppraisalPage() {
         </section>
 
         <section className="mb-5 grid gap-3 md:grid-cols-4">
-          <ReportSignal icon={<FileText className="h-4 w-4" />} label="Artifact" value="Signed report" />
+          <ReportSignal icon={<FileText className="h-4 w-4" />} label="Artifact" value="Signed review" />
           <ReportSignal icon={<ShieldCheck className="h-4 w-4" />} label="Evidence" value="Scoped claims" />
           <ReportSignal icon={<AlertTriangle className="h-4 w-4" />} label="Decision" value="Not yet" />
           <ReportSignal icon={<Lock className="h-4 w-4" />} label="Buyer use" value="Diligence ready" />
@@ -244,14 +244,14 @@ export default function SampleAppraisalPage() {
               <p className="flex gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-200" />Attach deployment env evidence before claiming production-ready.</p>
             </div>
             <Link href="/software-appraisal" className={buttonClassName({ className: "mt-5 w-full" })}>
-              Build Report
+              Build Review
             </Link>
           </div>
         </section>
         <StickyConversionBar
           eyebrow="Buyer-ready evidence"
-          title="Generate your own passport from real source evidence."
-          primaryLabel="Build Report"
+          title="Generate your own evidence review from real source evidence."
+          primaryLabel="Build Review"
           primaryHref="/software-appraisal"
           secondaryLabel="Free Review"
           secondaryHref="/free-review"

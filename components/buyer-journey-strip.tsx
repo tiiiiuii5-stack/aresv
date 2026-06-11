@@ -5,8 +5,8 @@ import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 
 const steps = [
   {
-    label: "Choose Report Type",
-    detail: "Free verified or buyer-ready",
+    label: "Choose Review Type",
+    detail: "Free evidence review or buyer package",
     href: "/software-appraisal",
     icon: ShieldCheck,
   },
@@ -23,8 +23,8 @@ const steps = [
     icon: FileText,
   },
   {
-    label: "Get Report",
-    detail: "Share report and badge",
+    label: "Get Review",
+    detail: "Share review and receipt",
     href: "/sample-appraisal",
     icon: ShieldCheck,
   },
@@ -32,7 +32,7 @@ const steps = [
 
 export function BuyerJourneyStrip({ current }: { current: "choose" | "evidence" | "review-pay" | "report" }) {
   return (
-    <nav aria-label="Verified report progress" className="vos-panel grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-4">
+    <nav aria-label="Evidence review progress" className="vos-panel grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-4">
       {steps.map((step, index) => {
         const active = stepKey(step.label) === current;
         const Icon = step.icon;
@@ -66,6 +66,6 @@ export function BuyerJourneyStrip({ current }: { current: "choose" | "evidence" 
 function stepKey(label: string) {
   if (label === "Provide Evidence") return "evidence";
   if (label === "Review & Generate") return "review-pay";
-  if (label === "Get Report") return "report";
+  if (label === "Get Review") return "report";
   return "choose";
 }

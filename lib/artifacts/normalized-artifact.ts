@@ -120,9 +120,11 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
   const unknowns = uniqueList([...coverage.unknowns, ...summary.unknowns]).slice(0, 6);
   const notClaimed = uniqueList([...coverage.unverifiedClaims, ...summary.unverifiedClaims]).slice(0, 6);
   const verifiedClaims = uniqueList(coverage.verifiedClaims).slice(0, 6);
+  const sbom = summary.sbom || null;
+  const sbomJson = sbom ? JSON.stringify(sbom.cyclonedx || sbom, null, 2) : "";
 
   return {
-    purposeLabel: "Verified System Report",
+    purposeLabel: "Evidence Review Report",
     assetName: summary.appName,
     assetId,
     statusLabel: summary.launchVerdict.replace(/_/g, " "),
@@ -131,9 +133,9 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
     trustRating,
     generatedAt: formatDate(summary.generatedAt),
     headerActions: compactActions([
-      { label: "Verification Registry", href: "/registry", variant: "outline" },
-      { label: "Passport", href: passportUrl, variant: "outline" },
-      certificateUrl ? { label: "Signed Verification Badge", href: certificateUrl, variant: "default" } : null,
+      { label: "Evidence Registry", href: "/registry", variant: "outline" },
+      { label: "Evidence Record", href: passportUrl, variant: "outline" },
+      certificateUrl ? { label: "Signed Evidence Receipt", href: certificateUrl, variant: "default" } : null,
     ]),
     trustOverview: {
       rating: trustRating,
@@ -143,11 +145,12 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
         { label: "Verdict", value: decision.answer, status: decision.status },
         { label: "Risk Exposure", value: riskExposure, status: statusForRisk(riskExposure) },
         { label: "Evidence", value: `${coverage.score}/100 ${coverage.level}`, status: statusForCoverage(coverage.score) },
+        { label: "Dependency Health", value: sbom ? `${sbom.componentCount} components` : "Not available", status: statusForSbom(sbom) },
         { label: "Registry", value: badgeLabelFor(summary.badgeState) },
-        { label: "Signed Verification Badge", value: verificationStatus, status: certificate ? "verified" : "risk" },
+        { label: "Signed Evidence Receipt", value: verificationStatus, status: certificate ? "verified" : "risk" },
       ],
       actions: compactActions([
-        certificateUrl ? { label: "Verify Badge", href: certificateUrl, variant: "default" } : null,
+        certificateUrl ? { label: "Open Receipt", href: certificateUrl, variant: "default" } : null,
         { label: "Copy Report Link", copyValue: publicReportUrl, copySuccessMessage: "Report link copied.", variant: "outline" },
       ]),
     },
@@ -164,6 +167,7 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
         { title: "Observed Evidence", items: verifiedClaims, status: "verified", fallback: "Stored public report evidence is available." },
         { title: "Unknowns", items: unknowns, status: "risk", fallback: "No unknowns were recorded for this artifact." },
         { title: "Not Claimed", items: notClaimed, status: "danger", fallback: "No unsupported claims were recorded." },
+        ...sbomEvidenceSections(sbom),
         ...sourceSections(evidenceSources, "Generate a new report to attach external evidence source statuses."),
       ],
     },
@@ -186,7 +190,10 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
         { label: "Technical Value Opinion", value: appraisalValue, status: summary.technicalValue.available === false ? "unknown" : "verified" },
         { label: "Repair Estimate", value: summary.repairCost.label, status: summary.repairCost.available === false ? "unknown" : "verified" },
         { label: "Value Basis", value: appraisalValue, status: summary.technicalValue.available === false ? "unknown" : "verified" },
+        { label: "SBOM Hash", value: sbom ? shortHash(sbom.bomHash) : "Not available", status: statusForSbom(sbom) },
+        { label: "SBOM Completeness", value: sbom ? sbom.completeness : "none", status: statusForSbom(sbom) },
       ],
+      actions: sbom ? [{ label: "Copy SBOM JSON", copyValue: sbomJson, copySuccessMessage: "SBOM JSON copied.", variant: "outline" }] : [],
     },
     timeline: {
       items: compactTimeline([
@@ -194,7 +201,7 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
           id: `${summary.publicId}:generated`,
           timestamp: formatDate(summary.generatedAt),
           type: "REPORT",
-          title: "Verified system report generated",
+          title: "Evidence review generated",
           status: decision.status,
           metrics: [
             { label: "Score", value: summary.readinessScore },
@@ -206,7 +213,7 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
               id: `${certificate.certificateId}:issued`,
               timestamp: formatDate(certificate.issuedAt),
               type: "ATTESTATION",
-              title: "Signed Verification Badge issued",
+              title: "Signed Evidence Receipt issued",
               status: "verified",
               href: certificateUrl || undefined,
               metrics: [{ label: "Status", value: certificate.status }],
@@ -217,16 +224,16 @@ export function normalizeAppraisalArtifact(appraisal: SoftwareAppraisal, certifi
     linkedArtifacts: {
       status: certificate ? "verified" : "risk",
       metadata: [
-        { label: "Passport", value: assetId },
-        { label: "Badge", value: badgePath },
+        { label: "Evidence Record", value: assetId },
+        { label: "Receipt Badge", value: badgePath },
         { label: "Disclaimer", value: summary.disclaimer },
       ],
       actions: [
-        { label: "Open Passport", href: passportUrl, variant: "default" },
+        { label: "Open Evidence Record", href: passportUrl, variant: "default" },
         certificateUrl
-          ? { label: "Verify Signed Verification Badge", href: certificateUrl, variant: "outline" }
+          ? { label: "Open Signed Evidence Receipt", href: certificateUrl, variant: "outline" }
           : { label: "Generate New Report", href: "/software-appraisal", variant: "outline" },
-        { label: "Copy Badge URL", copyValue: certificate?.badgeUrl || badgePath, copySuccessMessage: "Badge URL copied.", variant: "outline" },
+        { label: "Copy Receipt Badge URL", copyValue: certificate?.badgeUrl || badgePath, copySuccessMessage: "Receipt badge URL copied.", variant: "outline" },
       ],
     },
   };
@@ -240,7 +247,7 @@ export function normalizeCertificateArtifact(
   const payload = certificate.payload;
   const coverage = payload.evidenceCommitment.evidenceCoverage || fallbackEvidenceCoverage();
   const sourceStates = payload.evidenceCommitment.externalDataSources || [];
-  const badgeEmbed = `<a href="${certificate.verificationUrl}" rel="noopener" target="_blank"><img src="${certificate.badgeUrl}" alt="VentureOS Signed Verification Badge for ${payload.softwareAsset.name}" /></a>`;
+  const badgeEmbed = `<a href="${certificate.verificationUrl}" rel="noopener" target="_blank"><img src="${certificate.badgeUrl}" alt="VentureOS Signed Evidence Receipt for ${payload.softwareAsset.name}" /></a>`;
   const assetId = ventureOsIdForAsset({ publicAssetId: payload.softwareAsset.publicAssetId, createdAt: payload.issuedAt });
   const passportUrl = `/passport/${encodeURIComponent(assetId)}`;
   const appraisalUrl = `/appraisal/${encodeURIComponent(payload.appraisal.publicId)}`;
@@ -253,7 +260,7 @@ export function normalizeCertificateArtifact(
   const trustScoreLabel = trustScore > 0 ? "of 100" : "awaiting score";
 
   return {
-    purposeLabel: "Signed Verification Badge",
+    purposeLabel: "Signed Evidence Receipt",
     assetName: payload.softwareAsset.name,
     assetId,
     statusLabel: verification.valid ? "SIGNATURE VERIFIED" : "SIGNATURE FAILED",
@@ -262,10 +269,10 @@ export function normalizeCertificateArtifact(
     trustRating,
     generatedAt: formatDate(certificate.issuedAt),
     headerActions: [
-      { label: "Verification Registry", href: "/registry", variant: "outline" },
+      { label: "Evidence Registry", href: "/registry", variant: "outline" },
       { label: "Transparency", href: transparencyUrl, variant: "outline" },
-      { label: "Passport", href: passportUrl, variant: "outline" },
-      { label: "Verified Report", href: appraisalUrl, variant: "default" },
+      { label: "Evidence Record", href: passportUrl, variant: "outline" },
+      { label: "Evidence Review", href: appraisalUrl, variant: "default" },
     ],
     trustOverview: {
       rating: trustRating,
@@ -280,8 +287,8 @@ export function normalizeCertificateArtifact(
         { label: "Signing Key", value: certificate.signingKeyId },
       ],
       actions: [
-        { label: "Copy Verify Link", copyValue: certificate.verificationUrl, copySuccessMessage: "Verification link copied.", variant: "outline" },
-        { label: "Copy Badge Embed", copyValue: badgeEmbed, copySuccessMessage: "Badge embed copied.", variant: "outline" },
+        { label: "Copy Receipt Link", copyValue: certificate.verificationUrl, copySuccessMessage: "Receipt link copied.", variant: "outline" },
+        { label: "Copy Receipt Embed", copyValue: badgeEmbed, copySuccessMessage: "Receipt embed copied.", variant: "outline" },
       ],
     },
     evidenceCoverage: {
@@ -329,7 +336,7 @@ export function normalizeCertificateArtifact(
           id: `${certificate.certificateId}:issued`,
           timestamp: formatDate(certificate.issuedAt),
           type: "VERIFICATION",
-          title: "Signed Verification Badge issued",
+          title: "Signed Evidence Receipt issued",
           status: statusForCertificate(certificate.status),
           metrics: [{ label: "Status", value: certificate.status }],
         },
@@ -340,16 +347,16 @@ export function normalizeCertificateArtifact(
     linkedArtifacts: {
       status: chainStatusValue,
       metadata: [
-        { label: "Badge URL", value: certificate.badgeUrl },
-        { label: "Verified Report", value: payload.appraisal.publicId },
-        { label: "Signed Verification Badge", value: certificate.certificateId },
+        { label: "Receipt Badge URL", value: certificate.badgeUrl },
+        { label: "Evidence Review", value: payload.appraisal.publicId },
+        { label: "Signed Evidence Receipt", value: certificate.certificateId },
         { label: "Transparency Log", value: transparencyUrl },
       ],
       actions: [
-        { label: "Open Passport", href: passportUrl, variant: "default" },
-        { label: "Open Verified Report", href: appraisalUrl, variant: "outline" },
+        { label: "Open Evidence Record", href: passportUrl, variant: "default" },
+        { label: "Open Evidence Review", href: appraisalUrl, variant: "outline" },
         { label: "Open Transparency Log", href: transparencyUrl, variant: "outline" },
-        { label: "Copy Badge Embed", copyValue: badgeEmbed, copySuccessMessage: "Badge embed copied.", variant: "outline" },
+        { label: "Copy Receipt Embed", copyValue: badgeEmbed, copySuccessMessage: "Receipt embed copied.", variant: "outline" },
       ],
     },
   };
@@ -362,7 +369,7 @@ export function normalizePassportArtifact(passport: VentureOSPassport): Normaliz
   const scoreDelta = `${passport.improvement.delta >= 0 ? "+" : ""}${passport.improvement.delta}`;
 
   return {
-    purposeLabel: "Software Passport",
+    purposeLabel: "Software Evidence Record",
     assetName: asset.name,
     assetId: asset.ventureOsId,
     statusLabel: asset.status,
@@ -371,9 +378,9 @@ export function normalizePassportArtifact(passport: VentureOSPassport): Normaliz
     trustRating: asset.trustRating,
     generatedAt: formatDate(asset.lastVerification),
     headerActions: compactActions([
-      { label: "Verification Registry", href: "/registry", variant: "outline" },
-      asset.certificateUrl ? { label: "Signed Verification Badge", href: asset.certificateUrl, variant: "outline" } : null,
-      { label: "Verified Report", href: asset.appraisalUrl, variant: "default" },
+      { label: "Evidence Registry", href: "/registry", variant: "outline" },
+      asset.certificateUrl ? { label: "Signed Evidence Receipt", href: asset.certificateUrl, variant: "outline" } : null,
+      { label: "Evidence Review", href: asset.appraisalUrl, variant: "default" },
     ]),
     trustOverview: {
       rating: asset.trustRating,
@@ -387,8 +394,8 @@ export function normalizePassportArtifact(passport: VentureOSPassport): Normaliz
         { label: "Latest Event", value: latestEvent ? latestEvent.type : "None recorded" },
       ],
       actions: compactActions([
-        asset.certificateUrl ? { label: "Verify Badge", href: asset.certificateUrl, variant: "outline" } : null,
-        { label: "Open Verified Report", href: asset.appraisalUrl, variant: "default" },
+        asset.certificateUrl ? { label: "Open Receipt", href: asset.certificateUrl, variant: "outline" } : null,
+        { label: "Open Evidence Review", href: asset.appraisalUrl, variant: "default" },
       ]),
     },
     evidenceCoverage: {
@@ -404,7 +411,7 @@ export function normalizePassportArtifact(passport: VentureOSPassport): Normaliz
           items: [
             `Permanent asset ID ${asset.ventureOsId}`,
             `Public report ${asset.appraisalPublicId}`,
-            asset.certificateId ? `Signed Verification Badge ${asset.certificateId}` : "No Signed Verification Badge is attached.",
+            asset.certificateId ? `Signed Evidence Receipt ${asset.certificateId}` : "No Signed Evidence Receipt is attached.",
           ],
           status: asset.certificateId ? "verified" : "risk",
         },
@@ -446,15 +453,15 @@ export function normalizePassportArtifact(passport: VentureOSPassport): Normaliz
     linkedArtifacts: {
       status: statusForAsset(asset.status),
       metadata: [
-        { label: "Verified Report", value: asset.appraisalPublicId },
-        { label: "Signed Verification Badge", value: asset.certificateId || "Not issued" },
+        { label: "Evidence Review", value: asset.appraisalPublicId },
+        { label: "Signed Evidence Receipt", value: asset.certificateId || "Not issued" },
         { label: "Events", value: String(passport.timeline.length) },
         { label: "Score Change", value: scoreDelta, status: statusForTrend(passport.improvement.direction) },
       ],
       actions: compactActions([
-        { label: "Open Verified Report", href: asset.appraisalUrl, variant: "default" },
-        asset.certificateUrl ? { label: "Verify Badge", href: asset.certificateUrl, variant: "outline" } : null,
-        { label: "Search Verification Registry", href: "/registry", variant: "outline" },
+        { label: "Open Evidence Review", href: asset.appraisalUrl, variant: "default" },
+        asset.certificateUrl ? { label: "Open Receipt", href: asset.certificateUrl, variant: "outline" } : null,
+        { label: "Search Evidence Registry", href: "/registry", variant: "outline" },
       ]),
     },
   };
@@ -481,6 +488,31 @@ function sourceSections(sources: AppraisalEvidenceSource[], missingEvidence: str
     status: sourceStatus(source.status),
     items: compactStrings([source.evidence, source.checkedAt ? `Checked ${formatDate(source.checkedAt)}` : ""]),
   }));
+}
+
+function sbomEvidenceSections(sbom: SoftwareAppraisal["publicSummary"]["sbom"]): NormalizedArtifactEvidenceSection[] {
+  if (!sbom) {
+    return [
+      {
+        title: "SBOM / Dependency Health",
+        items: ["No SBOM dependency inventory is attached to this evidence record."],
+        status: "unknown",
+      },
+    ];
+  }
+  const recordedFlags = Array.isArray(sbom.riskFlags) ? sbom.riskFlags : [];
+  const riskFlags = recordedFlags.length ? recordedFlags : ["No SBOM-specific risk flags were recorded."];
+  return [
+    {
+      title: "SBOM / Dependency Health",
+      status: statusForSbom(sbom),
+      items: [
+        `${sbom.componentCount} component(s) from ${sbom.manifestCount} manifest(s).`,
+        `Completeness: ${sbom.completeness}.`,
+        ...riskFlags.slice(0, 4),
+      ],
+    },
+  ];
 }
 
 function historyItemFor(item: CertificateHistoryItem): NormalizedArtifactTimelineItem {
@@ -526,10 +558,10 @@ function passportRisks(passport: VentureOSPassport, riskExposure: string): Norma
   if (!asset.certificateId) {
     risks.push({
       id: "missing-certificate",
-      title: "No Signed Verification Badge attached",
+      title: "No Signed Evidence Receipt attached",
       severity: "Medium",
       category: "Verification",
-      summary: "The asset has a public report record, but no Signed Verification Badge is attached.",
+      summary: "The asset has a public report record, but no Signed Evidence Receipt is attached.",
       impact: "Issue badge",
     });
   }
@@ -592,6 +624,13 @@ function statusForCoverage(score: number): NormalizedArtifactStatus {
   if (score >= 85) return "verified";
   if (score >= 60) return "risk";
   return "danger";
+}
+
+function statusForSbom(sbom: SoftwareAppraisal["publicSummary"]["sbom"]): NormalizedArtifactStatus {
+  if (!sbom || sbom.status === "not_found") return "unknown";
+  const riskFlags = Array.isArray(sbom.riskFlags) ? sbom.riskFlags : [];
+  if (riskFlags.length > 0 || sbom.completeness === "limited") return "risk";
+  return "verified";
 }
 
 function statusForTrend(direction: VentureOSPassport["improvement"]["direction"]): NormalizedArtifactStatus {

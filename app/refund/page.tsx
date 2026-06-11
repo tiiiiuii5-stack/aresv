@@ -6,16 +6,16 @@ const policy = [
     items: ["Free reviews cost $0 and do not issue refunds, signed attestations, or buyer-ready reports."],
   },
   {
-    title: "Verified System Reports",
+    title: "Evidence Review Reports",
     items: [
-      "The Verified System Report is currently free, so no refund is required.",
+      "The Evidence Review Report is currently free, so no refund is required.",
       "It is not refundable after a signed attestation or public report has been issued, unless required by law or approved by support.",
     ],
   },
   {
-    title: "Buyer-ready verified reports",
+    title: "Buyer Evidence Reviews",
     items: [
-      "The Buyer-Ready Verified Report is currently free, so no refund is required.",
+      "The Buyer Evidence Review is currently free, so no refund is required.",
       "Once the report, signed attestation, or badge is issued, refunds are reviewed case by case because the evidence work has been delivered.",
     ],
   },

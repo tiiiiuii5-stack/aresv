@@ -9,11 +9,11 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const certificate = await loadPublicCertificate(decodeURIComponent(id || ""));
-  if (!certificate) return { title: "VentureOS Signed Verification Badge" };
+  if (!certificate) return { title: "VentureOS Signed Evidence Receipt" };
 
   return {
-    title: `${certificate.payload.softwareAsset.name} Signed Verification Badge | VentureOS`,
-    description: `VentureOS Signed Verification Badge ${certificate.certificateId} for ${certificate.payload.softwareAsset.name}.`,
+    title: `${certificate.payload.softwareAsset.name} Signed Evidence Receipt | VentureOS`,
+    description: `VentureOS Signed Evidence Receipt ${certificate.certificateId} for ${certificate.payload.softwareAsset.name}.`,
   };
 }
 

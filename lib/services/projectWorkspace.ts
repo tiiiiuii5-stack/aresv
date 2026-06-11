@@ -4,6 +4,7 @@ import type { RegressionReport } from "@/lib/intelligence/regression-detection";
 import { tryDatabase } from "@/lib/prisma";
 import { getProject, type ProjectRecord } from "@/lib/project-store";
 import { sanitizeMetadata } from "@/lib/services/platformSupport";
+import type { SoftwareBillOfMaterialsEvidence } from "@/lib/sbom/software-bom";
 
 export type WorkspaceScan = {
   id: string;
@@ -25,6 +26,7 @@ export type WorkspaceScan = {
   sourceLength?: number | null;
   rawCodeStored?: boolean | null;
   inputTruncated?: boolean | null;
+  sbom?: SoftwareBillOfMaterialsEvidence | null;
   scanAssurance?: WorkspaceScanAssurance | null;
   assuranceGate?: WorkspaceAssuranceGate | null;
 };
@@ -516,6 +518,7 @@ function normalizeScans(rows: ScanRow[]): WorkspaceScan[] {
     sourceLength: sourceLengthFromMetadata(row.metadata),
     rawCodeStored: booleanOrNull(metadataValueFromPath(row.metadata, ["scanInput", "rawCodeStored"])),
     inputTruncated: booleanOrNull(metadataValueFromPath(row.metadata, ["scanInput", "inputTruncated"])),
+    sbom: sbomFromMetadata(row.metadata),
     scanAssurance: scanAssuranceFromMetadata(row.metadata),
     assuranceGate: assuranceGateFromMetadata(row.metadata),
   }));
@@ -813,6 +816,15 @@ function sourceLengthFromMetadata(metadata: unknown) {
   const value = metadataObject(metadata);
   const scanInput = metadataObject(value.scanInput);
   return numberFromUnknown(scanInput.sourceLength ?? scanInput.inputLength ?? value.sourceLength);
+}
+
+function sbomFromMetadata(metadata: unknown): SoftwareBillOfMaterialsEvidence | null {
+  const value = metadataObject(metadata);
+  const scanInput = metadataObject(value.scanInput);
+  const direct = metadataObject(value.sbom);
+  const nested = metadataObject(scanInput.sbom);
+  const candidate = direct.engine ? direct : nested;
+  return candidate.engine === "ventureos-built-in-sbom" ? candidate as unknown as SoftwareBillOfMaterialsEvidence : null;
 }
 
 function metadataValueFromPath(metadata: unknown, path: string[]) {

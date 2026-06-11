@@ -10,25 +10,25 @@ import { buttonClassName } from "@/components/ui/button";
 import { APPRAISAL_OFFERS } from "@/lib/appraisal/offers";
 
 const reportOutcomes = [
-  "Verified System Report",
-  "Signed Verification Badge",
+  "Evidence Review Report",
+  "Signed Evidence Receipt",
   "Immutable Evidence Pack",
-  "Verification Registry record",
+  "Public Evidence Record",
 ];
 
 const buyerQuestions = [
   "What evidence was reviewed?",
-  "What claims are verified?",
+  "What was observed vs inferred?",
   "What remains unknown?",
   "What risks matter first?",
-  "What can a third party verify?",
+  "What can a third party inspect?",
 ];
 
 const process = [
-  { title: "Choose Report Type", detail: "Select the verified snapshot or buyer-ready report. Both are free during launch." },
+  { title: "Choose Review Type", detail: "Select the quick evidence review or buyer evidence package. Both are free during launch." },
   { title: "Provide Evidence", detail: "Add a public repository, uploaded files, pasted source, and review context." },
   { title: "Review & Generate", detail: "Review the selected scope before issuing the report." },
-  { title: "Get Report", detail: "Receive the verified report, Signed Verification Badge, and verification link." },
+  { title: "Get Review", detail: "Receive the evidence review, signed evidence receipt, and public link." },
 ];
 
 const credibilityRules = [
@@ -44,7 +44,7 @@ export default function SoftwareAppraisalPage() {
 
   return (
     <InstitutionalPageShell
-      purposeLabel="Build Your Verified Report"
+      purposeLabel="Build Your Evidence Review"
       maxWidth="max-w-[1280px]"
       actions={[
         { label: "Free Review", href: "/free-review", variant: "outline" },
@@ -54,16 +54,16 @@ export default function SoftwareAppraisalPage() {
       breadcrumbs={[
         { label: "Home", href: "/" },
         { label: "Free Review", href: "/free-review" },
-        { label: "Build Your Verified Report" },
+        { label: "Build Your Evidence Review" },
       ]}
     >
       <BuyerJourneyStrip current="choose" />
       <section className="grid min-h-[620px] items-center gap-14 py-10 lg:grid-cols-[minmax(0,1fr)_480px]">
         <div>
-          <p className="vos-proof-mark">Verified Software Evidence</p>
-          <h1 className="mt-8 vos-display">Choose the free report that matches the buyer moment.</h1>
+          <p className="vos-proof-mark">Evidence-Scoped Software Review</p>
+          <h1 className="mt-8 vos-display">Choose the free review that matches the buyer moment.</h1>
           <p className="mt-8 vos-lede">
-            Start with the verified snapshot or use the buyer-ready report when a customer, acquirer, or auditor needs a deeper evidence package. Both are free during launch.
+            Start with the quick evidence review or use the buyer package when a customer, acquirer, or auditor needs a deeper view of facts, inferences, and unknowns. Both are free during launch.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Link href={`/appraisal-intake?offer=${verifiedReport.id}`} className={buttonClassName({ size: "lg", className: "w-full sm:w-auto" })}>
@@ -85,7 +85,7 @@ export default function SoftwareAppraisalPage() {
 
         <aside className="vos-report-preview p-8">
           <p className="vos-label">Recommended upgrade</p>
-          <h2 className="mt-4 vos-card-title">Buyer-Ready Verified Report</h2>
+          <h2 className="mt-4 vos-card-title">Buyer Evidence Review</h2>
           <p className="mt-6 text-5xl font-black text-[rgb(var(--vos-text))]">{buyerReport.priceLabel}</p>
           <p className="mt-5 vos-body">{buyerReport.description}</p>
           <div className="mt-8 grid gap-3">
@@ -107,7 +107,7 @@ export default function SoftwareAppraisalPage() {
           <OfferCard
             title="Free Review"
             price="$0"
-            description="Limited evidence preview for early feedback. No Signed Verification Badge or buyer-ready report."
+            description="Limited evidence preview for early feedback. No signed evidence receipt or buyer package."
             href="/free-review"
             action="Start Free Review"
             icon={FileText}
@@ -135,7 +135,7 @@ export default function SoftwareAppraisalPage() {
       <section className="vos-section grid gap-12 lg:grid-cols-[420px_minmax(0,1fr)]">
         <div>
           <p className="vos-label">Report Workflow</p>
-          <h2 className="mt-4 vos-section-title">A clear path from source evidence to signed evidence.</h2>
+          <h2 className="mt-4 vos-section-title">A clear path from source evidence to a signed receipt.</h2>
           <p className="mt-5 vos-lede">
             The intake flow is structured to collect enough context for a more defensible report while keeping the customer path understandable.
           </p>
@@ -173,7 +173,7 @@ export default function SoftwareAppraisalPage() {
       </section>
       <StickyConversionBar
         eyebrow="Step 3 of 4"
-        title="Choose the report level and submit evidence."
+        title="Choose the review level and submit evidence."
         primaryLabel="Start Free Buyer Intake"
         primaryHref={`/appraisal-intake?offer=${buyerReport.id}`}
         secondaryLabel="Start Free"

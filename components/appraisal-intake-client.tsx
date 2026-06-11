@@ -15,6 +15,7 @@ type PreviewResult = {
   score: number;
   riskLevel: string;
   issues: Array<{ title: string; severity: string }>;
+  sbom?: SbomResult | null;
 };
 
 type EvidenceCoverageResult = {
@@ -26,6 +27,23 @@ type EvidenceCoverageResult = {
   verifiedClaims?: string[];
   unknowns?: string[];
   unverifiedClaims?: string[];
+};
+
+type SbomResult = {
+  format?: string;
+  specVersion?: string;
+  bomHash?: string;
+  status?: string;
+  completeness?: string;
+  manifestCount?: number;
+  componentCount?: number;
+  directDependencyCount?: number;
+  devDependencyCount?: number;
+  packageManagers?: string[];
+  riskFlags?: string[];
+  limitations?: string[];
+  componentsPreview?: Array<{ name?: string; version?: string; scope?: string; manifestPath?: string; packageManager?: string; purl?: string }>;
+  cyclonedx?: Record<string, unknown>;
 };
 
 type MoneyRangeResult = {
@@ -47,6 +65,7 @@ type AppraisalResult = {
     readinessScore?: number;
     riskLevel?: string;
     issueCount?: number;
+    sbom?: SbomResult | null;
   };
   appraisal?: {
     publicId?: string;
@@ -63,6 +82,7 @@ type AppraisalResult = {
       unknowns?: string[];
       unverifiedClaims?: string[];
       technicalValue?: MoneyRangeResult;
+      sbom?: SbomResult | null;
     };
   };
   certificate?: {
@@ -115,7 +135,7 @@ export function AppraisalIntakeClient({
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [result, setResult] = useState<AppraisalResult | null>(null);
   const viewTracked = useRef(false);
-  const paid = true;
+  const accessGranted = true;
   const offer = useMemo(() => APPRAISAL_OFFERS.find((item) => item.id === offerId) || APPRAISAL_OFFERS[0], [offerId]);
   const codeReady = code.trim().length >= 80;
   const repoReady = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+/i.test(repoUrl.trim()) || /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repoUrl.trim());
@@ -171,9 +191,9 @@ export function AppraisalIntakeClient({
       source: "appraisal_intake",
       framework,
       repositoryUrl: repoUrl,
-      counts: { checkoutVerified: paid, hasInitialRepositoryUrl: Boolean(initialRepositoryUrl) },
+      counts: { accessGranted, hasInitialRepositoryUrl: Boolean(initialRepositoryUrl) },
     });
-  }, [framework, initialRepositoryUrl, paid, repoUrl]);
+  }, [accessGranted, framework, initialRepositoryUrl, repoUrl]);
 
   async function runPreview() {
     if (!sourceReady) {
@@ -205,6 +225,7 @@ export function AppraisalIntakeClient({
               severity: String(issue.severity || "unknown"),
             }))
           : [],
+        sbom: normalizeSbom(payload.sbom),
       });
       showToast({ type: "success", title: "Preview scan complete", description: "Preview generated from the submitted evidence sample." });
       await trackProductEvent("appraisal_intake.preview_completed", {
@@ -262,9 +283,9 @@ export function AppraisalIntakeClient({
         }),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Verified report could not be generated.");
+      if (!response.ok) throw new Error(payload.error || "Evidence review could not be generated.");
       setResult(payload);
-      showToast({ type: "success", title: "Signed Verification Badge issued", description: "Your VentureOS verified report is ready." });
+      showToast({ type: "success", title: "Signed Evidence Receipt issued", description: "Your VentureOS evidence review is ready." });
       await trackProductEvent("appraisal_intake.certificate_completed", {
         source: "appraisal_intake",
         framework,
@@ -277,7 +298,7 @@ export function AppraisalIntakeClient({
         },
       });
     } catch (error) {
-      showToast({ type: "error", title: "Report failed", description: error instanceof Error ? error.message : "Unable to generate verified report." });
+      showToast({ type: "error", title: "Review failed", description: error instanceof Error ? error.message : "Unable to generate evidence review." });
       await trackProductEvent("appraisal_intake.certificate_failed", {
         source: "appraisal_intake",
         framework,
@@ -309,10 +330,10 @@ export function AppraisalIntakeClient({
       <div className="vos-panel p-6 text-[rgb(var(--vos-text))]">
         <div className="flex flex-col gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="vos-label">Build Your Verified Report</p>
+            <p className="vos-label">Build Your Evidence Review</p>
             <h1 className="mt-3 vos-section-title">Paste a repo. Get the buyer output.</h1>
             <p className="mt-3 max-w-3xl vos-body">
-              VentureOS turns source evidence into a preview scan, buyer-ready report, and Signed Verification Badge. Keep it simple: source first, context second.
+              VentureOS turns source evidence into a preview scan, buyer-facing evidence review, and signed evidence receipt. Keep it simple: source first, context second.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex">
@@ -322,7 +343,7 @@ export function AppraisalIntakeClient({
             </Button>
             <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || !sourceReady}>
               {state === "appraising" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              Generate Report
+              Generate Review
             </Button>
           </div>
         </div>
@@ -345,7 +366,7 @@ export function AppraisalIntakeClient({
                 <span className="flex items-start justify-between gap-4">
                   <span>
                     <span className="block text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                      {buyerReady ? "Best for buyers" : "Fast verified snapshot"}
+                      {buyerReady ? "Best for buyers" : "Fast evidence review"}
                     </span>
                     <span className="mt-3 block text-2xl font-black text-white">{item.name}</span>
                   </span>
@@ -594,11 +615,12 @@ export function AppraisalIntakeClient({
           <h2 className="mt-3 text-2xl font-black text-white">What they get</h2>
           <div className="mt-5 grid gap-3">
             {[
-              "Buyer-ready scorecard",
+              "Buyer-facing evidence summary",
               "Quality and safety summary",
               "Risk findings with plain-English notes",
-              "Signed Verification Badge",
-              "Public verification link",
+              "Observed / inferred / unknown sections",
+              "Signed Evidence Receipt",
+              "Public evidence link",
             ].map((item) => (
               <p key={item} className="flex gap-2 text-sm font-bold text-slate-300">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />
@@ -608,7 +630,7 @@ export function AppraisalIntakeClient({
           </div>
         </div>
 
-        <FulfillmentSteps paid={paid} sourceReady={sourceReady} resultReady={Boolean(result)} state={state} />
+        <FulfillmentSteps accessGranted={accessGranted} sourceReady={sourceReady} resultReady={Boolean(result)} state={state} />
 
         <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Evidence strength</p>
@@ -639,7 +661,7 @@ export function AppraisalIntakeClient({
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-200">Next step</p>
           <p className="truncate text-sm font-black text-white">
-            {result ? "Report issued. Open or copy the verification links above." : sourceReady ? "Evidence is ready. Preview or issue the Signed Verification Badge." : "Add a public repo, upload files, or paste source evidence."}
+            {result ? "Evidence review issued. Open or copy the public links above." : sourceReady ? "Evidence is ready. Preview or issue the signed evidence receipt." : "Add a public repo, upload files, or paste source evidence."}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
@@ -649,7 +671,7 @@ export function AppraisalIntakeClient({
           </Button>
           <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || !sourceReady}>
             {state === "appraising" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            Generate Report
+            Generate Review
           </Button>
         </div>
       </div>
@@ -670,6 +692,7 @@ function ResultPanel({ preview }: { preview: PreviewResult | null }) {
           <p className="mt-3 text-4xl font-black text-white">{preview.score}/100</p>
           <p className="mt-1 text-sm font-black uppercase text-slate-400">{preview.riskLevel}</p>
           <p className="mt-2 text-xs font-semibold text-slate-500">Preview generated from the submitted evidence sample.</p>
+          <SbomSummaryCard sbom={preview.sbom} compact />
           <div className="mt-3 grid gap-2">
             {preview.issues.length ? preview.issues.map((issue) => (
               <p key={`${issue.severity}:${issue.title}`} className="rounded-md border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-sm text-amber-50">
@@ -679,7 +702,7 @@ function ResultPanel({ preview }: { preview: PreviewResult | null }) {
           </div>
         </>
       ) : (
-        <p className="mt-3 text-sm leading-6 text-slate-400">Run a preview before issuing the Signed Verification Badge. Preview uses a limited evidence sample.</p>
+        <p className="mt-3 text-sm leading-6 text-slate-400">Run a preview before issuing the signed evidence receipt. Preview uses a limited evidence sample.</p>
       )}
     </div>
   );
@@ -688,10 +711,11 @@ function ResultPanel({ preview }: { preview: PreviewResult | null }) {
 function CertificatePanel({ result }: { result: AppraisalResult | null }) {
   const appraisal = result?.appraisal;
   const summary = appraisal?.publicSummary;
+  const sbom = summary?.sbom || result?.scan?.sbom || null;
   const appraisalUrl = appraisal?.appraisalUrl || appraisal?.certificateUrl;
   const certificateUrl = result?.certificate?.verificationUrl;
   const badgeUrl = result?.certificate?.badgeUrl || appraisal?.badgeUrl;
-  const badgeEmbedHtml = appraisal?.badgeEmbedHtml || (badgeUrl && appraisalUrl ? `<a href="${appraisalUrl}" rel="noopener" target="_blank"><img src="${badgeUrl}" alt="VentureOS verified report badge" /></a>` : "");
+  const badgeEmbedHtml = appraisal?.badgeEmbedHtml || (badgeUrl && appraisalUrl ? `<a href="${appraisalUrl}" rel="noopener" target="_blank"><img src="${badgeUrl}" alt="VentureOS evidence receipt badge" /></a>` : "");
   const coverage = summary?.evidenceCoverage;
   const technicalValue = summary?.technicalValue || appraisal?.technicalValue;
 
@@ -709,21 +733,36 @@ function CertificatePanel({ result }: { result: AppraisalResult | null }) {
     showToast({ type: "success", title: "Report JSON downloaded." });
   }
 
+  function downloadSbom() {
+    if (!sbom) return;
+    const payload = sbom.cyclonedx || sbom;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${appraisal?.publicId || "ventureos"}-sbom.cyclonedx.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    showToast({ type: "success", title: "SBOM JSON downloaded." });
+  }
+
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
       <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
         <FileText className="h-4 w-4" />
-        Completed report
+        Completed evidence review
       </p>
       {result ? (
         <>
           <div className="mt-3 rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-3">
             <p className="flex items-center gap-2 text-sm font-black text-emerald-50">
               <CheckCircle2 className="h-4 w-4" />
-              Report generated successfully
+              Evidence review generated
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-emerald-100">
-              Your buyer-facing report, verification link, and badge tools are ready below.
+              Your buyer-facing evidence review, receipt link, and share tools are ready below.
             </p>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3">
@@ -752,13 +791,14 @@ function CertificatePanel({ result }: { result: AppraisalResult | null }) {
 
           {technicalValue?.available === false ? (
             <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-sm font-semibold text-amber-50">
-              Technical value is not claimed because no verified valuation dataset is configured.
+              Technical value is not claimed because no independently validated valuation dataset is configured.
             </div>
           ) : null}
 
           <ClaimList title="Observed evidence" items={coverage?.verifiedClaims || []} tone="ready" />
           <ClaimList title="Unknown" items={summary?.unknowns || coverage?.unknowns || []} tone="muted" />
           <ClaimList title="Not claimed" items={summary?.unverifiedClaims || coverage?.unverifiedClaims || []} tone="blocked" />
+          <SbomSummaryCard sbom={sbom} />
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {appraisalUrl ? (
@@ -768,12 +808,22 @@ function CertificatePanel({ result }: { result: AppraisalResult | null }) {
             ) : null}
             {certificateUrl ? (
               <a className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 text-sm font-black text-white" href={certificateUrl}>
-                Verify Badge <ArrowRight className="h-4 w-4" />
+                Open Receipt <ArrowRight className="h-4 w-4" />
               </a>
             ) : null}
             <CopyButton value={appraisalUrl || ""} label="Copy report link" successMessage="Report link copied." />
-            <CopyButton value={certificateUrl || ""} label="Copy verify link" successMessage="Verification link copied." />
-            <CopyButton value={badgeEmbedHtml || ""} label="Copy badge embed" successMessage="Badge embed copied." className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 text-sm font-black text-white transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-60" />
+            <CopyButton value={certificateUrl || ""} label="Copy receipt link" successMessage="Receipt link copied." />
+            <CopyButton value={badgeEmbedHtml || ""} label="Copy receipt embed" successMessage="Receipt embed copied." className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 text-sm font-black text-white transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-60" />
+            <CopyButton value={JSON.stringify(sbom?.cyclonedx || sbom || {}, null, 2)} label="Copy SBOM JSON" successMessage="SBOM JSON copied." className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 text-sm font-black text-white transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-60" />
+            <button
+              type="button"
+              onClick={downloadSbom}
+              disabled={!sbom}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 text-sm font-black text-white transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              Download SBOM
+            </button>
             <button
               type="button"
               onClick={downloadResult}
@@ -787,7 +837,7 @@ function CertificatePanel({ result }: { result: AppraisalResult | null }) {
       ) : (
         <p className="mt-3 flex items-start gap-2 text-sm leading-6 text-slate-400">
           <AlertTriangle className="mt-1 h-4 w-4 shrink-0 text-amber-200" />
-            Signed Verification Badge appears here after source review.
+            Signed Evidence Receipt appears here after source review.
         </p>
       )}
     </div>
@@ -795,27 +845,27 @@ function CertificatePanel({ result }: { result: AppraisalResult | null }) {
 }
 
 function FulfillmentSteps({
-  paid,
+  accessGranted,
   sourceReady,
   resultReady,
   state,
 }: {
-  paid: boolean;
+  accessGranted: boolean;
   sourceReady: boolean;
   resultReady: boolean;
   state: IntakeState;
 }) {
   const appraising = state === "appraising";
   const steps = [
-    { label: "Choose Report Type", done: true, active: false },
-    { label: "Provide Evidence", done: sourceReady, active: !sourceReady && paid },
-    { label: "Review & Generate", done: paid, active: false },
-    { label: "Get Report", done: resultReady, active: appraising },
+    { label: "Choose Review Type", done: true, active: false },
+    { label: "Provide Evidence", done: sourceReady, active: !sourceReady && accessGranted },
+    { label: "Review & Generate", done: accessGranted, active: false },
+    { label: "Get Review", done: resultReady, active: appraising },
   ];
 
   return (
     <div className="mt-5 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Report progress</p>
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Review progress</p>
       <div className="mt-3 grid gap-2">
         {steps.map((step, index) => (
           <div key={step.label} className={`flex items-center gap-3 rounded-lg border px-3 py-2 ${stepClass(step.done, step.active)}`}>
@@ -844,6 +894,54 @@ function ClaimList({ title, items, tone }: { title: string; items: string[]; ton
           <p key={item}>{item}</p>
         ))}
       </div>
+    </div>
+  );
+}
+
+function SbomSummaryCard({ sbom, compact = false }: { sbom?: SbomResult | null; compact?: boolean }) {
+  if (!sbom) {
+    return compact ? null : (
+      <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950 p-3 text-sm font-semibold text-slate-400">
+        SBOM dependency inventory was not available in this response.
+      </div>
+    );
+  }
+
+  const riskFlags = Array.isArray(sbom.riskFlags) ? sbom.riskFlags.slice(0, compact ? 1 : 3) : [];
+  const components = Array.isArray(sbom.componentsPreview) ? sbom.componentsPreview.slice(0, compact ? 3 : 6) : [];
+  return (
+    <div className="mt-3 rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-cyan-100">SBOM dependency health</p>
+          <p className="mt-2 text-sm font-semibold leading-6 text-cyan-50">
+            {Number(sbom.componentCount || 0)} component(s) from {Number(sbom.manifestCount || 0)} manifest(s). Completeness: {String(sbom.completeness || "unknown")}.
+          </p>
+        </div>
+        <span className="rounded-full border border-cyan-200/30 px-2.5 py-1 text-xs font-black uppercase text-cyan-50">
+          {String(sbom.status || "unknown")}
+        </span>
+      </div>
+      {sbom.bomHash ? <p className="mt-2 font-mono text-[11px] font-bold text-cyan-100/80">SBOM hash {shortHash(sbom.bomHash)}</p> : null}
+      {riskFlags.length ? (
+        <div className="mt-3 grid gap-1.5">
+          {riskFlags.map((flag) => (
+            <p key={flag} className="text-xs font-semibold leading-5 text-cyan-50/85">{flag}</p>
+          ))}
+        </div>
+      ) : null}
+      {!compact && components.length ? (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-black uppercase tracking-[0.14em] text-cyan-100">View top components</summary>
+          <div className="mt-2 grid gap-1.5">
+            {components.map((component) => (
+              <p key={`${component.name}:${component.version}:${component.scope}`} className="font-mono text-[11px] font-semibold text-cyan-50/85">
+                {component.name}@{component.version} - {component.scope}
+              </p>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }
@@ -921,6 +1019,15 @@ function modulesFromContext(context: { deploymentTarget?: string; evidenceCheckl
     ...(Array.isArray(context.evidenceChecklist) ? context.evidenceChecklist : []),
   ];
   return [...new Set(modules.map((item) => String(item || "").trim().toLowerCase()).filter(Boolean))].slice(0, 12);
+}
+
+function normalizeSbom(value: unknown): SbomResult | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as SbomResult;
+}
+
+function shortHash(value: string) {
+  return value.length > 18 ? `${value.slice(0, 10)}...${value.slice(-6)}` : value;
 }
 
 async function trackProductEvent(

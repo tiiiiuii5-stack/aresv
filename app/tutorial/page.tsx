@@ -9,28 +9,28 @@ import { buttonClassName } from "@/components/ui/button";
 const steps = [
   {
     title: "Start with a free review",
-    detail: "Paste a public GitHub repository or a small code sample. VentureOS returns launch blockers, readiness, and top risks without issuing a Signed Verification Badge.",
+    detail: "Paste a public GitHub repository or a small code sample. VentureOS returns launch blockers, readiness, and top risks without issuing a signed evidence receipt.",
     href: "/free-review",
     action: "Run Free Review",
     icon: Gauge,
   },
   {
-    title: "Generate the right report",
-    detail: "Use the $49 Verified System Report for a signed technical snapshot, or the $199 Buyer-Ready Report for a deeper diligence artifact.",
+    title: "Generate the right review",
+    detail: "Use the free Evidence Review Report for a signed technical snapshot, or the free Buyer Evidence Review for a deeper diligence artifact.",
     href: "/software-appraisal",
     action: "Choose Report",
     icon: FileText,
   },
   {
-    title: "Read the passport",
-    detail: "The passport shows Trust, Quality, Safety, evidence, limitations, badge status, and the decision history in one customer-facing record.",
+    title: "Read the evidence record",
+    detail: "The record shows quality, safety, buyer readiness, evidence, limitations, receipt status, and decision history in one customer-facing view.",
     href: "/registry",
     action: "Open Registry",
     icon: FileText,
   },
   {
-    title: "Verify the badge",
-    detail: "Every issued Signed Verification Badge has a public verification page, API response, signature check, and registry match.",
+    title: "Open the receipt",
+    detail: "Every issued Signed Evidence Receipt has a public page, API response, signature check, and registry match.",
     href: "/certificate/vos-cert-92f9705b765d4c84",
     action: "View Example Badge",
     icon: Lock,
@@ -53,11 +53,11 @@ const steps = [
 
 const customerPacket = [
   "Free limited scan",
-  "$49 verified system report",
-  "$199 buyer-ready report",
-  "Software passport",
+  "Free Evidence Review Report",
+  "Free Buyer Evidence Review",
+  "Software evidence record",
   "Public registry record",
-  "Signed Verification Badge",
+  "Signed Evidence Receipt",
   "Transparency log proof",
   "Decision ledger",
   "Evidence and limitation summary",
@@ -70,7 +70,7 @@ export default function TutorialPage() {
       maxWidth="max-w-6xl"
       actions={[
         { label: "Free Review", href: "/free-review", variant: "outline" },
-        { label: "Paid Options", href: "/software-appraisal", variant: "outline" },
+        { label: "Review Options", href: "/software-appraisal", variant: "outline" },
         { label: "Build Report", href: "/software-appraisal", variant: "default" },
       ]}
       breadcrumbs={[
@@ -82,16 +82,16 @@ export default function TutorialPage() {
       <section className="grid min-h-[520px] items-center gap-10 py-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div>
           <p className="vos-proof-mark">First Run Tutorial</p>
-          <h1 className="mt-8 vos-display">How to use VentureOS from scan to verified software passport.</h1>
+          <h1 className="mt-8 vos-display">How to use VentureOS from scan to evidence review.</h1>
           <p className="mt-7 vos-lede">
-            This is the customer path: test a software asset, buy the right report, receive a passport, and share public verification evidence.
+            This is the customer path: test a software asset, generate the right evidence review, receive a signed receipt, and share public evidence boundaries.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Link href="/free-review" className={buttonClassName({ size: "lg", className: "w-full sm:w-auto" })}>
               Start Tutorial Scan <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/pricing" className={buttonClassName({ variant: "outline", size: "lg", className: "w-full sm:w-auto" })}>
-              See Paid Options
+              See Review Options
             </Link>
           </div>
         </div>

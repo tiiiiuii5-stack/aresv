@@ -30,6 +30,7 @@ export function buildAppraisalReport(workspace: ProjectWorkspace, generatedAt = 
   const riskCounts = riskCountsFor(currentFindings);
   const rawReadinessScore = boundedScore(decision.readinessScore);
   const evidenceSources = decision.latestScan?.externalDataSources || [];
+  const sbom = decision.latestScan?.sbom || null;
   const evidenceCoverage = evidenceCoverageFor(appraisalWorkspace, decision, evidence, evidenceSources);
   const readinessScore = Math.min(rawReadinessScore, evidenceCoverage.scoreCap);
   const technicalRiskScore = technicalRiskFor(readinessScore, riskCounts);
@@ -66,6 +67,7 @@ export function buildAppraisalReport(workspace: ProjectWorkspace, generatedAt = 
     conditions: conditions.map(neutralizeReportText),
     evidenceSources,
     evidenceCoverage,
+    sbom,
     unknowns: evidenceCoverage.unknowns.map(neutralizeReportText),
     unverifiedClaims: evidenceCoverage.unverifiedClaims.map(neutralizeReportText),
     authorityBoundaries: language.boundaries,
@@ -111,6 +113,7 @@ export function buildAppraisalReport(workspace: ProjectWorkspace, generatedAt = 
       rawCodeStored: decision.latestScan?.rawCodeStored ?? null,
       inputTruncated: decision.latestScan?.inputTruncated ?? null,
       externalDataSources: evidenceSources,
+      sbom,
     },
     authorityBoundaries: language.boundaries,
     observedClaims: language.claims.observed,
@@ -391,6 +394,14 @@ function evidenceCoverageFor(
     verifiedClaims.push("Dependency advisory checks ran against GitHub Advisory Database.");
   } else {
     unknowns.push("Dependency advisory coverage is limited or unavailable.");
+  }
+
+  if (latestScan?.sbom && latestScan.sbom.status !== "not_found") {
+    score += latestScan.sbom.completeness === "moderate" ? 8 : 5;
+    verifiedClaims.push(`SBOM dependency inventory was generated with ${latestScan.sbom.componentCount} component(s).`);
+    for (const flag of latestScan.sbom.riskFlags.slice(0, 2)) unknowns.push(flag);
+  } else {
+    unknowns.push("SBOM dependency inventory was not available from the submitted evidence.");
   }
 
   if (!sourceAvailable(evidenceSources, "software_valuation_dataset")) {

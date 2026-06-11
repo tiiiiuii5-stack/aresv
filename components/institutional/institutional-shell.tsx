@@ -294,7 +294,7 @@ export function VentureOSFooter() {
         <div>
           <p className="vos-label">VentureOS</p>
           <p className="mt-4 max-w-sm vos-body">
-            Software passports and trust records for founders, buyers, operators, customers, and engineering teams.
+            Evidence-scoped software reviews and trust records for founders, buyers, operators, customers, and engineering teams.
           </p>
           <div className="mt-4 grid gap-1 text-xs font-bold text-[rgb(var(--vos-text-muted))]">
             <p>Contact: sales@ventureos.ai</p>
@@ -305,11 +305,11 @@ export function VentureOSFooter() {
         </div>
 
         <div>
-          <p className="vos-label">Public Offers</p>
+            <p className="vos-label">Public Offers</p>
           <div className="mt-3 grid gap-2 text-sm font-bold text-[rgb(var(--vos-text-muted))]">
             <Link href="/free-review" className="hover:text-[rgb(var(--vos-text))]">Free limited software review</Link>
-            <Link href="/software-appraisal" className="hover:text-[rgb(var(--vos-text))]">Verified Software Passport - Free</Link>
-            <Link href="/software-appraisal" className="hover:text-[rgb(var(--vos-text))]">Buyer-Ready Passport - Free</Link>
+            <Link href="/software-appraisal" className="hover:text-[rgb(var(--vos-text))]">Evidence Review Report - Free</Link>
+            <Link href="/software-appraisal" className="hover:text-[rgb(var(--vos-text))]">Buyer Evidence Review - Free</Link>
             <Link href="/tutorial" className="hover:text-[rgb(var(--vos-text))]">Tutorial</Link>
             <a href="mailto:sales@ventureos.ai?subject=CTO-assisted%20VentureOS%20review" className="hover:text-[rgb(var(--vos-text))]">
               CTO-assisted review - Free during launch
@@ -327,7 +327,7 @@ export function VentureOSFooter() {
             <Link href="/refund" className="hover:text-[rgb(var(--vos-text))]">Refund Policy</Link>
           </div>
           <p className="mt-4 text-xs font-semibold leading-5 text-[rgb(var(--vos-text-subtle))]">
-            VentureOS passports are evidence summaries, not legal, accounting, investment, or compliance certification advice.
+            VentureOS reviews are evidence summaries, not legal, accounting, investment, security audit, or compliance certification advice.
           </p>
         </div>
       </div>

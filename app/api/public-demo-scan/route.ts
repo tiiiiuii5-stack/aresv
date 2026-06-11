@@ -11,6 +11,7 @@ import {
 } from "@/lib/security/backendSecurity";
 import { loadPublicGitHubRepositorySource } from "@/lib/repositories/public-github-source";
 import { ventureOSIntelligenceService } from "@/lib/services/intelligenceAnalysis";
+import { generateSoftwareBillOfMaterials } from "@/lib/sbom/software-bom";
 import { compileTrust } from "@/lib/trust/compiler";
 
 export const runtime = "nodejs";
@@ -53,6 +54,11 @@ export async function POST(request: NextRequest) {
     if (scanInput.appCode.trim().length < 40) {
       return jsonResponse({ ok: false, traceId, error: "Paste at least 40 characters of code for the public demo scan." }, { status: 400, headers: rateLimit.headers });
     }
+    const sbom = generateSoftwareBillOfMaterials({
+      sourceCode: scanInput.appCode,
+      appName: repositorySource ? `${repositorySource.owner}/${repositorySource.repo}` : "Submitted Source",
+      repositoryUrl: repositorySource?.canonicalUrl || repositoryUrl || undefined,
+    });
 
     const result = await ventureOSIntelligenceService.analyze({
       persist: false,
@@ -67,6 +73,7 @@ export async function POST(request: NextRequest) {
         inputSource: repositorySource ? "public_github_repository" : "pasted_code",
         repositoryHash: repositorySource ? hashText(repositorySource.canonicalUrl) : null,
         repositoryFilesLoaded: repositorySource?.filesLoaded || null,
+        sbom,
         promptInjectionSignals: scanInput.promptInjectionSignals,
         sandbox: scanInput.sandbox,
       },
@@ -91,6 +98,7 @@ export async function POST(request: NextRequest) {
         warnings: repositorySource.warnings,
       } : null,
       securityWarnings: scanInput.promptInjectionSignals,
+      sbom: sbomResponse(sbom),
       sandbox: scanInput.sandbox,
       securityScore: result.securityScore,
       failureScore: result.failureScore,
@@ -157,6 +165,26 @@ function hashText(value: string) {
     hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0;
   }
   return Math.abs(hash).toString(16);
+}
+
+function sbomResponse(sbom: ReturnType<typeof generateSoftwareBillOfMaterials>) {
+  return {
+    engine: sbom.engine,
+    format: sbom.format,
+    specVersion: sbom.specVersion,
+    generatedAt: sbom.generatedAt,
+    bomHash: sbom.bomHash,
+    status: sbom.status,
+    completeness: sbom.completeness,
+    manifestCount: sbom.manifestCount,
+    componentCount: sbom.componentCount,
+    directDependencyCount: sbom.directDependencyCount,
+    devDependencyCount: sbom.devDependencyCount,
+    packageManagers: sbom.packageManagers,
+    riskFlags: sbom.riskFlags,
+    limitations: sbom.limitations,
+    componentsPreview: sbom.componentsPreview,
+  };
 }
 
 function safePublicDemoError(error: unknown) {

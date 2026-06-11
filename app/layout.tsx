@@ -55,7 +55,7 @@ button:active,a[href]:active{transform:translateY(1px) scale(.99)}
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://ventureos-intelligence-layer.vercel.app"),
   title: "VentureOS Software Intelligence",
-  description: "Verified software evidence reports, Signed Verification Badges, immutable evidence packs, and technical diligence records.",
+  description: "Evidence-scoped software reviews, signed evidence receipts, SBOM summaries, immutable evidence packs, and technical diligence records.",
   alternates: {
     canonical: "/",
   },

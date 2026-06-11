@@ -13,21 +13,21 @@ export type AppraisalOffer = {
 export const APPRAISAL_OFFERS: AppraisalOffer[] = [
   {
     id: "instant",
-    name: "Verified System Report",
+    name: "Evidence Review Report",
     priceLabel: "Free",
     unitAmount: 0,
     stripePriceEnv: ["STRIPE_PRICE_APPRAISAL_INSTANT", "STRIPE_APPRAISAL_INSTANT_PRICE_ID"],
-    description: "Automated readiness score, top risk evidence, repair estimate, and Signed Verification Badge.",
-    deliverables: ["Readiness score", "Top risk evidence", "Repair estimate", "Signed Verification Badge"],
+    description: "Evidence-scoped readiness summary, observed risks, unknowns, and a signed evidence receipt.",
+    deliverables: ["Observed facts", "Risk evidence", "Unknowns and limitations", "Signed Evidence Receipt"],
   },
   {
     id: "buyer-ready",
-    name: "Buyer-Ready Verified Report",
+    name: "Buyer Evidence Review",
     priceLabel: "Free",
     unitAmount: 0,
     stripePriceEnv: ["STRIPE_PRICE_APPRAISAL_BUYER", "STRIPE_APPRAISAL_BUYER_PRICE_ID"],
-    description: "Deeper buyer-facing technical report with fix plan, evidence limits, repair estimate, and Signed Verification Badge.",
-    deliverables: ["Private evidence report", "Fix plan", "Evidence limits", "Transfer readiness", "Signed Verification Badge"],
+    description: "Buyer-facing evidence review with fix plan, confidence levels, evidence limits, and a signed evidence receipt.",
+    deliverables: ["Evidence review package", "Fix plan", "Evidence limits", "Assessment confidence", "Signed Evidence Receipt"],
   },
 ];
 

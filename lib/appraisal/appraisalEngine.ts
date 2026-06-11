@@ -234,6 +234,7 @@ function normalizePublicSummary(value: unknown, row: SoftwareAppraisalRow): Appr
     conditions: Array.isArray(record.conditions) ? record.conditions.map(stringValue).map(neutralizeReportText).filter(Boolean).slice(0, 3) : [],
     evidenceSources: normalizeEvidenceSources(record.evidenceSources),
     evidenceCoverage: coverage,
+    sbom: normalizeSbom(record.sbom),
     unknowns: Array.isArray(record.unknowns) ? record.unknowns.map(stringValue).map(neutralizeReportText).filter(Boolean).slice(0, 5) : [],
     unverifiedClaims: Array.isArray(record.unverifiedClaims) ? record.unverifiedClaims.map(stringValue).map(neutralizeReportText).filter(Boolean).slice(0, 5) : [],
     authorityBoundaries: arrayOfObjects<AppraisalAuthorityBoundary>(record.authorityBoundaries, fallbackLanguage.boundaries),
@@ -245,6 +246,11 @@ function normalizePublicSummary(value: unknown, row: SoftwareAppraisalRow): Appr
     expiresAt: stringValue(record.expiresAt) || isoDateOrNull(row.expiresAt),
     disclaimer: stringValue(record.disclaimer) || "VentureOS reports observations and computed readiness estimates from submitted evidence, stored scan metadata, signed records, and configured external sources. It is not an independent audit, legal opinion, accounting opinion, compliance certification, or market valuation.",
   };
+}
+
+function normalizeSbom(value: unknown): AppraisalPublicSummary["sbom"] {
+  const record = objectValue(value);
+  return record.engine === "ventureos-built-in-sbom" ? record as AppraisalPublicSummary["sbom"] : null;
 }
 
 function normalizePrivateReport(value: unknown): AppraisalPrivateReport | undefined {

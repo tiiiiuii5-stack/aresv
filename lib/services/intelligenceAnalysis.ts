@@ -15,6 +15,7 @@ import { recordAppTelemetry, type RepairAttemptInput } from "@/lib/services/appT
 import { sanitizeMetadata } from "@/lib/services/platformSupport";
 import { countCriticalFindings, recordScanHistory } from "@/lib/services/scanHistory";
 import { ingestScanEvolutionLoop } from "@/lib/evolution/scanEvolutionLoop";
+import { sbomExternalEvidenceSource, type SoftwareBillOfMaterialsEvidence } from "@/lib/sbom/software-bom";
 
 export type AnalyzeAppInput = {
   projectId?: string | null;
@@ -165,6 +166,7 @@ export class VentureOSIntelligenceService {
     });
     const { failureIntelligence, failureReport, predictedFailureScenarios } = failurePipeline;
     const launchVerdict = failureReport.launchVerdict;
+    const externalIntelligenceSummary = summarizeExternalIntelligenceWithAppEvidence(externalIntelligence, input.appMetadata);
 
     const analysisId = randomUUID();
     const shouldPersist = input.persist !== false;
@@ -189,7 +191,7 @@ export class VentureOSIntelligenceService {
               sanitizeMetadata({
                 engine: "security-analysis",
                 failureReport: summarizeFailureReport(failureReport),
-                externalIntelligence: summarizeExternalIntelligence(externalIntelligence),
+                externalIntelligence: externalIntelligenceSummary,
                 severityBreakdown,
                 vulnerabilityCount: vulnerabilities.length,
                 sourceLength: source.length,
@@ -250,7 +252,7 @@ export class VentureOSIntelligenceService {
           appCodeHash: sourceHash,
           sourceHash,
           failureReport: summarizeFailureReport(failureReport),
-          externalIntelligence: summarizeExternalIntelligence(externalIntelligence),
+          externalIntelligence: externalIntelligenceSummary,
           sourceLength: source.length,
           scanInput: scanInputMetadata(input.appMetadata, input.validationResults, source.length),
           codeSnapshot: codeSnapshotForSource(source, sourceHash),
@@ -275,7 +277,7 @@ export class VentureOSIntelligenceService {
           analysisId: stored?.[0]?.id || analysisId,
           telemetryAnalysisResultId: telemetry?.analysisResultId,
           historyStored: Boolean(historyRecord?.stored),
-          externalIntelligence: summarizeExternalIntelligence(externalIntelligence),
+          externalIntelligence: externalIntelligenceSummary,
         },
       }).catch(() => null);
     }
@@ -337,6 +339,15 @@ function summarizeExternalIntelligence(report: ExternalIntelligenceReport) {
   };
 }
 
+function summarizeExternalIntelligenceWithAppEvidence(report: ExternalIntelligenceReport, appMetadata: Record<string, unknown> | undefined) {
+  const summary = summarizeExternalIntelligence(report);
+  const sbom = sbomFromAppMetadata(appMetadata);
+  return {
+    ...summary,
+    sources: sbom ? [...summary.sources, sbomExternalEvidenceSource(sbom)] : summary.sources,
+  };
+}
+
 function scanInputMetadata(appMetadata: Record<string, unknown> | undefined, validationResults: Record<string, unknown> | undefined, sourceLength: number) {
   const metadata = appMetadata && typeof appMetadata === "object" ? appMetadata : {};
   const validation = validationResults && typeof validationResults === "object" ? validationResults : {};
@@ -347,7 +358,15 @@ function scanInputMetadata(appMetadata: Record<string, unknown> | undefined, val
     inputLength: numberFromUnknown(validation.inputLength) || sourceLength,
     inputTruncated: typeof metadata.truncated === "boolean" ? metadata.truncated : typeof validation.inputTruncated === "boolean" ? validation.inputTruncated : null,
     sandbox: metadata.sandbox,
+    sbom: sbomFromAppMetadata(appMetadata),
   });
+}
+
+function sbomFromAppMetadata(appMetadata: Record<string, unknown> | undefined): SoftwareBillOfMaterialsEvidence | null {
+  const value = appMetadata?.sbom;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Partial<SoftwareBillOfMaterialsEvidence>;
+  return record.engine === "ventureos-built-in-sbom" ? value as SoftwareBillOfMaterialsEvidence : null;
 }
 
 function stringValue(value: unknown) {

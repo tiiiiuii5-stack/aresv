@@ -22,10 +22,10 @@ const plans = [
   },
   {
     tier: "PRO",
-    name: "Verified",
+    name: "Evidence Review",
     priceMonthly: "Free",
     priceAnnual: "Free",
-    features: ["Verified system report", "Signed Verification Badge", "Evidence scope", "Shareable passport"],
+    features: ["Evidence review report", "Signed Evidence Receipt", "Evidence scope", "Shareable review page"],
     signal: "For founders preparing diligence",
     action: "Generate free report",
     href: "/appraisal-intake?offer=instant",
@@ -33,10 +33,10 @@ const plans = [
   },
   {
     tier: "TEAM",
-    name: "Buyer Ready",
+    name: "Buyer Evidence",
     priceMonthly: "Free",
     priceAnnual: "Free",
-    features: ["Buyer-facing report", "Fix plan", "Risk explanation", "Signed Verification Badge", "Audit-ready unknowns"],
+    features: ["Buyer-facing review", "Fix plan", "Risk explanation", "Signed Evidence Receipt", "Audit-ready unknowns"],
     signal: "For sales, acquisition, or audit review",
     action: "Start free buyer report",
     href: "/appraisal-intake?offer=buyer-ready",
@@ -98,7 +98,7 @@ export function PricingCheckout() {
 
   return (
     <InstitutionalPageShell
-      purposeLabel="Build Your Verified Report"
+      purposeLabel="Build Your Evidence Review"
       actions={[
         { label: "Build Report", href: "/software-appraisal", variant: "default" },
       ]}
@@ -110,9 +110,9 @@ export function PricingCheckout() {
     >
       <div className="grid gap-5">
         <InstitutionalPageHero
-          eyebrow="Build Your Verified Report"
+          eyebrow="Build Your Evidence Review"
           title="Know if your software asset is safe to ship."
-          description="Start free, then move into verified buyer-grade artifacts when the software needs to survive diligence."
+          description="Start free, then move into evidence-scoped buyer artifacts when the software needs to survive diligence."
           aside={
             <div className="grid gap-3">
               <InstitutionalMetricCard label="Public scan" value="Free" detail="Limited evidence review" />
@@ -136,13 +136,13 @@ export function PricingCheckout() {
 
         <section className="grid gap-3 md:grid-cols-3">
           <TrustPill icon={<Check className="h-4 w-4" />} label="Free first" value="Risk preview before commitment" />
-          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} label="Buyer artifact" value="Reports and verification badges" />
+          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} label="Buyer artifact" value="Reviews and signed receipts" />
           <TrustPill icon={<FileText className="h-4 w-4" />} label="Founder path" value="Free scan -> free report -> free badge" />
         </section>
 
         <section className="vos-panel grid gap-4 p-5 md:grid-cols-3">
           <TrustQuote title="Founder" quote="Use the free scan to find launch blockers before showing a buyer." />
-          <TrustQuote title="Acquirer" quote="A passport turns diligence from opinion into evidence and limitations." />
+          <TrustQuote title="Acquirer" quote="An evidence review turns diligence from opinion into observed facts, inferences, and limitations." />
           <TrustQuote title="Auditor" quote="The useful part is not the score. It is the boundary between observed and unknown." />
         </section>
 

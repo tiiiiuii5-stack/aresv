@@ -87,7 +87,7 @@ export default async function DashboardPage() {
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
         <ActionCard title="Projects" detail="Open software assets and continue reviews." href="/projects" primary />
         <ActionCard title="Report History" detail="Review generated reports and buyer-ready evidence." href="/software-appraisal" />
-        <ActionCard title="Certificate Downloads" detail="Open signed verification badges and public certificates." href="/registry" />
+        <ActionCard title="Receipt Downloads" detail="Open signed evidence receipts and public records." href="/registry" />
       </section>
 
       <section className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">

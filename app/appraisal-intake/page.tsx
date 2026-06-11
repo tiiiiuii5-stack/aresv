@@ -7,8 +7,8 @@ import { InstitutionalPageShell } from "@/components/institutional/institutional
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Build Your Verified Report | VentureOS",
-  description: "Submit software evidence, generate a verified system report, and issue a Signed Verification Badge.",
+  title: "Build Your Evidence Review | VentureOS",
+  description: "Submit software evidence, generate an evidence-scoped review, and issue a signed evidence receipt.",
 };
 
 type AppraisalIntakePageProps = {
@@ -19,7 +19,7 @@ export default async function AppraisalIntakePage({ searchParams }: AppraisalInt
   const params = await searchParams;
   return (
     <InstitutionalPageShell
-      purposeLabel="Build Your Verified Report"
+      purposeLabel="Build Your Evidence Review"
       actions={[
         { label: "Plans", href: "/software-appraisal", variant: "outline" },
         { label: "Sample Report", href: "/sample-appraisal", variant: "outline" },
@@ -28,7 +28,7 @@ export default async function AppraisalIntakePage({ searchParams }: AppraisalInt
       breadcrumbs={[
         { label: "Home", href: "/" },
         { label: "Free Review", href: "/free-review" },
-        { label: "Build Your Verified Report" },
+        { label: "Build Your Evidence Review" },
       ]}
     >
       <div className="grid gap-5">

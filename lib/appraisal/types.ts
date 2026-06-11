@@ -1,4 +1,5 @@
 import type { DecisionState, DecisionTrend, ShipAnswer } from "@/lib/decision-model";
+import type { SoftwareBillOfMaterialsEvidence } from "@/lib/sbom/software-bom";
 
 export type AppraisalGrade = "A" | "B" | "C" | "D" | "F";
 export type AppraisalLaunchVerdict = "READY" | "RISKY" | "BLOCKED" | "DO_NOT_DEPLOY";
@@ -109,6 +110,7 @@ export type AppraisalPublicSummary = {
   conditions: string[];
   evidenceSources: AppraisalEvidenceSource[];
   evidenceCoverage: AppraisalEvidenceCoverage;
+  sbom?: SoftwareBillOfMaterialsEvidence | null;
   unknowns: string[];
   unverifiedClaims: string[];
   authorityBoundaries?: AppraisalAuthorityBoundary[];
@@ -146,6 +148,7 @@ export type AppraisalPrivateReport = {
     rawCodeStored?: boolean | null;
     inputTruncated?: boolean | null;
     externalDataSources?: AppraisalEvidenceSource[];
+    sbom?: SoftwareBillOfMaterialsEvidence | null;
   };
   authorityBoundaries?: AppraisalAuthorityBoundary[];
   observedClaims?: AppraisalReportClaim[];

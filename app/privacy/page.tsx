@@ -6,14 +6,14 @@ const sections = [
     items: [
       "Contact details you submit, such as email address and use case.",
       "Software source or repository metadata you submit for review.",
-      "Scan results, evidence summaries, signed attestation records, and immutable evidence pack metadata.",
+      "Scan results, evidence summaries, SBOM dependency summaries, signed evidence receipt records, and immutable evidence pack metadata.",
       "Product telemetry such as page views, scan starts, feedback submissions, and API usage events.",
     ],
   },
   {
     title: "How information is used",
     items: [
-      "Generate software reviews, verified system reports, signed attestations, and evidence packs.",
+      "Generate software reviews, evidence-scoped reports, signed evidence receipts, SBOM summaries, and evidence packs.",
       "Operate billing, API metering, product support, abuse prevention, and reliability checks.",
       "Improve scanner accuracy and product workflows using compact metadata.",
     ],
@@ -23,7 +23,7 @@ const sections = [
     items: [
       "Do not submit secrets, private keys, passwords, tokens, regulated personal data, or code you are not authorized to submit.",
       "Free reviews are capped and intended for public repos or small code samples.",
-      "Public report and attestation pages may expose asset names, scores, evidence scope, attestation IDs, and verification metadata.",
+      "Public report and receipt pages may expose asset names, scores, evidence scope, SBOM summary fields, receipt IDs, and signature metadata.",
     ],
   },
   {
