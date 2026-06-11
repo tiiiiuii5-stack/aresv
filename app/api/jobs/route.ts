@@ -4,7 +4,7 @@ import { JobStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { createTrace, errorResponse, trace, withStep } from "@/lib/diagnostics";
-import { prisma } from "@/lib/prisma";
+import { prisma, tryDatabase } from "@/lib/prisma";
 import { assertOwnership } from "@/lib/auth/ownership";
 import { canAccessJob } from "@/lib/auth/job-access";
 import type { AuthSession } from "@/lib/auth/session";
@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
   try {
     const { session } = await compileTrust(request, { mode: "session" });
     const jobs = await withStep("jobs.GET", traceId, "list jobs", () =>
-      prisma.job.findMany({
+      tryDatabase((db) => db.job.findMany({
         orderBy: { createdAt: "desc" },
         take: 100,
         include: { project: { select: { userId: true, user: { select: { email: true } } } } },
-      }), 15_000);
+      })), 15_000) || [];
     return NextResponse.json({
       ok: true,
       traceId,
@@ -196,6 +196,7 @@ function statusForJobError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   if (message === "UNAUTHORIZED") return 401;
   if (/FORBIDDEN/.test(message)) return 403;
+  if (/DATABASE_URL|DATABASE_UNAVAILABLE|database/i.test(message)) return 503;
   if (message === "PROJECT_NOT_FOUND") return 404;
   if (message === "PROJECT_ID_REQUIRED" || message === "PROJECT_REFERENCE_MISMATCH") return 400;
   return 500;
