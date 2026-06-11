@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FileText, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { VentureOSFooter } from "@/components/institutional/institutional-shell";
@@ -33,6 +33,10 @@ const sampleRepoUrl = "https://github.com/tiiiiuii5-stack/aresv.git";
 
 export default function HomePage() {
   const [target, setTarget] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [leadBusy, setLeadBusy] = useState(false);
+  const [leadMessage, setLeadMessage] = useState("");
+  const [leadError, setLeadError] = useState("");
   const viewTracked = useRef(false);
 
   useEffect(() => {
@@ -40,6 +44,36 @@ export default function HomePage() {
     viewTracked.current = true;
     void trackHomeEvent("homepage.view", { metadata: { surface: "homepage" } });
   }, []);
+
+  async function saveHomepageLead(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLeadBusy(true);
+    setLeadMessage("");
+    setLeadError("");
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: leadEmail,
+          role: "founder-or-buyer",
+          source: "homepage_hero",
+          useCase: target.trim()
+            ? `Send report path for ${target.trim()}`
+            : "Send VentureOS report path",
+          ...campaignMetadataFromLocation(),
+        }),
+      });
+      const payload = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Could not save this request.");
+      setLeadMessage("Saved. We can send the report path and review options.");
+      setLeadEmail("");
+    } catch (error) {
+      setLeadError(error instanceof Error ? error.message : "Could not save this request.");
+    } finally {
+      setLeadBusy(false);
+    }
+  }
 
   return (
     <main className="vos-page min-h-screen">
@@ -152,6 +186,32 @@ export default function HomePage() {
             <Link href={trackingHref("homepage.pricing_clicked", "/pricing", "homepage_next_steps")} className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}>
               See report options
             </Link>
+            <form onSubmit={saveHomepageLead} className="mt-4 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] p-4">
+              <p className="flex items-center gap-2 text-xs font-black uppercase text-[rgb(var(--vos-verified))]">
+                <FileText className="h-4 w-4" />
+                Send me the path
+              </p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[rgb(var(--vos-text-muted))]">
+                Not ready to scan? Leave an email and get the report path or human review option.
+              </p>
+              <label className="mt-3 block">
+                <span className="sr-only">Email address</span>
+                <input
+                  value={leadEmail}
+                  onChange={(event) => setLeadEmail(event.target.value)}
+                  type="email"
+                  required
+                  placeholder="you@company.com"
+                  className="h-11 w-full rounded-lg border border-[rgb(var(--vos-border-strong))] bg-[rgb(var(--vos-panel))] px-3 text-sm font-semibold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))] focus:border-[rgb(var(--vos-primary))]"
+                />
+              </label>
+              <button type="submit" disabled={leadBusy} className={buttonClassName({ variant: "outline", size: "sm", className: "mt-3 w-full" })}>
+                {leadBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                {leadBusy ? "Saving" : "Send details"}
+              </button>
+              {leadMessage ? <p className="mt-2 text-xs font-bold leading-5 text-[rgb(var(--vos-verified))]">{leadMessage}</p> : null}
+              {leadError ? <p className="mt-2 text-xs font-bold leading-5 text-[rgb(var(--vos-danger))]">{leadError}</p> : null}
+            </form>
           </aside>
         </div>
 
@@ -170,6 +230,20 @@ export default function HomePage() {
       <VentureOSFooter />
     </main>
   );
+}
+
+function campaignMetadataFromLocation() {
+  if (typeof window === "undefined") return {};
+  const params = new URLSearchParams(window.location.search);
+  return {
+    campaign: cleanCampaignParam(params.get("campaign") || params.get("utm_campaign")),
+    ref: cleanCampaignParam(params.get("ref")),
+    utmSource: cleanCampaignParam(params.get("utm_source")),
+  };
+}
+
+function cleanCampaignParam(value: unknown) {
+  return String(value || "").trim().replace(/[^a-zA-Z0-9_.:-]/g, "_").slice(0, 80);
 }
 
 function trackingHref(event: string, to: string, source: string, extra?: Record<string, string>) {
