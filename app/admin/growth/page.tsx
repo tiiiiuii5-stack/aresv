@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { VentureOSHeader } from "@/components/institutional/institutional-shell";
 import { Badge } from "@/components/ui/badge";
+import { loadProductFunnelMetrics } from "@/lib/analytics/product-funnel-store";
 import { requireAdmin } from "@/lib/auth/guards";
 import { requireSession } from "@/lib/auth/session";
 import { loadGrowthDashboardSnapshot } from "@/lib/services/growthDashboard";
@@ -20,7 +21,15 @@ export default async function AdminGrowthPage() {
   if (access === "unauthorized") return <AdminLoginRequired />;
   if (access === "forbidden") return <AdminAccessDenied />;
 
-  const snapshot = await loadGrowthDashboardSnapshot();
+  const [snapshot, funnel] = await Promise.all([
+    loadGrowthDashboardSnapshot(),
+    loadProductFunnelMetrics(),
+  ]);
+  const realPreviewStarted = eventCount(funnel.realEvents, "preview_started") + eventCount(funnel.realEvents, "free_review.scan_started") + eventCount(funnel.realEvents, "appraisal_intake.preview_started");
+  const realPreviewCompleted = eventCount(funnel.realEvents, "preview_completed") + eventCount(funnel.realEvents, "free_review.scan_completed") + eventCount(funnel.realEvents, "appraisal_intake.preview_completed");
+  const realCheckoutStarted = eventCount(funnel.realEvents, "checkout_started") + eventCount(funnel.realEvents, "appraisal_intake.checkout_started") + eventCount(funnel.realEvents, "appraisal_intake.checkout_clicked");
+  const realPaidIntent = eventCount(funnel.realEvents, "free_review.paid_cta_clicked") + realCheckoutStarted;
+  const homepageDemand = eventCount(funnel.realEvents, "homepage.free_review_clicked") + eventCount(funnel.realEvents, "homepage.pricing_clicked");
 
   return (
     <main className="vos-page min-h-screen">
@@ -57,6 +66,41 @@ export default async function AdminGrowthPage() {
           <Metric label="Revenue" value={formatMoney(snapshot.revenue.totalPaidRevenueCents)} detail="Completed paid payments" tone={snapshot.revenue.totalPaidRevenueCents ? "ready" : "muted"} />
           <Metric label="New 7 days" value={snapshot.users.newLast7Days} detail="Recent signups" />
           <Metric label="New 30 days" value={snapshot.users.newLast30Days} detail="Monthly signups" />
+        </section>
+
+        <section className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <Metric label="Real preview starts" value={realPreviewStarted} detail="Free or intake preview actions" tone={realPreviewStarted >= 10 ? "ready" : "muted"} />
+          <Metric label="Real previews done" value={realPreviewCompleted} detail="Completed preview decisions" tone={realPreviewCompleted ? "ready" : "muted"} />
+          <Metric label="Real paid intent" value={realPaidIntent} detail="Paid CTA or checkout starts" tone={realPaidIntent ? "ready" : "muted"} />
+          <Metric label="Real checkouts" value={realCheckoutStarted} detail="Checkout start events" tone={realCheckoutStarted ? "ready" : "muted"} />
+          <Metric label="Homepage intent" value={homepageDemand} detail="Free review or pricing clicks" tone={homepageDemand ? "ready" : "muted"} />
+        </section>
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
+          <Panel title="Funnel Proof Gates" badge={funnel.available ? "live kv" : "unavailable"}>
+            <div className="grid gap-2">
+              <BreakdownRow label="Demand proof" value={realPreviewStarted} total={10} />
+              <BreakdownRow label="Conversion proof" value={realCheckoutStarted ? 1 : 0} total={1} />
+              <BreakdownRow label="Synthetic events" value={funnel.syntheticTotalEvents} total={Math.max(1, funnel.totalEvents)} />
+            </div>
+            <p className="mt-3 px-1 text-xs font-bold leading-5 text-[rgb(var(--vos-text-muted))]">
+              Enterprise readiness requires 10 real preview starts and at least one real checkout path. Synthetic contract tests are tracked but excluded.
+            </p>
+          </Panel>
+
+          <Panel title="Recent Funnel Events" badge={`${funnel.recent.length} latest`}>
+            <DataTable
+              headers={["Event", "Source", "Kind", "Repo", "Created"]}
+              rows={funnel.recent.map((event) => [
+                event.eventType,
+                event.source,
+                event.synthetic ? "synthetic" : "real",
+                event.hasRepositoryUrl ? "yes" : "no",
+                formatDateTime(event.createdAt),
+              ])}
+              empty="No funnel events recorded yet."
+            />
+          </Panel>
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
@@ -180,7 +224,7 @@ function Panel({ title, badge, children }: { title: string; badge: string; child
 }
 
 function BreakdownRow({ label, value, total }: { label: string; value: number; total: number }) {
-  const width = total ? Math.max((value / total) * 100, 4) : 0;
+  const width = total ? Math.min(100, Math.max((value / total) * 100, value ? 4 : 0)) : 0;
   return (
     <div className="border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] p-3">
       <div className="flex items-center justify-between gap-3">
@@ -233,4 +277,8 @@ function formatDateTime(value: string) {
 
 function formatMoney(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
+}
+
+function eventCount(events: Record<string, number>, key: string) {
+  return Math.max(0, Math.round(Number(events[key] || 0)));
 }
