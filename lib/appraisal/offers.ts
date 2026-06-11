@@ -13,21 +13,21 @@ export type AppraisalOffer = {
 export const APPRAISAL_OFFERS: AppraisalOffer[] = [
   {
     id: "instant",
-    name: "Evidence Review Report",
-    priceLabel: "Free",
-    unitAmount: 0,
+    name: "Software Decision Report",
+    priceLabel: "$9",
+    unitAmount: 900,
     stripePriceEnv: ["STRIPE_PRICE_APPRAISAL_INSTANT", "STRIPE_APPRAISAL_INSTANT_PRICE_ID"],
-    description: "Evidence-scoped readiness summary, observed risks, unknowns, and a signed evidence receipt.",
-    deliverables: ["Observed facts", "Risk evidence", "Unknowns and limitations", "Signed Evidence Receipt"],
+    description: "A focused decision report for one software asset before you buy, ship, or integrate it.",
+    deliverables: ["Risk summary", "Engineering maturity", "Safety signals", "Decision recommendation"],
   },
   {
     id: "buyer-ready",
-    name: "Buyer Evidence Review",
-    priceLabel: "Free",
-    unitAmount: 0,
+    name: "Buyer-Ready Decision Report",
+    priceLabel: "$19",
+    unitAmount: 1900,
     stripePriceEnv: ["STRIPE_PRICE_APPRAISAL_BUYER", "STRIPE_APPRAISAL_BUYER_PRICE_ID"],
-    description: "Buyer-facing evidence review with fix plan, confidence levels, evidence limits, and a signed evidence receipt.",
-    deliverables: ["Evidence review package", "Fix plan", "Evidence limits", "Assessment confidence", "Signed Evidence Receipt"],
+    description: "A buyer-facing package with deeper evidence boundaries, fix plan, unknowns, and signed receipt.",
+    deliverables: ["Full risk breakdown", "Fix plan", "Evidence limits", "Assessment confidence", "Signed Evidence Receipt"],
   },
 ];
 

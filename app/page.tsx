@@ -10,23 +10,23 @@ import { buttonClassName } from "@/components/ui/button";
 
 const reviewChecks = [
   {
-    title: "Launch blockers",
-    detail: "Find obvious risks before a buyer, customer, or teammate does.",
+    title: "Buying risk",
+    detail: "See what could break before you buy, integrate, or recommend a software tool.",
   },
   {
     title: "Safety signals",
-    detail: "Check authentication, data handling, secrets, and dependency exposure.",
+    detail: "Review authentication, data handling, secrets, dependencies, and operational gaps.",
   },
   {
-    title: "Buyer summary",
-    detail: "Get plain-English status, limitations, and next steps.",
+    title: "Decision output",
+    detail: "Get a plain-English recommendation with observed risks, unknowns, and next steps.",
   },
 ];
 
 const nextSteps = [
   "Paste a public GitHub repo or app URL.",
-  "Run the free review.",
-  "Upgrade only if you need a signed buyer report.",
+  "Run the free preview verdict.",
+  "Unlock a $9 or $19 report only if you need the full buyer artifact.",
 ];
 
 export default function HomePage() {
@@ -56,13 +56,13 @@ export default function HomePage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/85 px-3 py-2 text-xs font-black uppercase text-[rgb(var(--vos-text-muted))]">
               <ShieldCheck className="h-4 w-4 text-[rgb(var(--vos-verified))]" />
-              Free software trust check
+              Free preview, paid decision report
             </div>
             <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.02] tracking-normal text-[rgb(var(--vos-text))] sm:text-5xl lg:text-6xl">
-              Free buyer-grade software verdict.
+              Check if this software is safe to buy or use.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-[rgb(var(--vos-text-muted))]">
-              VentureOS gives founders and buyers a clear first-pass review of software quality, safety, and launch risk.
+              VentureOS gives founders, buyers, and operators a fast software decision report: risk summary, engineering maturity, safety signals, and a recommendation.
             </p>
 
             <form
@@ -75,7 +75,7 @@ export default function HomePage() {
                   Paste your public GitHub repo
                 </label>
                 <span className="rounded-full border border-[rgb(var(--vos-verified))]/50 bg-[rgb(var(--vos-verified-bg))]/70 px-3 py-1 text-xs font-black text-[rgb(var(--vos-verified))]">
-                  Free review
+                  Free preview
                 </span>
               </div>
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_210px]">
@@ -91,11 +91,11 @@ export default function HomePage() {
                   />
                 </div>
                 <button type="submit" className={buttonClassName({ size: "lg", className: "h-16 w-full text-base" })}>
-                  Start Free Review <ArrowRight className="h-4 w-4" />
+                  Start Free Preview <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
               <p className="mt-3 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
-                No payment required. Public repos work best.
+                Preview is free. Full decision reports start at $9.
               </p>
             </form>
 
@@ -119,7 +119,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--vos-border))] pb-4">
               <div>
                 <p className="vos-label">What happens next</p>
-                <h2 className="mt-2 vos-card-title">Simple flow</h2>
+                <h2 className="mt-2 vos-card-title">Simple money path</h2>
               </div>
               <span className="vos-badge vos-badge-ready">3 steps</span>
             </div>
@@ -131,8 +131,8 @@ export default function HomePage() {
                 </div>
               ))}
               </div>
-            <Link href="/tutorial" className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}>
-              Open tutorial
+            <Link href="/pricing" className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}>
+              See report options
             </Link>
           </aside>
         </div>

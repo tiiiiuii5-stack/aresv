@@ -25,27 +25,29 @@ export const dynamic = "force-dynamic";
 const intakeRateLimit = { name: "free-appraisal-intake", limit: 300, windowMs: 60 * 60_000 };
 const MAX_APPRAISAL_CODE_LENGTH = 180_000;
 
+type AppraisalCheckoutContext = Awaited<ReturnType<typeof verifyPaidAppraisalSession>> | ReturnType<typeof createFreeAppraisalSession>;
+
 export async function GET() {
   return NextResponse.json({
     ok: true,
     endpoint: "appraisal-intake",
     method: "POST",
     status: "ready",
-    free: true,
-    message: "Submit source evidence with POST to generate a free VentureOS report.",
+    freePreview: true,
+    message: "Submit paid checkout session and source evidence with POST to generate a VentureOS decision report.",
   });
 }
 
 export async function POST(request: NextRequest) {
   const traceId = createTrace("appraisal-intake.POST");
   try {
-    await compileTrust(request, { mode: "publicNonPersistent", reason: "free appraisal fulfillment" });
+    await compileTrust(request, { mode: "publicNonPersistent", reason: "paid appraisal fulfillment" });
     await enforceRateLimit(request, intakeRateLimit);
     const body = await readCompiledJson(request);
     const intakeContext = cleanIntakeContext(body.intakeContext);
 
-    const checkout = createFreeAppraisalSession(body, traceId);
-    const paymentRequired = false;
+    const checkout = await checkoutContextFor(body, traceId);
+    const paymentRequired = !checkout.free;
     const existing = await loadExistingResult(checkout.projectId);
     if (existing) return NextResponse.json({ ok: true, traceId, reused: true, ...existing });
 
@@ -362,7 +364,7 @@ function createFreeAppraisalSession(body: Record<string, unknown>, traceId: stri
 
 function createFreeAppraisalResult(input: {
   traceId: string;
-  checkout: ReturnType<typeof createFreeAppraisalSession>;
+  checkout: AppraisalCheckoutContext;
   analysis: {
     analysisId?: string;
     productionReadinessScore?: number;
@@ -382,7 +384,8 @@ function createFreeAppraisalResult(input: {
 }) {
   const origin = canonicalAppUrl().replace(/\/+$/, "");
   const score = Math.max(0, Math.min(100, Math.round(Number(input.analysis.productionReadinessScore || 0))));
-  const publicId = `VOS-FREE-${hashValue(`${input.checkout.projectId}:${input.analysis.analysisId || input.code}`).slice(0, 12).toUpperCase()}`;
+  const publicIdPrefix = input.checkout.free ? "VOS-FREE" : "VOS-PAID";
+  const publicId = `${publicIdPrefix}-${hashValue(`${input.checkout.projectId}:${input.analysis.analysisId || input.code}`).slice(0, 12).toUpperCase()}`;
   const certificateId = `vos-free-${hashValue(publicId).slice(0, 16)}`;
   const issueCount = Array.isArray(input.analysis.issues) ? input.analysis.issues.length : 0;
   const filesLoaded = input.repositorySource?.filesLoaded || 0;
@@ -392,7 +395,9 @@ function createFreeAppraisalResult(input: {
     input.sbom.status !== "not_found"
       ? `SBOM generated from ${input.sbom.manifestCount} package manifest(s) with ${input.sbom.componentCount} component(s).`
       : "SBOM generation ran, but no supported dependency manifest was observed.",
-    "Free launch-mode report generated without payment.",
+    input.checkout.free
+      ? "Free launch-mode report generated without payment."
+      : `${input.checkout.offer.priceLabel} decision report generated after Stripe checkout validation.`,
   ];
   const unknowns = [
     "Independent production access was not verified.",
@@ -411,7 +416,7 @@ function createFreeAppraisalResult(input: {
     ok: true,
     traceId: input.traceId,
     transient: true,
-    checkout: { sessionId: input.checkout.sessionId, offer: input.checkout.offer, free: true },
+    checkout: { sessionId: input.checkout.sessionId, offer: input.checkout.offer, free: input.checkout.free },
     scan: {
       analysisId: input.analysis.analysisId || publicId,
       readinessScore: score,
@@ -464,7 +469,7 @@ function createFreeAppraisalResult(input: {
         technicalValue: {
           available: false,
           label: "Not claimed",
-          basis: "No verified valuation dataset is configured for free launch reports.",
+          basis: "No verified valuation dataset is configured for launch decision reports.",
         },
       },
     },
@@ -474,6 +479,22 @@ function createFreeAppraisalResult(input: {
       badgeUrl: `${origin}/api/certificates/${encodeURIComponent(certificateId)}/badge.svg`,
     },
   };
+}
+
+async function checkoutContextFor(body: Record<string, unknown>, traceId: string): Promise<AppraisalCheckoutContext> {
+  const sessionId = cleanText(body.sessionId || body.checkoutSessionId, 180);
+  if (sessionId) return verifyPaidAppraisalSession(sessionId, traceId);
+
+  const offer = appraisalOfferFor(body.offer || body.offerId);
+  if (offer.unitAmount <= 0 || freeReportFallbackEnabled()) {
+    return createFreeAppraisalSession(body, traceId);
+  }
+
+  throw new Error("PAID_CHECKOUT_REQUIRED");
+}
+
+function freeReportFallbackEnabled() {
+  return process.env.VENTUREOS_FREE_FULL_REPORTS === "true" || process.env.NEXT_PUBLIC_VENTUREOS_FREE_FULL_REPORTS === "true";
 }
 
 function sbomResponse(sbom: SoftwareBillOfMaterialsEvidence) {
@@ -713,6 +734,7 @@ function statusForIntakeError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   if (/STRIPE_SECRET_KEY|Stripe|APP_URL|NEXT_PUBLIC_APP_URL|allowlisted|Database|CERTIFICATE_SIGNING_KEY_REQUIRED/.test(message)) return 503;
   if (/rate/i.test(message)) return 429;
+  if (/PAID_CHECKOUT_REQUIRED/i.test(message)) return 402;
   if (/PAYMENT_VALIDATION_FAILED|not a one-time|not been paid|not for a VentureOS appraisal|amount_total|currency|price_id|payment_status/i.test(message)) return 422;
   if (/checkout session is required|email|source code|appCode|required|public GitHub|repository could not be read|private repository|supported source files/i.test(message)) return 400;
   return 500;

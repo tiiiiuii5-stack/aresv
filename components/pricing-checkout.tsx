@@ -11,34 +11,34 @@ import { StickyConversionBar } from "@/components/sticky-conversion-bar";
 const plans = [
   {
     tier: "STARTER",
-    name: "Starter",
+    name: "Free Preview",
     priceMonthly: "Free",
     priceAnnual: "Free",
-    features: ["Public demo scans", "Sample reports", "Basic launch blockers", "No payment required"],
-    signal: "Preview risk in minutes",
+    features: ["Public repo or code sample", "Quick buyer verdict", "Top risks preview", "No payment required"],
+    signal: "Check risk in minutes",
     action: "Start free scan",
     href: "/free-review",
     tone: "muted",
   },
   {
     tier: "PRO",
-    name: "Evidence Review",
-    priceMonthly: "Free",
-    priceAnnual: "Free",
-    features: ["Evidence review report", "Signed Evidence Receipt", "Evidence scope", "Shareable review page"],
-    signal: "For founders preparing diligence",
-    action: "Generate free report",
+    name: "Software Decision Report",
+    priceMonthly: "$9",
+    priceAnnual: "$9",
+    features: ["Risk summary", "Engineering maturity", "Safety signals", "Decision recommendation"],
+    signal: "For one buy/ship/use decision",
+    action: "Unlock $9 report",
     href: "/appraisal-intake?offer=instant",
     tone: "verified",
   },
   {
     tier: "TEAM",
-    name: "Buyer Evidence",
-    priceMonthly: "Free",
-    priceAnnual: "Free",
-    features: ["Buyer-facing review", "Fix plan", "Risk explanation", "Signed Evidence Receipt", "Audit-ready unknowns"],
-    signal: "For sales, acquisition, or audit review",
-    action: "Start free buyer report",
+    name: "Buyer-Ready Report",
+    priceMonthly: "$19",
+    priceAnnual: "$19",
+    features: ["Full risk breakdown", "Fix plan", "Evidence limits", "Assessment confidence", "Signed Evidence Receipt"],
+    signal: "For buyers, audits, and client review",
+    action: "Unlock $19 report",
     href: "/appraisal-intake?offer=buyer-ready",
     tone: "verified",
   },
@@ -97,10 +97,10 @@ export function PricingCheckout() {
   }
 
   return (
-    <InstitutionalPageShell
-      purposeLabel="Build Your Evidence Review"
+      <InstitutionalPageShell
+      purposeLabel="Software Decision Reports"
       actions={[
-        { label: "Build Report", href: "/software-appraisal", variant: "default" },
+        { label: "Start Free Preview", href: "/free-review", variant: "default" },
       ]}
       breadcrumbs={[
         { label: "Home", href: "/" },
@@ -110,13 +110,13 @@ export function PricingCheckout() {
     >
       <div className="grid gap-5">
         <InstitutionalPageHero
-          eyebrow="Build Your Evidence Review"
-          title="Know if your software asset is safe to ship."
-          description="Start free, then move into evidence-scoped buyer artifacts when the software needs to survive diligence."
+          eyebrow="Software Decision Reports"
+          title="Pay for the answer, not the platform."
+          description="Run a free preview, then unlock a low-friction decision report when you need a shareable risk summary before buying, shipping, or integrating software."
           aside={
             <div className="grid gap-3">
               <InstitutionalMetricCard label="Public scan" value="Free" detail="Limited evidence review" />
-              <InstitutionalMetricCard label="Buyer ladder" value="Free" detail="Clear next step after free review" status="verified" />
+              <InstitutionalMetricCard label="First paid report" value="$9" detail="Decision report" status="verified" />
             </div>
           }
           actions={
@@ -135,9 +135,9 @@ export function PricingCheckout() {
         />
 
         <section className="grid gap-3 md:grid-cols-3">
-          <TrustPill icon={<Check className="h-4 w-4" />} label="Free first" value="Risk preview before commitment" />
-          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} label="Buyer artifact" value="Reviews and signed receipts" />
-          <TrustPill icon={<FileText className="h-4 w-4" />} label="Founder path" value="Free scan -> free report -> free badge" />
+          <TrustPill icon={<Check className="h-4 w-4" />} label="Free first" value="Risk preview before payment" />
+          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} label="Paid artifact" value="$9 or $19 decision report" />
+          <TrustPill icon={<FileText className="h-4 w-4" />} label="Clear path" value="Preview -> pay -> report" />
         </section>
 
         <section className="vos-panel grid gap-4 p-5 md:grid-cols-3">

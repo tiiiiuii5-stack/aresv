@@ -135,8 +135,10 @@ export function AppraisalIntakeClient({
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [result, setResult] = useState<AppraisalResult | null>(null);
   const viewTracked = useRef(false);
-  const accessGranted = true;
   const offer = useMemo(() => APPRAISAL_OFFERS.find((item) => item.id === offerId) || APPRAISAL_OFFERS[0], [offerId]);
+  const accessGranted = checkoutStatus === "success" && Boolean(sessionId);
+  const checkoutCancelled = checkoutStatus === "cancelled";
+  const primaryActionLabel = accessGranted ? "Generate Report" : `Unlock ${offer.priceLabel} Report`;
   const codeReady = code.trim().length >= 80;
   const repoReady = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+/i.test(repoUrl.trim()) || /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repoUrl.trim());
   const sourceReady = codeReady || repoReady;
@@ -253,9 +255,60 @@ export function AppraisalIntakeClient({
     }
   }
 
+  async function startCheckout() {
+    if (!sourceReady) {
+      showToast({ type: "error", title: "Source evidence required", description: "Add a public repo, upload files, or paste source before checkout." });
+      return;
+    }
+
+    setState("checkout");
+    try {
+      await trackProductEvent("appraisal_intake.checkout_started", {
+        source: "appraisal_intake",
+        framework,
+        repositoryUrl: repoUrl,
+        counts: {
+          hasRepositoryUrl: repoReady,
+          hasPastedCode: codeReady,
+          offerInstant: offerId === "instant",
+          offerBuyerReady: offerId === "buyer-ready",
+          intakeCompleteness,
+        },
+      });
+      const response = await fetch("/api/appraisal-checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          offer: offerId,
+          email,
+          repoUrl,
+          framework,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      const checkoutUrl = String(payload.url || payload.checkout?.url || "");
+      if (!response.ok || !checkoutUrl) throw new Error(payload.error || "Checkout could not be started.");
+      window.location.assign(checkoutUrl);
+    } catch (error) {
+      showToast({ type: "error", title: "Checkout failed", description: error instanceof Error ? error.message : "Unable to start checkout." });
+      await trackProductEvent("appraisal_intake.checkout_failed", {
+        source: "appraisal_intake",
+        framework,
+        repositoryUrl: repoUrl,
+        metadata: { reason: error instanceof Error ? error.message.slice(0, 120) : "unknown" },
+      });
+      setState("idle");
+    }
+  }
+
   async function runPaidAppraisal() {
     if (!sourceReady) {
       showToast({ type: "error", title: "Source evidence required", description: "Paste/upload source code or enter a public GitHub repository URL." });
+      return;
+    }
+
+    if (!accessGranted) {
+      await startCheckout();
       return;
     }
 
@@ -341,12 +394,23 @@ export function AppraisalIntakeClient({
               {state === "previewing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
               Preview
             </Button>
-            <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || !sourceReady}>
-              {state === "appraising" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              Generate Review
+            <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || state === "checkout" || !sourceReady}>
+              {state === "appraising" || state === "checkout" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {state === "checkout" ? "Opening Checkout" : primaryActionLabel}
             </Button>
           </div>
         </div>
+
+        {checkoutCancelled ? (
+          <div className="mt-5 rounded-lg border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm font-semibold text-amber-50">
+            Checkout was cancelled. Your source evidence is still here; run the preview or unlock the report when ready.
+          </div>
+        ) : null}
+        {accessGranted ? (
+          <div className="mt-5 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-4 py-3 text-sm font-semibold text-emerald-50">
+            Payment verified. Generate the full decision report from the evidence below.
+          </div>
+        ) : null}
 
         <section className="mt-6 grid gap-4 lg:grid-cols-2">
           {APPRAISAL_OFFERS.map((item) => {
@@ -395,7 +459,7 @@ export function AppraisalIntakeClient({
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
           <IntakeMetric label="Offer" value={offer.priceLabel} detail={offer.name} />
-          <IntakeMetric label="Access" value="Free" detail="No checkout in this launch flow" tone="ready" />
+          <IntakeMetric label="Access" value={accessGranted ? "Paid" : "Locked"} detail={accessGranted ? "Checkout verified" : "Preview is free; report unlocks after payment"} tone={accessGranted ? "ready" : "risk"} />
           <IntakeMetric label="Source" value={sourceReady ? "Ready" : "Needed"} detail={repoReady ? "Repository URL" : codeReady ? "Submitted source" : "Repo, upload, or paste"} tone={sourceReady ? "ready" : "risk"} />
           <IntakeMetric label="Intake" value={`${intakeCompleteness}%`} detail="Context completeness" tone={intakeCompleteness >= 70 ? "ready" : "risk"} />
         </div>
@@ -661,7 +725,13 @@ export function AppraisalIntakeClient({
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-200">Next step</p>
           <p className="truncate text-sm font-black text-white">
-            {result ? "Evidence review issued. Open or copy the public links above." : sourceReady ? "Evidence is ready. Preview or issue the signed evidence receipt." : "Add a public repo, upload files, or paste source evidence."}
+            {result
+              ? "Decision report issued. Open or copy the public links above."
+              : sourceReady
+                ? accessGranted
+                  ? "Payment verified. Generate the full decision report."
+                  : `Evidence is ready. Preview free or unlock the ${offer.priceLabel} report.`
+                : "Add a public repo, upload files, or paste source evidence."}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
@@ -669,9 +739,9 @@ export function AppraisalIntakeClient({
             {state === "previewing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
             Preview Scan
           </Button>
-          <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || !sourceReady}>
-            {state === "appraising" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            Generate Review
+          <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || state === "checkout" || !sourceReady}>
+            {state === "appraising" || state === "checkout" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {state === "checkout" ? "Opening Checkout" : primaryActionLabel}
           </Button>
         </div>
       </div>
