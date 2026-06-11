@@ -119,6 +119,11 @@ export default function FreeReviewPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [error, setError] = useState("");
   const [checkoutError, setCheckoutError] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [leadRole, setLeadRole] = useState("Founder / owner");
+  const [leadBusy, setLeadBusy] = useState(false);
+  const [leadMessage, setLeadMessage] = useState("");
+  const [leadError, setLeadError] = useState("");
   const [message, setMessage] = useState("");
   const viewTracked = useRef(false);
   const autoScanStarted = useRef(false);
@@ -328,6 +333,40 @@ export default function FreeReviewPage() {
     });
   }, [framework, result, shareableRepoUrl]);
 
+  const saveVerdictLead = useCallback(async () => {
+    if (!result || leadBusy) return;
+    setLeadBusy(true);
+    setLeadMessage("");
+    setLeadError("");
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: leadEmail,
+          role: leadRole,
+          source: "free_review_verdict",
+          useCase: [
+            `Decision: ${result.decision?.answer || "INVESTIGATE"}`,
+            `Repo: ${repoUrl || "pasted code"}`,
+            `Framework: ${framework}`,
+            `Coverage: ${coverageLabelFor(result.decision, result)}`,
+            `Risk: ${riskLabel(result.riskLevel)}`,
+          ].join(" | "),
+          ...campaignMetadataFromLocation(),
+        }),
+      });
+      const payload = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Could not save this verdict.");
+      setLeadMessage("Saved. This now counts as real demand evidence when it comes from a real visitor.");
+      setLeadEmail("");
+    } catch (saveError) {
+      setLeadError(saveError instanceof Error ? saveError.message : "Could not save this verdict.");
+    } finally {
+      setLeadBusy(false);
+    }
+  }, [framework, leadBusy, leadEmail, leadRole, repoUrl, result]);
+
   return (
     <InstitutionalPageShell
       purposeLabel="Free Review"
@@ -535,6 +574,41 @@ export default function FreeReviewPage() {
                       </Button>
                     </div>
                   ) : null}
+                  <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/50 p-3">
+                    <p className="text-xs font-black uppercase tracking-normal text-emerald-100">Save this verdict</p>
+                    <p className="mt-1 text-sm font-semibold leading-6 text-emerald-50/80">
+                      Leave an email if you want the full report or human review. Real submissions are stored as demand evidence for the owner dashboard.
+                    </p>
+                    <label className="mt-3 block">
+                      <span className="sr-only">Email address</span>
+                      <input
+                        value={leadEmail}
+                        onChange={(event) => setLeadEmail(event.target.value)}
+                        type="email"
+                        placeholder="you@company.com"
+                        className="h-10 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none placeholder:text-emerald-50/35 focus:border-emerald-300"
+                      />
+                    </label>
+                    <label className="mt-2 block">
+                      <span className="sr-only">Role</span>
+                      <select
+                        value={leadRole}
+                        onChange={(event) => setLeadRole(event.target.value)}
+                        className="h-10 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none focus:border-emerald-300"
+                      >
+                        <option>Founder / owner</option>
+                        <option>Buyer / investor</option>
+                        <option>Security reviewer</option>
+                        <option>Operator / engineering lead</option>
+                      </select>
+                    </label>
+                    <Button type="button" variant="outline" size="sm" onClick={saveVerdictLead} disabled={leadBusy} className="mt-3 w-full">
+                      {leadBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      {leadBusy ? "Saving" : "Save verdict"}
+                    </Button>
+                    {leadMessage ? <p className="mt-2 text-xs font-bold leading-5 text-emerald-100">{leadMessage}</p> : null}
+                    {leadError ? <p className="mt-2 text-xs font-bold leading-5 text-red-100">{leadError}</p> : null}
+                  </div>
                 </div>
               </div>
 

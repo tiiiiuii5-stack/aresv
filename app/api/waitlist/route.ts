@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       email?: unknown;
       role?: unknown;
       useCase?: unknown;
+      source?: unknown;
       campaign?: unknown;
       ref?: unknown;
       utmSource?: unknown;
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
 
     const role = sanitizePublicText(body.role, 80) || "builder";
     const useCase = sanitizePublicText(body.useCase, 500);
+    const source = sanitizePublicText(body.source, 80) || "conversion_trust_sections";
     const campaign = sanitizePublicText(body.campaign, 80);
     const ref = sanitizePublicText(body.ref, 80);
     const utmSource = sanitizePublicText(body.utmSource || body.utm_source, 80);
@@ -62,7 +64,7 @@ export async function POST(request: NextRequest) {
           role,
           useCase,
           userId: null,
-          source: "conversion_trust_sections",
+          source,
           campaign,
           ref,
           utmSource,
@@ -74,7 +76,7 @@ export async function POST(request: NextRequest) {
       email,
       role,
       useCase,
-      source: "conversion_trust_sections",
+      source,
       campaign,
       ref,
       utmSource,
@@ -86,6 +88,7 @@ export async function POST(request: NextRequest) {
       source: "waitlist",
       metadata: {
         surface: "waitlist-api",
+        source,
         role,
         campaign,
         ref,

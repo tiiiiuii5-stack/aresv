@@ -77,7 +77,7 @@ async function main() {
       botTotalEvents?: number;
     };
     proof?: {
-      customerDemand?: { proven?: boolean; previewStarted?: number; previewCompleted?: number; requirement?: string };
+      customerDemand?: { proven?: boolean; previewStarted?: number; previewCompleted?: number; capturedLeads?: number; requirement?: string };
       conversionFunnel?: { proven?: boolean; checkoutStarted?: number; paidIntent?: number; previewToCheckoutRate?: number; previewToCheckoutPath?: number; requirement?: string };
     };
   };
@@ -85,7 +85,7 @@ async function main() {
   gates.push({
     name: "proven_customer_demand",
     passed: Boolean(funnel.proof?.customerDemand?.proven),
-    detail: `uniqueRealPreviewStarted=${uniqueReal?.previewStarted ?? funnel.proof?.customerDemand?.previewStarted ?? 0} uniqueRealPreviewCompleted=${uniqueReal?.previewCompleted ?? funnel.proof?.customerDemand?.previewCompleted ?? 0} syntheticEvents=${funnel.metrics?.syntheticTotalEvents ?? 0} botEvents=${funnel.metrics?.botTotalEvents ?? 0} requirement="${funnel.proof?.customerDemand?.requirement || "missing"}"`,
+    detail: `uniqueRealPreviewStarted=${uniqueReal?.previewStarted ?? funnel.proof?.customerDemand?.previewStarted ?? 0} uniqueRealPreviewCompleted=${uniqueReal?.previewCompleted ?? funnel.proof?.customerDemand?.previewCompleted ?? 0} capturedLeads=${funnel.proof?.customerDemand?.capturedLeads ?? 0} syntheticEvents=${funnel.metrics?.syntheticTotalEvents ?? 0} botEvents=${funnel.metrics?.botTotalEvents ?? 0} requirement="${funnel.proof?.customerDemand?.requirement || "missing"}"`,
   });
   gates.push({
     name: "proven_conversion_funnel",
