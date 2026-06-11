@@ -176,6 +176,12 @@ export function AppraisalIntakeClient({
   }, [framework, initialRepositoryUrl, paid, repoUrl]);
 
   async function startCheckout() {
+    await trackProductEvent("appraisal_intake.checkout_started", {
+      source: "appraisal_intake",
+      framework,
+      repositoryUrl: repoUrl,
+      counts: { checkoutVerified: paid, intakeCompleteness },
+    });
     showToast({ type: "success", title: "Launch access active", description: "Submit evidence and issue the report directly." });
   }
 

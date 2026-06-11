@@ -18,6 +18,7 @@ const allowedEvents = new Set([
   "free_review.scan_started",
   "free_review.scan_completed",
   "free_review.scan_failed",
+  "free_review.upgrade_shown",
   "free_review.feedback_submitted",
   "free_review.paid_cta_clicked",
   "appraisal_intake.view",
@@ -25,6 +26,7 @@ const allowedEvents = new Set([
   "appraisal_intake.preview_completed",
   "appraisal_intake.preview_failed",
   "appraisal_intake.checkout_started",
+  "appraisal_intake.checkout_clicked",
   "appraisal_intake.checkout_failed",
   "appraisal_intake.certificate_started",
   "appraisal_intake.certificate_completed",
@@ -69,6 +71,19 @@ export async function POST(request: NextRequest) {
       );
       return true;
     });
+
+    console.log(JSON.stringify({
+      level: "info",
+      source: "ventureos",
+      action: "product_funnel.event",
+      eventType,
+      stored: Boolean(stored),
+      sourcePage: metadata.source,
+      hasRepositoryUrl: Boolean(metadata.hasRepositoryUrl),
+      framework: cleanOptionalIdentifier(body.framework, 40),
+      riskLevel: cleanOptionalIdentifier(body.riskLevel, 40),
+      timestamp: new Date().toISOString(),
+    }));
 
     return jsonResponse({ ok: true, traceId, stored: Boolean(stored) }, { headers: rateLimit.headers });
   } catch (error) {

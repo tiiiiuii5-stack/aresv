@@ -70,6 +70,7 @@ export default function FreeReviewPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const viewTracked = useRef(false);
+  const upgradeShownTracked = useRef("");
 
   const topIssues = useMemo(() => (result?.issues || []).slice(0, 3), [result]);
   const readiness = Number(result?.productionReadinessScore || 0);
@@ -108,6 +109,25 @@ export default function FreeReviewPage() {
     });
   }, [framework]);
 
+  useEffect(() => {
+    if (!result) return;
+    const key = `${result.productionReadinessScore || 0}:${result.riskLevel || "unknown"}:${repoUrl || "code"}`;
+    if (upgradeShownTracked.current === key) return;
+    upgradeShownTracked.current = key;
+    void trackProductEvent("free_review.upgrade_shown", {
+      source: "free_review_verdict",
+      framework,
+      repositoryUrl: repoUrl,
+      riskLevel: result.riskLevel,
+      counts: {
+        readinessScore: Number(result.productionReadinessScore || 0),
+        buyerScore,
+        issueCount: topIssues.length,
+        hasRepositorySource: Boolean(result.repositorySource),
+      },
+    });
+  }, [buyerScore, framework, repoUrl, result, topIssues.length]);
+
   async function runReviewScan() {
     if (!sourceReady) {
       setError("Enter a public GitHub repository URL or paste at least 40 characters of code.");
@@ -116,6 +136,7 @@ export default function FreeReviewPage() {
     setScanBusy(true);
     setError("");
     setMessage("");
+    setResult(null);
     try {
       await trackProductEvent("free_review.scan_started", {
         source: "free_review",
@@ -127,6 +148,7 @@ export default function FreeReviewPage() {
           pastedCharacters: code.trim().length,
         },
       });
+      setMessage("Analyzing code structure...");
       const response = await fetch("/api/public-demo-scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -150,16 +172,23 @@ export default function FreeReviewPage() {
         },
       });
     } catch (scanError) {
-      setError(scanError instanceof Error ? scanError.message : "Free review scan failed.");
+      const errorMsg = scanError instanceof Error ? scanError.message : "Free review scan failed.";
+      setError(errorMsg);
       await trackProductEvent("free_review.scan_failed", {
         source: "free_review",
         framework,
         repositoryUrl: repoUrl,
-        metadata: { reason: scanError instanceof Error ? scanError.message.slice(0, 120) : "unknown" },
+        metadata: { reason: errorMsg.slice(0, 120) },
       });
     } finally {
       setScanBusy(false);
     }
+  }
+
+  function handleRetry() {
+    setError("");
+    setMessage("");
+    void runReviewScan();
   }
 
   return (
@@ -238,7 +267,20 @@ export default function FreeReviewPage() {
         </section>
 
         {message ? <p className="mt-4 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-sm font-semibold text-emerald-100">{message}</p> : null}
-        {error ? <p className="mt-4 rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-100">{error}</p> : null}
+        {error ? (
+          <div className="mt-4 rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-2 flex items-center justify-between">
+            <p className="text-sm font-semibold text-red-100">{error}</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRetry}
+              disabled={scanBusy}
+              className="ml-3"
+            >
+              Retry
+            </Button>
+          </div>
+        ) : null}
 
         <section className="mt-5 rounded-xl border border-slate-800 bg-slate-950 p-5">
           <div className="flex flex-col gap-3 border-b border-slate-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
@@ -247,15 +289,32 @@ export default function FreeReviewPage() {
                 <FileText className="h-4 w-4" />
                 Buyer verdict
               </p>
-              <h2 className="mt-2 text-3xl font-black text-white">{result ? verdict.title : "Waiting for scan"}</h2>
+              <h2 className="mt-2 text-3xl font-black text-white">{result ? verdict.title : scanBusy ? "Generating..." : "Waiting for scan"}</h2>
               <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-400">
-                {result ? verdict.detail : "Run the free scan to generate the verdict, scorecard, risks, and recommended next step."}
+                {result ? verdict.detail : scanBusy ? "Analyzing your code for quality, security, and production readiness..." : "Run the free scan to generate the verdict, scorecard, risks, and recommended next step."}
               </p>
             </div>
-            <span className={["rounded-full border px-4 py-2 text-sm font-black", result ? verdict.className : "border-slate-700 bg-slate-900 text-slate-300"].join(" ")}>
-              {result ? state : "NOT SCANNED"}
+            <span className={["rounded-full border px-4 py-2 text-sm font-black", 
+              result ? verdict.className : scanBusy ? "border-slate-700 bg-slate-900 text-slate-300 animate-pulse" : "border-slate-700 bg-slate-900 text-slate-300"
+            ].join(" ")}>
+              {result ? state : scanBusy ? "SCANNING..." : "NOT SCANNED"}
             </span>
           </div>
+
+          {scanBusy && !result ? (
+            <div className="mt-5 grid gap-5 animate-pulse">
+              <div className="grid gap-3 md:grid-cols-4">
+                <div className="h-32 rounded-lg bg-slate-800/50" />
+                <div className="h-32 rounded-lg bg-slate-800/50" />
+                <div className="h-32 rounded-lg bg-slate-800/50" />
+                <div className="h-32 rounded-lg bg-slate-800/50" />
+              </div>
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="h-48 rounded-lg bg-slate-800/50" />
+                <div className="h-48 rounded-lg bg-slate-800/50" />
+              </div>
+            </div>
+          ) : null}
 
           {result ? (
             <div className="mt-5 grid gap-5">
@@ -357,11 +416,11 @@ async function trackProductEvent(
 function ScoreMeter({ label, value, text = false }: { label: string; value: number | string; text?: boolean }) {
   const numeric = typeof value === "number" ? value : 0;
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4 transition hover:border-slate-700 hover:bg-slate-900 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-950">
       <p className="text-xs font-black uppercase tracking-normal text-slate-500">{label}</p>
       <p className="mt-3 text-3xl font-black text-white">{text ? value : `${numeric}/100`}</p>
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
-        <div className="h-full rounded-full bg-emerald-300" style={{ width: text ? "100%" : `${numeric}%` }} />
+        <div className="h-full rounded-full bg-emerald-300 transition-all duration-300" style={{ width: text ? "100%" : `${numeric}%` }} />
       </div>
     </div>
   );
@@ -381,7 +440,7 @@ function FindingPanel({ title, empty, children }: { title: string; empty: string
 
 function Finding({ eyebrow, title, detail }: { eyebrow: string; title: string; detail: string }) {
   return (
-    <div className="rounded-lg border border-amber-300/25 bg-amber-300/10 p-3">
+    <div className="rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 transition hover:border-amber-300/50 hover:bg-amber-300/20 hover:shadow-lg hover:shadow-amber-900/20">
       <p className="text-xs font-black uppercase tracking-normal text-amber-100">{eyebrow}</p>
       <p className="mt-1 text-sm font-black text-white">{title}</p>
       <p className="mt-2 text-xs font-semibold leading-5 text-amber-50">{detail}</p>
