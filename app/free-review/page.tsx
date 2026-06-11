@@ -116,6 +116,7 @@ export default function FreeReviewPage() {
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [scanBusy, setScanBusy] = useState(false);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [error, setError] = useState("");
   const [checkoutError, setCheckoutError] = useState("");
   const [message, setMessage] = useState("");
@@ -146,6 +147,7 @@ export default function FreeReviewPage() {
   const sourceReady = repoReady || code.trim().length >= 40;
   const paidUrl = `/appraisal-intake?offer=buyer-ready${repoUrl.trim() ? `&repo=${encodeURIComponent(repoUrl.trim())}` : ""}&framework=${encodeURIComponent(framework)}`;
   const trackedPaidUrl = trackingHref("appraisal_intake.checkout_clicked", paidUrl, "free_review");
+  const shareableRepoUrl = repoReady ? repoUrl.trim() : "";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -291,6 +293,29 @@ export default function FreeReviewPage() {
       setCheckoutBusy(false);
     }
   }, [checkoutBusy, framework, readiness, repoUrl, result, topIssues.length]);
+
+  const copyShareLink = useCallback(async () => {
+    if (!shareableRepoUrl) return;
+    const shareUrl = new URL("/free-review", window.location.origin);
+    shareUrl.searchParams.set("repo", shareableRepoUrl);
+    shareUrl.searchParams.set("framework", framework);
+    try {
+      await navigator.clipboard.writeText(shareUrl.toString());
+      setShareCopied(true);
+      window.setTimeout(() => setShareCopied(false), 2200);
+    } catch {
+      setCheckoutError(`Copy failed. Use this link: ${shareUrl.toString()}`);
+    }
+    await trackProductEvent("free_review.share_clicked", {
+      source: "free_review_result",
+      framework,
+      repositoryUrl: shareableRepoUrl,
+      riskLevel: result?.riskLevel,
+      counts: {
+        hadScanResult: Boolean(result),
+      },
+    });
+  }, [framework, result, shareableRepoUrl]);
 
   return (
     <InstitutionalPageShell
@@ -488,6 +513,17 @@ export default function FreeReviewPage() {
                   >
                     Open the evidence form instead
                   </Link>
+                  {shareableRepoUrl ? (
+                    <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/50 p-3">
+                      <p className="text-xs font-black uppercase tracking-normal text-emerald-100">Bring a reviewer in</p>
+                      <p className="mt-1 text-sm font-semibold leading-6 text-emerald-50/80">
+                        Share the same repo preview with a buyer, teammate, or founder who needs to make the decision.
+                      </p>
+                      <Button type="button" variant="outline" size="sm" onClick={copyShareLink} className="mt-3 w-full">
+                        {shareCopied ? "Copied" : "Copy review link"}
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 

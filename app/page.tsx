@@ -29,6 +29,8 @@ const nextSteps = [
   "Use the full report when a buyer, investor, or operator needs the evidence memo.",
 ];
 
+const sampleRepoUrl = "https://github.com/tiiiiuii5-stack/aresv.git";
+
 export default function HomePage() {
   const [target, setTarget] = useState("");
   const viewTracked = useRef(false);
@@ -107,6 +109,12 @@ export default function HomePage() {
               <p className="mt-3 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
                 Preview is free. Full decision reports are the buyer-ready evidence memo.
               </p>
+              <Link
+                href={trackingHref("homepage.free_review_clicked", "/free-review", "homepage_sample_repo", { repo: sampleRepoUrl, framework: "nextjs" })}
+                className="mt-3 inline-flex text-sm font-black text-[rgb(var(--vos-primary))] underline decoration-[rgb(var(--vos-primary))]/40 underline-offset-4 hover:text-[rgb(var(--vos-text))]"
+              >
+                No repo handy? Try the live sample repo.
+              </Link>
             </form>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -164,8 +172,13 @@ export default function HomePage() {
   );
 }
 
-function trackingHref(event: string, to: string, source: string) {
+function trackingHref(event: string, to: string, source: string, extra?: Record<string, string>) {
   const params = new URLSearchParams({ e: event, to, source });
+  if (extra) {
+    for (const [key, value] of Object.entries(extra)) {
+      if (value) params.set(key, value);
+    }
+  }
   return `/t?${params.toString()}`;
 }
 
