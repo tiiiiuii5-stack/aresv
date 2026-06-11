@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { VentureOSHeader } from "@/components/institutional/institutional-shell";
 import { Badge } from "@/components/ui/badge";
 import { loadProductFunnelMetrics } from "@/lib/analytics/product-funnel-store";
+import { loadWaitlistLeadMetrics } from "@/lib/analytics/waitlist-lead-store";
 import { canonicalAppUrl } from "@/lib/appraisal/app-url";
 import { requireAdmin } from "@/lib/auth/guards";
 import { requireSession } from "@/lib/auth/session";
@@ -22,9 +23,10 @@ export default async function AdminGrowthPage() {
   if (access === "unauthorized") return <AdminLoginRequired />;
   if (access === "forbidden") return <AdminAccessDenied />;
 
-  const [snapshot, funnel] = await Promise.all([
+  const [snapshot, funnel, waitlist] = await Promise.all([
     loadGrowthDashboardSnapshot(),
     loadProductFunnelMetrics(),
+    loadWaitlistLeadMetrics(),
   ]);
   const realPreviewStarted = funnel.uniqueReal.previewStarted;
   const realPreviewCompleted = funnel.uniqueReal.previewCompleted;
@@ -81,6 +83,12 @@ export default async function AdminGrowthPage() {
           <Metric label="Homepage intent" value={homepageDemand} detail="Real free review or pricing visitors" tone={homepageDemand ? "ready" : "muted"} />
         </section>
 
+        <section className="mt-6 grid gap-3 md:grid-cols-3">
+          <Metric label="Captured leads" value={waitlist.total} detail={waitlist.available ? "Unique emails in durable KV/Postgres" : "Lead store unavailable"} tone={waitlist.total ? "ready" : "muted"} />
+          <Metric label="Lead store" value={waitlist.available ? "Live" : "Offline"} detail="Durable lead capture status" tone={waitlist.available ? "ready" : "muted"} />
+          <Metric label="Waitlist event" value={funnel.events["waitlist.joined"] || 0} detail="All waitlist submissions by event" tone={(funnel.events["waitlist.joined"] || 0) ? "ready" : "muted"} />
+        </section>
+
         <section className="mt-6 grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
           <Panel title="Funnel Proof Gates" badge={funnel.available ? "live kv" : "unavailable"}>
             <div className="grid gap-2">
@@ -121,6 +129,22 @@ export default async function AdminGrowthPage() {
                 formatDateTime(event.createdAt),
               ])}
               empty="No funnel events recorded yet."
+            />
+          </Panel>
+        </section>
+
+        <section className="mt-6">
+          <Panel title="Recent Leads" badge={`${waitlist.recent.length} latest`}>
+            <DataTable
+              headers={["Email", "Role", "Source", "Campaign", "Created"]}
+              rows={waitlist.recent.map((lead) => [
+                lead.email,
+                lead.role,
+                lead.source,
+                lead.campaign || "none",
+                formatDateTime(lead.createdAt),
+              ])}
+              empty="No leads captured yet."
             />
           </Panel>
         </section>

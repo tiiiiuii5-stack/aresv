@@ -32,6 +32,7 @@ const allowedEvents = new Set([
   "free_review.share_clicked",
   "free_review.feedback_submitted",
   "free_review.paid_cta_clicked",
+  "waitlist.joined",
   "homepage.view",
   "homepage.free_review_clicked",
   "homepage.sample_clicked",

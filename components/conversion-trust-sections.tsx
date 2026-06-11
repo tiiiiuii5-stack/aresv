@@ -215,7 +215,7 @@ function WaitlistSection() {
       const response = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, role, useCase }),
+        body: JSON.stringify({ email, role, useCase, ...campaignMetadataFromLocation() }),
       });
       const payload = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok) throw new Error(payload.error || "Could not join waitlist.");
@@ -265,4 +265,18 @@ function WaitlistSection() {
       {error ? <p className="mt-3 vos-status-danger vos-cell p-3 text-sm font-bold">{error}</p> : null}
     </InstitutionalPanel>
   );
+}
+
+function campaignMetadataFromLocation() {
+  if (typeof window === "undefined") return {};
+  const params = new URLSearchParams(window.location.search);
+  return {
+    campaign: cleanCampaignParam(params.get("campaign") || params.get("utm_campaign")),
+    ref: cleanCampaignParam(params.get("ref")),
+    utmSource: cleanCampaignParam(params.get("utm_source")),
+  };
+}
+
+function cleanCampaignParam(value: unknown) {
+  return String(value || "").trim().replace(/[^a-zA-Z0-9_.:-]/g, "_").slice(0, 80);
 }
