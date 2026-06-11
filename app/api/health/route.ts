@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getDatabaseCircuitStatus, isDatabaseConfigured } from "@/lib/persistence/database";
+import { getDatabaseCircuitStatus, isDatabaseConfigured, isDatabaseDisabled } from "@/lib/persistence/database";
 import { compileTrust } from "@/lib/trust/compiler";
 
 export const runtime = "nodejs";
@@ -42,6 +42,7 @@ export async function GET(request: Request) {
     configuration: {
       database: {
         configured: isDatabaseConfigured(),
+        disabled: isDatabaseDisabled(),
         circuit: getDatabaseCircuitStatus(),
       },
       stripe: {

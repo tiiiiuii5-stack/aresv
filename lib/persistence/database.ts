@@ -16,6 +16,7 @@ const globalForPrisma = globalThis as typeof globalThis & {
 };
 
 export function isDatabaseConfigured() {
+  if (isDatabaseDisabled()) return false;
   const databaseUrl = process.env.DATABASE_URL?.trim();
   if (!databaseUrl) return false;
   assertProductionDatabaseUrl(databaseUrl);
@@ -73,6 +74,10 @@ export async function getDefaultUserId() {
 }
 
 export function getDatabaseCircuitStatus() {
+  if (isDatabaseDisabled()) {
+    return { open: true, reason: "disabled_by_env", unavailableUntil: null };
+  }
+
   const circuit = globalForPrisma.ventureosDatabaseCircuit;
   if (!circuit || circuit.unavailableUntil <= Date.now()) {
     return { open: false, reason: null, unavailableUntil: null };
@@ -83,6 +88,10 @@ export function getDatabaseCircuitStatus() {
     reason: circuit.reason,
     unavailableUntil: new Date(circuit.unavailableUntil).toISOString(),
   };
+}
+
+export function isDatabaseDisabled() {
+  return /^(1|true|yes|on)$/i.test(process.env.DATABASE_DISABLED || process.env.DISABLE_DATABASE || "");
 }
 
 function isDatabaseCircuitOpen() {
