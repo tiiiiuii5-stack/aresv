@@ -308,6 +308,7 @@ export function VentureOSFooter() {
             <p className="vos-label">Public Offers</p>
           <div className="mt-3 grid gap-2 text-sm font-bold text-[rgb(var(--vos-text-muted))]">
             <Link href="/free-review" className="hover:text-[rgb(var(--vos-text))]">Free limited software review</Link>
+            <Link href="/launch-kit" className="hover:text-[rgb(var(--vos-text))]">Launch proof kit</Link>
             <Link href="/software-appraisal" className="hover:text-[rgb(var(--vos-text))]">Evidence Review Report - Free</Link>
             <Link href="/software-appraisal" className="hover:text-[rgb(var(--vos-text))]">Buyer Evidence Review - Free</Link>
             <Link href="/tutorial" className="hover:text-[rgb(var(--vos-text))]">Tutorial</Link>
