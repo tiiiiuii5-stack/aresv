@@ -22,7 +22,12 @@ async function main() {
   const health = await getJson("/api/health?deep=1") as {
     configuration?: {
       database?: { configured?: boolean; disabled?: boolean; reachable?: boolean; verifiedRead?: boolean; verifiedWrite?: boolean; provider?: string; reason?: string | null; circuit?: { open?: boolean; reason?: string | null } };
-      stripe?: { checkoutEnabled?: boolean; webhookEnabled?: boolean; appraisalPriceIdsConfigured?: { instant?: boolean; buyerReady?: boolean } };
+      stripe?: {
+        checkoutEnabled?: boolean;
+        webhookEnabled?: boolean;
+        appraisalPriceIdsConfigured?: { instant?: boolean; buyerReady?: boolean };
+        paymentLedger?: { configured?: boolean; reachable?: boolean; verifiedRead?: boolean; verifiedWrite?: boolean; provider?: string; reason?: string | null };
+      };
     };
   };
   const database = health.configuration?.database;
@@ -36,8 +41,8 @@ async function main() {
 
   gates.push({
     name: "stripe_payment_operations",
-    passed: Boolean(stripe?.checkoutEnabled && stripe.webhookEnabled && stripe.appraisalPriceIdsConfigured?.instant && stripe.appraisalPriceIdsConfigured?.buyerReady),
-    detail: `checkout=${Boolean(stripe?.checkoutEnabled)} webhook=${Boolean(stripe?.webhookEnabled)} instantPrice=${Boolean(stripe?.appraisalPriceIdsConfigured?.instant)} buyerPrice=${Boolean(stripe?.appraisalPriceIdsConfigured?.buyerReady)}`,
+    passed: Boolean(stripe?.checkoutEnabled && stripe.webhookEnabled && stripe.appraisalPriceIdsConfigured?.instant && stripe.appraisalPriceIdsConfigured?.buyerReady && stripe.paymentLedger?.verifiedRead && stripe.paymentLedger.verifiedWrite),
+    detail: `checkout=${Boolean(stripe?.checkoutEnabled)} webhook=${Boolean(stripe?.webhookEnabled)} instantPrice=${Boolean(stripe?.appraisalPriceIdsConfigured?.instant)} buyerPrice=${Boolean(stripe?.appraisalPriceIdsConfigured?.buyerReady)} paymentLedgerProvider=${stripe?.paymentLedger?.provider || "none"} paymentLedgerRead=${Boolean(stripe?.paymentLedger?.verifiedRead)} paymentLedgerWrite=${Boolean(stripe?.paymentLedger?.verifiedWrite)} paymentLedgerReason=${stripe?.paymentLedger?.reason || "none"}`,
   });
 
   const scan = await postJson("/api/public-demo-scan", {

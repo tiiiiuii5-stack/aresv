@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     const db = getPrisma();
     const userId = db ? await ensureCheckoutUser(checkout.userId, checkout.ownerEmail) : checkout.userId;
-    if (paymentRequired && db) {
+    if (paymentRequired) {
       await withStep("appraisal-intake.POST", traceId, "record checkout entitlement", () =>
         recordPaidAppraisalPayment({
           sessionId: checkout.sessionId,
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       }), userId);
     }
 
-    if (paymentRequired && db) {
+    if (paymentRequired) {
       await withStep("appraisal-intake.POST", traceId, "transition checkout to scanning", () =>
         transitionPaidAppraisalPayment({ sessionId: checkout.sessionId, event: "scan.started", traceId }), 10_000);
     }
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
           sbomComponents: sbom.componentCount,
         },
       }), 30_000);
-    if (paymentRequired && db) {
+    if (paymentRequired) {
       await withStep("appraisal-intake.POST", traceId, "transition checkout to appraising", () =>
         transitionPaidAppraisalPayment({
           sessionId: checkout.sessionId,

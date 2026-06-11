@@ -1,3 +1,4 @@
+import { loadDurablePaymentMetrics } from "@/lib/appraisal/durable-payment-store";
 import { getPrisma } from "@/lib/persistence/database";
 
 type CountRow = { count: number | bigint | string | null };
@@ -7,7 +8,7 @@ export type GrowthDashboardSnapshot = {
   generatedAt: string;
   dataSource: {
     available: boolean;
-    provider: "postgres";
+    provider: "postgres" | "upstash-kv";
     reason: string | null;
   };
   users: {
@@ -38,7 +39,7 @@ const MONTHLY_RECURRING_CENTS: Record<string, number> = {
 
 export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnapshot> {
   const db = getPrisma();
-  if (!db) return emptyGrowthDashboardSnapshot("database_not_configured");
+  if (!db) return durablePaymentGrowthDashboardSnapshot("database_not_configured");
 
   const since7 = daysAgo(7);
   const since30 = daysAgo(30);
@@ -118,7 +119,7 @@ export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnap
       ),
     ]);
   } catch (error) {
-    return emptyGrowthDashboardSnapshot(databaseUnavailableReason(error));
+    return durablePaymentGrowthDashboardSnapshot(databaseUnavailableReason(error));
   }
 
   const [
@@ -178,12 +179,32 @@ export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnap
   };
 }
 
-function emptyGrowthDashboardSnapshot(reason: string): GrowthDashboardSnapshot {
+async function durablePaymentGrowthDashboardSnapshot(reason: string): Promise<GrowthDashboardSnapshot> {
+  const payments = await loadDurablePaymentMetrics();
+  return {
+    ...emptyGrowthDashboardSnapshot(payments.available ? reason : `${reason}_and_payment_ledger_unavailable`, payments.available ? "upstash-kv" : "postgres"),
+    dataSource: {
+      available: payments.available,
+      provider: payments.available ? "upstash-kv" : "postgres",
+      reason,
+    },
+    revenue: {
+      paidUsers: payments.paidUsers,
+      activeSubscribers: 0,
+      totalPaidRevenueCents: payments.totalPaidRevenueCents,
+      estimatedMrrCents: 0,
+      currency: "usd",
+    },
+    recentPayments: payments.recentPayments,
+  };
+}
+
+function emptyGrowthDashboardSnapshot(reason: string, provider: "postgres" | "upstash-kv" = "postgres"): GrowthDashboardSnapshot {
   return {
     generatedAt: new Date().toISOString(),
     dataSource: {
       available: false,
-      provider: "postgres",
+      provider,
       reason,
     },
     users: {

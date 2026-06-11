@@ -52,7 +52,7 @@ export default async function AdminGrowthPage() {
             <Badge variant="outline">Owner Metrics</Badge>
             <Badge variant="muted">Generated {formatDateTime(snapshot.generatedAt)}</Badge>
             <Badge variant={snapshot.dataSource.available ? "ready" : "risky"}>
-              {snapshot.dataSource.available ? "Postgres live" : `Postgres unavailable: ${snapshot.dataSource.reason}`}
+              {snapshot.dataSource.available ? `${snapshot.dataSource.provider} live` : `Metrics unavailable: ${snapshot.dataSource.reason}`}
             </Badge>
           </div>
           <h1 className="mt-4 vos-h1">Users and money.</h1>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { loadStripeRuntimeConfig, stripeConfigHealth } from "@/lib/appraisal/stripe-runtime-config";
+import { probeDurablePaymentStore } from "@/lib/appraisal/durable-payment-store";
 import { probeDurableKvStore } from "@/lib/persistence/durable-kv";
 import { probeDatabaseRead } from "@/lib/persistence/database";
 import { compileTrust } from "@/lib/trust/compiler";
@@ -13,6 +14,7 @@ export async function GET(request: Request) {
   const deep = new URL(request.url).searchParams.get("deep") === "1";
   const primaryDatabase = await probeDatabaseRead();
   const durableFallback = deep ? await probeDurableKvStore() : null;
+  const paymentLedger = deep ? await probeDurablePaymentStore() : null;
   const stripeConfig = await loadStripeRuntimeConfig();
   const usingDurableFallback = Boolean(!primaryDatabase.verifiedRead && durableFallback?.verifiedRead && durableFallback.verifiedWrite);
   const database = {
@@ -77,6 +79,7 @@ export async function GET(request: Request) {
       },
       stripe: {
         ...stripeConfigHealth(stripeConfig),
+        paymentLedger,
       },
     },
     timestamp: new Date().toISOString(),

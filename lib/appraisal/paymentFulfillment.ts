@@ -8,6 +8,11 @@ import {
   lifecycleStateFromPaymentFields,
   paymentFieldsForLifecycleState,
 } from "@/lib/appraisal/appraisalLifecycleStateMachine";
+import {
+  markDurablePaymentFulfilled,
+  recordDurablePaidAppraisalPayment,
+  transitionDurablePaidAppraisalPayment,
+} from "@/lib/appraisal/durable-payment-store";
 import { appraisalOfferFor, stripePriceIdForAppraisalOffer } from "@/lib/appraisal/offers";
 import { controlPlane, type ControlPlaneEventName } from "@/lib/control-plane";
 import { tryDatabase } from "@/lib/prisma";
@@ -76,7 +81,7 @@ export async function recordPaidAppraisalPayment(input: PaidAppraisalPaymentInpu
   }, now.toISOString());
   const paidFields = paymentFieldsForLifecycleState("AWAITING_INTAKE");
 
-  const row = await tryDatabase(async (db) => {
+  let row = await tryDatabase(async (db) => {
     await db.$executeRawUnsafe(
       `INSERT INTO "users" ("id", "email", "plan")
        VALUES ($1, $2, 'founder')
@@ -141,9 +146,25 @@ export async function recordPaidAppraisalPayment(input: PaidAppraisalPaymentInpu
     return rows[0] || null;
   });
 
+  if (!row) {
+    row = await recordDurablePaidAppraisalPayment({
+      sessionId: cleanSessionId,
+      userId,
+      projectId: cleanIdentifier(input.projectId, 160) || null,
+      offerId: offer.id,
+      amount,
+      currency,
+      customerEmail,
+      stripePaymentId: input.stripePaymentId || null,
+      stripeCustomerId: input.stripeCustomerId || null,
+      metadata,
+      transparencyCommitment,
+    });
+  }
+
   if (!row) throw new Error("DATABASE_UNAVAILABLE");
 
-  await auditLogService.record({
+  await recordPaymentAudit({
     actorId: row.userId,
     actorEmail: customerEmail || ownerEmail,
     projectId: row.projectId,
@@ -235,7 +256,7 @@ export async function markPaidAppraisalPaymentFulfilled(input: {
   const cleanSessionId = cleanStripeId(input.sessionId, "cs_");
   if (!cleanSessionId) throw new Error("STRIPE_SESSION_ID_REQUIRED");
 
-  const row = await tryDatabase(async (db) => {
+  let row = await tryDatabase(async (db) => {
     const existingRows = await db.$queryRawUnsafe<PaymentRow[]>(
       `SELECT "id", "stripeSessionId", "status", "fulfillmentStatus", "userId", "projectId", "appraisalId", "certificateId"
        FROM "payments"
@@ -277,9 +298,22 @@ export async function markPaidAppraisalPaymentFulfilled(input: {
     return rows[0] || null;
   });
 
+  if (!row) {
+    row = await markDurablePaymentFulfilled({
+      sessionId: cleanSessionId,
+      projectId: cleanIdentifier(input.projectId, 160),
+      appraisalId: cleanIdentifier(input.appraisalId, 160),
+      certificateId: cleanIdentifier(input.certificateId, 160) || null,
+      metadata: {
+        fulfilledBy: "appraisal_intake",
+        appraisalPublicId: input.appraisalPublicId || null,
+      },
+    });
+  }
+
   if (!row) return null;
 
-  await auditLogService.record({
+  await recordPaymentAudit({
     actorId: input.userId,
     projectId: input.projectId,
     action: "payment.fulfilled",
@@ -321,7 +355,7 @@ export async function transitionPaidAppraisalPayment(input: {
   const cleanSessionId = cleanStripeId(input.sessionId, "cs_");
   if (!cleanSessionId) throw new Error("STRIPE_SESSION_ID_REQUIRED");
 
-  const row = await tryDatabase(async (db) => {
+  let row = await tryDatabase(async (db) => {
     const existingRows = await db.$queryRawUnsafe<PaymentRow[]>(
       `SELECT "id", "stripeSessionId", "status", "fulfillmentStatus", "userId", "projectId", "appraisalId", "certificateId"
        FROM "payments"
@@ -358,8 +392,16 @@ export async function transitionPaidAppraisalPayment(input: {
     return rows[0] || null;
   });
 
+  if (!row) {
+    row = await transitionDurablePaidAppraisalPayment({
+      sessionId: cleanSessionId,
+      event: input.event,
+      metadata: input.metadata,
+    });
+  }
+
   if (row) {
-    await auditLogService.record({
+    await recordPaymentAudit({
       actorId: row.userId,
       projectId: row.projectId,
       action: input.event,
@@ -419,6 +461,14 @@ function controlPlaneEventForPaidAppraisal(event: PaidAppraisalLifecycleEvent): 
       return "REFUNDED";
     default:
       return null;
+  }
+}
+
+async function recordPaymentAudit(input: Parameters<typeof auditLogService.record>[0]) {
+  try {
+    await auditLogService.record(input);
+  } catch (error) {
+    console.warn(`[audit] payment audit record skipped: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
