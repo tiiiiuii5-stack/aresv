@@ -358,7 +358,7 @@ export default function FreeReviewPage() {
       });
       const payload = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) throw new Error(payload.error || "Could not save this verdict.");
-      setLeadMessage("Saved. This now counts as real demand evidence when it comes from a real visitor.");
+      setLeadMessage("Saved. We can follow up with the full report path or a human-assisted review.");
       setLeadEmail("");
     } catch (saveError) {
       setLeadError(saveError instanceof Error ? saveError.message : "Could not save this verdict.");
@@ -577,7 +577,7 @@ export default function FreeReviewPage() {
                   <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/50 p-3">
                     <p className="text-xs font-black uppercase tracking-normal text-emerald-100">Save this verdict</p>
                     <p className="mt-1 text-sm font-semibold leading-6 text-emerald-50/80">
-                      Leave an email if you want the full report or human review. Real submissions are stored as demand evidence for the owner dashboard.
+                      Leave an email if you want the full report path or a human-assisted review.
                     </p>
                     <label className="mt-3 block">
                       <span className="sr-only">Email address</span>
