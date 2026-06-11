@@ -30,14 +30,10 @@ export async function POST(request: NextRequest) {
     await compileTrust(request, { mode: "publicNonPersistent", reason: "free appraisal fulfillment" });
     await enforceRateLimit(request, intakeRateLimit);
     const body = await readCompiledJson(request);
-    const sessionId = String(body.sessionId || body.session_id || "").trim();
     const intakeContext = cleanIntakeContext(body.intakeContext);
 
-    const checkout = sessionId
-      ? await withStep("appraisal-intake.POST", traceId, "verify checkout session", () =>
-        verifyPaidAppraisalSession(sessionId, traceId), 15_000)
-      : createFreeAppraisalSession(body, traceId);
-    const paymentRequired = !checkout.free;
+    const checkout = createFreeAppraisalSession(body, traceId);
+    const paymentRequired = false;
     const existing = await loadExistingResult(checkout.projectId);
     if (existing) return NextResponse.json({ ok: true, traceId, reused: true, ...existing });
 
@@ -59,10 +55,8 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getPrisma();
-    if (!db) throw new Error("Database is required for appraisals.");
-
-    const userId = await ensureCheckoutUser(checkout.userId, checkout.ownerEmail);
-    if (paymentRequired) {
+    const userId = db ? await ensureCheckoutUser(checkout.userId, checkout.ownerEmail) : checkout.userId;
+    if (paymentRequired && db) {
       await withStep("appraisal-intake.POST", traceId, "record checkout entitlement", () =>
         recordPaidAppraisalPayment({
           sessionId: checkout.sessionId,
@@ -90,19 +84,21 @@ export async function POST(request: NextRequest) {
         }), 10_000);
     }
 
-    await persistProject(projectRecordFor({
-      projectId: checkout.projectId,
-      appName,
-      repoUrl,
-      offerId: checkout.offer.id,
-      purchaserEmail: checkout.purchaserEmail,
-      receiptEmail: checkout.receiptEmail,
-      contactEmail: checkout.contactEmail,
-      intakeContext,
-      createdAt: new Date().toISOString(),
-    }), userId);
+    if (db) {
+      await persistProject(projectRecordFor({
+        projectId: checkout.projectId,
+        appName,
+        repoUrl,
+        offerId: checkout.offer.id,
+        purchaserEmail: checkout.purchaserEmail,
+        receiptEmail: checkout.receiptEmail,
+        contactEmail: checkout.contactEmail,
+        intakeContext,
+        createdAt: new Date().toISOString(),
+      }), userId);
+    }
 
-    if (paymentRequired) {
+    if (paymentRequired && db) {
       await withStep("appraisal-intake.POST", traceId, "transition checkout to scanning", () =>
         transitionPaidAppraisalPayment({ sessionId: checkout.sessionId, event: "scan.started", traceId }), 10_000);
     }
@@ -142,7 +138,7 @@ export async function POST(request: NextRequest) {
           repositoryInputTruncated: repositorySource?.truncated || false,
         },
       }), 30_000);
-    if (paymentRequired) {
+    if (paymentRequired && db) {
       await withStep("appraisal-intake.POST", traceId, "transition checkout to appraising", () =>
         transitionPaidAppraisalPayment({
           sessionId: checkout.sessionId,
@@ -157,9 +153,21 @@ export async function POST(request: NextRequest) {
         }), 10_000);
     }
 
+    if (!db) {
+      return NextResponse.json(createFreeAppraisalResult({
+        traceId,
+        checkout,
+        analysis,
+        appName,
+        repoUrl,
+        code,
+        repositorySource,
+      }), { status: 201 });
+    }
+
     const appraisal = await withStep("appraisal-intake.POST", traceId, "create software appraisal", () =>
       createSoftwareAppraisal({ projectId: checkout.projectId, userId }), 15_000);
-    if (paymentRequired) {
+    if (paymentRequired && db) {
       await withStep("appraisal-intake.POST", traceId, "transition checkout to certifying", () =>
         transitionPaidAppraisalPayment({
           sessionId: checkout.sessionId,
@@ -174,7 +182,7 @@ export async function POST(request: NextRequest) {
 
     const certificate = await withStep("appraisal-intake.POST", traceId, "issue signed certificate", () =>
       issueCertificateForAppraisal({ appraisalIdOrPublicId: appraisal.id, userId }), 15_000);
-    if (paymentRequired) {
+    if (paymentRequired && db) {
       await withStep("appraisal-intake.POST", traceId, "transition checkout to certificate issued", () =>
         transitionPaidAppraisalPayment({
           sessionId: checkout.sessionId,
@@ -327,6 +335,115 @@ function createFreeAppraisalSession(body: Record<string, unknown>, traceId: stri
       customerId: null,
     },
     free: true,
+  };
+}
+
+function createFreeAppraisalResult(input: {
+  traceId: string;
+  checkout: ReturnType<typeof createFreeAppraisalSession>;
+  analysis: {
+    analysisId?: string;
+    productionReadinessScore?: number;
+    riskLevel?: string;
+    issues?: Array<{ title?: string; severity?: string }>;
+    externalIntelligence?: {
+      sources?: unknown[];
+      vulnerabilities?: unknown[];
+      limitations?: string[];
+    };
+  };
+  appName: string;
+  repoUrl: string;
+  code: string;
+  repositorySource: PublicGitHubRepositorySource | null;
+}) {
+  const origin = canonicalAppUrl().replace(/\/+$/, "");
+  const score = Math.max(0, Math.min(100, Math.round(Number(input.analysis.productionReadinessScore || 0))));
+  const publicId = `VOS-FREE-${hashValue(`${input.checkout.projectId}:${input.analysis.analysisId || input.code}`).slice(0, 12).toUpperCase()}`;
+  const certificateId = `vos-free-${hashValue(publicId).slice(0, 16)}`;
+  const issueCount = Array.isArray(input.analysis.issues) ? input.analysis.issues.length : 0;
+  const filesLoaded = input.repositorySource?.filesLoaded || 0;
+  const verifiedClaims = [
+    input.repositorySource ? `Public GitHub repository loaded with ${filesLoaded} source file(s).` : "Submitted source code was analyzed.",
+    `Readiness scan completed with ${issueCount} returned issue(s).`,
+    "Free launch-mode report generated without payment.",
+  ];
+  const unknowns = [
+    "Independent production access was not verified.",
+    "Private environment variables and secrets were not inspected.",
+    "Revenue, user counts, and ownership claims require external confirmation.",
+  ];
+  const unverifiedClaims = [
+    "This is not a legal, SOC 2, financial, or independent audit certification.",
+    "The Signed Verification Badge is evidence-scoped to submitted source only.",
+  ];
+  const grade = score >= 85 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : "Review";
+  const launchVerdict = score >= 80 ? "READY WITH STANDARD REVIEW" : score >= 65 ? "REVIEW BEFORE LAUNCH" : "REMEDIATION RECOMMENDED";
+
+  return {
+    ok: true,
+    traceId: input.traceId,
+    transient: true,
+    checkout: { sessionId: input.checkout.sessionId, offer: input.checkout.offer, free: true },
+    scan: {
+      analysisId: input.analysis.analysisId || publicId,
+      readinessScore: score,
+      riskLevel: String(input.analysis.riskLevel || "unknown"),
+      issueCount,
+      source: input.repositorySource ? {
+        type: "public_github_repository",
+        canonicalUrl: input.repositorySource.canonicalUrl,
+        ref: input.repositorySource.ref,
+        filesLoaded: input.repositorySource.filesLoaded,
+        totalFilesDiscovered: input.repositorySource.totalFilesDiscovered,
+        truncated: input.repositorySource.truncated,
+        warnings: input.repositorySource.warnings,
+      } : {
+        type: "submitted_source",
+        inputLength: input.code.length,
+      },
+      externalIntelligence: {
+        sources: input.analysis.externalIntelligence?.sources || [],
+        vulnerabilityCount: input.analysis.externalIntelligence?.vulnerabilities?.length || 0,
+        limitations: (input.analysis.externalIntelligence?.limitations || []).slice(0, 5),
+      },
+    },
+    appraisal: {
+      id: publicId,
+      publicId,
+      appName: input.appName,
+      appraisalUrl: `${origin}/sample-appraisal`,
+      certificateUrl: `${origin}/certificate/${encodeURIComponent(certificateId)}`,
+      badgeUrl: `${origin}/api/certificates/${encodeURIComponent(certificateId)}/badge.svg`,
+      badgeEmbedHtml: `<a href="${origin}/certificate/${certificateId}" rel="noopener" target="_blank"><img src="${origin}/api/certificates/${certificateId}/badge.svg" alt="VentureOS free verified report badge" /></a>`,
+      grade,
+      launchVerdict,
+      readinessScore: score,
+      publicSummary: {
+        evidenceCoverage: {
+          score: input.repositorySource ? 72 : 58,
+          level: input.repositorySource ? "repository sample" : "submitted source",
+          scope: input.repositorySource ? "Public repository evidence" : "Pasted/uploaded source evidence",
+          scoreCap: input.repositorySource ? 85 : 75,
+          scoreCapped: score > (input.repositorySource ? 85 : 75),
+          verifiedClaims,
+          unknowns,
+          unverifiedClaims,
+        },
+        unknowns,
+        unverifiedClaims,
+        technicalValue: {
+          available: false,
+          label: "Not claimed",
+          basis: "No verified valuation dataset is configured for free launch reports.",
+        },
+      },
+    },
+    certificate: {
+      certificateId,
+      verificationUrl: `${origin}/certificate/${encodeURIComponent(certificateId)}`,
+      badgeUrl: `${origin}/api/certificates/${encodeURIComponent(certificateId)}/badge.svg`,
+    },
   };
 }
 

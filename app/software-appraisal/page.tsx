@@ -25,9 +25,9 @@ const buyerQuestions = [
 ];
 
 const process = [
-  { title: "Choose Report Type", detail: "Select the $49 verified snapshot or the $199 buyer-ready report." },
+  { title: "Choose Report Type", detail: "Select the verified snapshot or buyer-ready report. Both are free during launch." },
   { title: "Provide Evidence", detail: "Add a public repository, uploaded files, pasted source, and review context." },
-  { title: "Review & Pay", detail: "Review the selected scope and payment status before issuing the report." },
+  { title: "Review & Generate", detail: "Review the selected scope before issuing the report." },
   { title: "Get Report", detail: "Receive the verified report, Signed Verification Badge, and verification link." },
 ];
 
@@ -49,7 +49,7 @@ export default function SoftwareAppraisalPage() {
       actions={[
         { label: "Free Review", href: "/free-review", variant: "outline" },
         { label: "Sample Report", href: "/sample-appraisal", variant: "outline" },
-        { label: "Start $49 Intake", href: `/appraisal-intake?offer=${verifiedReport.id}`, variant: "default" },
+        { label: "Start Free Intake", href: `/appraisal-intake?offer=${verifiedReport.id}`, variant: "default" },
       ]}
       breadcrumbs={[
         { label: "Home", href: "/" },
@@ -61,13 +61,13 @@ export default function SoftwareAppraisalPage() {
       <section className="grid min-h-[620px] items-center gap-14 py-10 lg:grid-cols-[minmax(0,1fr)_480px]">
         <div>
           <p className="vos-proof-mark">Verified Software Evidence</p>
-          <h1 className="mt-8 vos-display">Choose the paid report that matches the buyer moment.</h1>
+          <h1 className="mt-8 vos-display">Choose the free report that matches the buyer moment.</h1>
           <p className="mt-8 vos-lede">
-            Start with the $49 verified snapshot or use the $199 buyer-ready report when a customer, acquirer, or auditor needs a deeper evidence package.
+            Start with the verified snapshot or use the buyer-ready report when a customer, acquirer, or auditor needs a deeper evidence package. Both are free during launch.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Link href={`/appraisal-intake?offer=${verifiedReport.id}`} className={buttonClassName({ size: "lg", className: "w-full sm:w-auto" })}>
-              Start $49 Intake <ArrowRight className="h-4 w-4" />
+              Start Free Intake <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/sample-appraisal" className={buttonClassName({ variant: "outline", size: "lg", className: "w-full sm:w-auto" })}>
               View Sample Report
@@ -97,7 +97,7 @@ export default function SoftwareAppraisalPage() {
             ))}
           </div>
           <Link href={`/appraisal-intake?offer=${buyerReport.id}`} className={buttonClassName({ className: "mt-8 w-full" })}>
-            Start $199 Buyer Intake
+            Start Free Buyer Intake
           </Link>
         </aside>
       </section>
@@ -117,7 +117,7 @@ export default function SoftwareAppraisalPage() {
             price={verifiedReport.priceLabel}
             description={verifiedReport.description}
             href={`/appraisal-intake?offer=${verifiedReport.id}`}
-            action="Start $49 Intake"
+            action="Start Free Intake"
             icon={Lock}
             highlighted
           />
@@ -126,7 +126,7 @@ export default function SoftwareAppraisalPage() {
             price={buyerReport.priceLabel}
             description={buyerReport.description}
             href={`/appraisal-intake?offer=${buyerReport.id}`}
-            action="Start $199 Intake"
+            action="Start Free Buyer Intake"
             icon={FileText}
           />
         </div>
@@ -174,9 +174,9 @@ export default function SoftwareAppraisalPage() {
       <StickyConversionBar
         eyebrow="Step 3 of 4"
         title="Choose the report level and submit evidence."
-        primaryLabel="Start $199 Intake"
+        primaryLabel="Start Free Buyer Intake"
         primaryHref={`/appraisal-intake?offer=${buyerReport.id}`}
-        secondaryLabel="Start $49"
+        secondaryLabel="Start Free"
         secondaryHref={`/appraisal-intake?offer=${verifiedReport.id}`}
         source="software_appraisal_sticky"
       />

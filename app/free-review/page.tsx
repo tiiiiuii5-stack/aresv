@@ -480,7 +480,7 @@ function decisionFor(state: string) {
   if (state === "READY") {
     return {
       title: "Proceed to signed report.",
-      detail: "Use the paid report when you need a shareable artifact with stronger evidence boundaries and buyer-facing language.",
+      detail: "Use the free signed report when you need a shareable artifact with stronger evidence boundaries and buyer-facing language.",
       cta: "Generate the buyer-ready report.",
     };
   }

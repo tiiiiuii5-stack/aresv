@@ -175,16 +175,6 @@ export function AppraisalIntakeClient({
     });
   }, [framework, initialRepositoryUrl, paid, repoUrl]);
 
-  async function startCheckout() {
-    await trackProductEvent("appraisal_intake.checkout_started", {
-      source: "appraisal_intake",
-      framework,
-      repositoryUrl: repoUrl,
-      counts: { checkoutVerified: paid, intakeCompleteness },
-    });
-    showToast({ type: "success", title: "Launch access active", description: "Submit evidence and issue the report directly." });
-  }
-
   async function runPreview() {
     if (!sourceReady) {
       showToast({ type: "info", title: "Source needed", description: "Paste/upload code or enter a public GitHub repository URL." });
@@ -315,83 +305,29 @@ export function AppraisalIntakeClient({
 
   return (
     <>
-    <section className="mx-auto grid w-full max-w-[1280px] gap-8 px-4 pb-28 pt-10 sm:px-6 lg:grid-cols-[380px_minmax(0,1fr)]">
-      <aside className="vos-panel p-6 text-[rgb(var(--vos-text))]">
-        <p className="vos-label">Selected report</p>
-        <div className="mt-4 rounded-lg border border-[rgb(var(--vos-primary))] bg-[rgb(var(--vos-panel-raised))] p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-black text-[rgb(var(--vos-text))]">{offer.name}</p>
-              <p className="mt-2 text-xs font-semibold leading-5 text-[rgb(var(--vos-text-muted))]">{offer.description}</p>
-            </div>
-            <span className="rounded-full bg-[rgb(var(--vos-primary))] px-2.5 py-1 text-xs font-black text-[rgb(var(--vos-primary-text))]">{offer.priceLabel}</span>
-          </div>
-        </div>
-
-        <label className="mt-5 block">
-          <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Email for report delivery</span>
-          <input
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            type="email"
-            autoComplete="email"
-            placeholder="founder@example.com"
-            className="mt-2 h-11 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-white outline-none focus:border-emerald-300"
-          />
-          <span className="mt-2 block text-xs font-semibold leading-5 text-slate-500">
-            Used for the report record and follow-up. The report can still be generated without checkout.
-          </span>
-        </label>
-
-        <Button type="button" className="mt-4 w-full" size="lg" onClick={startCheckout}>
-          <CheckCircle2 className="h-4 w-4" />
-          Launch Access Enabled
-        </Button>
-
-        {checkoutStatus === "cancelled" ? (
-          <p className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
-            Checkout is not required in the current launch flow.
-          </p>
-        ) : null}
-        {paid ? (
-          <p className="mt-3 flex items-start gap-2 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-sm font-semibold text-emerald-100">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            Launch access active. Add a public GitHub repo URL, upload files, or paste source, then issue the Signed Verification Badge.
-          </p>
-        ) : null}
-
-        <div className="mt-4 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Why this page?</p>
-          <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">
-            VentureOS does not issue the verified report or Signed Verification Badge until source evidence is submitted and you click Pay & Generate Full Report.
-          </p>
-        </div>
-
-        <FulfillmentSteps paid={paid} sourceReady={sourceReady} resultReady={Boolean(result)} state={state} />
-
-        <div className="mt-5 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Intake strength</p>
-          <div className="mt-3 flex items-end justify-between gap-3">
-            <p className="text-4xl font-black text-white">{intakeCompleteness}%</p>
-            <p className="text-right text-xs font-bold uppercase text-slate-500">{checkedEvidenceCount} evidence areas selected</p>
-          </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
-            <div className="h-full bg-emerald-300" style={{ width: `${intakeCompleteness}%` }} />
-          </div>
-        </div>
-
-        <div className="mt-5 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Evidence rules</p>
-          <div className="mt-3 grid gap-2 text-sm font-semibold leading-6 text-slate-300">
-            <p>Scores are capped when source evidence is thin or partial.</p>
-            <p>Unknowns and not-claimed items appear on the public report.</p>
-            <p>Do not paste secrets. Rotate anything accidentally submitted.</p>
-          </div>
-        </div>
-      </aside>
-
+    <section className="mx-auto grid w-full max-w-[1280px] gap-8 px-4 pb-28 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="vos-panel p-6 text-[rgb(var(--vos-text))]">
-        <section className="grid gap-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="vos-label">Build Your Verified Report</p>
+            <h1 className="mt-3 vos-section-title">Paste a repo. Get the buyer output.</h1>
+            <p className="mt-3 max-w-3xl vos-body">
+              VentureOS turns source evidence into a preview scan, buyer-ready report, and Signed Verification Badge. Keep it simple: source first, context second.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button type="button" variant="outline" className="min-h-11" onClick={runPreview} disabled={state === "previewing" || !sourceReady}>
+              {state === "previewing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+              Preview
+            </Button>
+            <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || !sourceReady}>
+              {state === "appraising" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              Generate Report
+            </Button>
+          </div>
+        </div>
+
+        <section className="mt-6 grid gap-4 lg:grid-cols-2">
           {APPRAISAL_OFFERS.map((item) => {
             const selected = offerId === item.id;
             const buyerReady = item.id === "buyer-ready";
@@ -436,35 +372,72 @@ export function AppraisalIntakeClient({
           })}
         </section>
 
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Provide Evidence</p>
-            <h1 className="mt-3 vos-section-title">Build a buyer-ready evidence report.</h1>
-            <p className="mt-3 max-w-3xl vos-body">
-              Give VentureOS enough context to separate verified risks from unknowns. More complete inputs produce a stronger evidence scope and fewer vague conclusions.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={runPreview} disabled={state === "previewing"}>
-              {state === "previewing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-              Preview Scan
-            </Button>
-            <Button type="button" onClick={runPaidAppraisal} disabled={state === "appraising"}>
-              {state === "appraising" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              Pay & Generate Full Report
-            </Button>
-          </div>
-        </div>
-
         <div className="mt-5 grid gap-3 md:grid-cols-4">
           <IntakeMetric label="Offer" value={offer.priceLabel} detail={offer.name} />
-          <IntakeMetric label="Access" value="Launch" detail="No checkout required in this flow" tone="ready" />
+          <IntakeMetric label="Access" value="Free" detail="No checkout in this launch flow" tone="ready" />
           <IntakeMetric label="Source" value={sourceReady ? "Ready" : "Needed"} detail={repoReady ? "Repository URL" : codeReady ? "Submitted source" : "Repo, upload, or paste"} tone={sourceReady ? "ready" : "risk"} />
           <IntakeMetric label="Intake" value={`${intakeCompleteness}%`} detail="Context completeness" tone={intakeCompleteness >= 70 ? "ready" : "risk"} />
         </div>
 
-        <section className="mt-5 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">1. Asset identity</p>
+        <section className="mt-5 rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-5">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-100">1. Source evidence</p>
+
+          <label className="mt-4 block">
+            <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-100">
+              <Code2 className="h-4 w-4" />
+              Public GitHub repository URL
+            </span>
+            <input
+              value={repoUrl}
+              onChange={(event) => setRepoUrl(event.target.value)}
+              type="url"
+              placeholder="https://github.com/username/repo"
+              className="mt-2 h-12 w-full rounded-lg border border-emerald-300/30 bg-slate-950 px-4 text-base font-semibold text-white outline-none transition focus:border-emerald-200"
+            />
+            <span className="mt-2 block text-xs font-semibold leading-5 text-emerald-100/80">
+              Public repos scan fastest. Private code can be uploaded or pasted below.
+            </span>
+          </label>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-100">Upload source files</span>
+              <span className="mt-2 flex min-h-12 items-center gap-3 rounded-lg border border-dashed border-emerald-300/30 bg-slate-950 px-3 text-sm text-slate-300">
+                <Upload className="h-4 w-4" />
+                <input
+                  type="file"
+                  multiple
+                  onChange={(event) => void loadFiles(event.target.files)}
+                  className="w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:font-black file:text-white"
+                />
+              </span>
+            </label>
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-100">Delivery email optional</span>
+              <input
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                type="email"
+                autoComplete="email"
+                placeholder="founder@example.com"
+                className="mt-2 h-12 w-full rounded-lg border border-emerald-300/30 bg-slate-950 px-4 text-sm text-white outline-none transition focus:border-emerald-200"
+              />
+            </label>
+          </div>
+
+          <label className="mt-4 block">
+            <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-100">Paste source code optional</span>
+            <textarea
+              value={code}
+              onChange={(event) => setCode(event.target.value.slice(0, 180_000))}
+              placeholder={'// FILE: app/api/checkout/route.ts\nexport async function POST(request: Request) { ... }'}
+              className="mt-2 min-h-[180px] w-full resize-y rounded-lg border border-emerald-300/30 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100 outline-none transition focus:border-emerald-200"
+            />
+          </label>
+        </section>
+
+        <details className="mt-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+          <summary className="cursor-pointer text-sm font-black text-white">Add buyer context</summary>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="block">
             <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">App name</span>
@@ -505,13 +478,11 @@ export function AppraisalIntakeClient({
               <option>Agency / studio</option>
               <option>Buyer / investor</option>
               <option>Advisor / broker</option>
-            </select>
-          </label>
+              </select>
+            </label>
           </div>
-        </section>
 
-        <section className="mt-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">2. Diligence purpose</p>
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-slate-500">Diligence purpose</p>
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <SelectField label="Purpose" value={appraisalPurpose} onChange={setAppraisalPurpose} options={[
               ["launch-readiness", "Launch readiness"],
@@ -543,10 +514,8 @@ export function AppraisalIntakeClient({
               />
             </label>
           </div>
-        </section>
 
-        <section className="mt-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">3. Technical profile</p>
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-slate-500">Technical profile</p>
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <label className="block">
               <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Framework</span>
@@ -603,72 +572,67 @@ export function AppraisalIntakeClient({
               </label>
             ))}
           </div>
-        </section>
 
-        <section className="mt-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">4. Known concerns</p>
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-slate-500">Known concerns</p>
           <textarea
             value={knownConcerns}
             onChange={(event) => setKnownConcerns(event.target.value.slice(0, 2_000))}
             placeholder="What should VentureOS pay special attention to? Example: unclear auth, Stripe webhooks, admin routes, database ownership, generated code quality, deployment errors, buyer objections."
             className="mt-3 min-h-28 w-full resize-y rounded-lg border border-slate-800 bg-slate-950 p-3 text-sm leading-6 text-slate-100 outline-none focus:border-emerald-300"
           />
-        </section>
-
-        <section className="mt-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">5. Source evidence</p>
-
-        <label className="mt-4 block">
-          <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-            <Code2 className="h-4 w-4" />
-            Public GitHub repository URL
-          </span>
-          <input
-            value={repoUrl}
-            onChange={(event) => setRepoUrl(event.target.value)}
-            type="url"
-            placeholder="https://github.com/company/app"
-            className="mt-2 h-11 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm text-white outline-none focus:border-emerald-300"
-          />
-          <span className="mt-2 block text-xs font-semibold leading-5 text-slate-500">
-            Public repos can be scanned directly. Private repos should use file upload or the GitHub App connection.
-          </span>
-        </label>
-
-        <div className="mt-4 grid gap-4">
-          <label className="block">
-            <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Upload source files</span>
-            <span className="mt-2 flex min-h-11 items-center gap-3 rounded-lg border border-dashed border-slate-700 bg-slate-950 px-3 text-sm text-slate-300">
-              <Upload className="h-4 w-4" />
-              <input
-                type="file"
-                multiple
-                onChange={(event) => void loadFiles(event.target.files)}
-                className="w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:font-black file:text-white"
-              />
-            </span>
-          </label>
-        </div>
-
-        <label className="mt-4 block">
-          <span className="flex items-center justify-between gap-3">
-            <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Paste source code</span>
-            <span className="text-xs font-semibold text-slate-500">{code.length.toLocaleString()} / 180,000</span>
-          </span>
-          <textarea
-            value={code}
-            onChange={(event) => setCode(event.target.value.slice(0, 180_000))}
-            placeholder={'// FILE: app/api/checkout/route.ts\nexport async function POST(request: Request) { ... }'}
-            className="mt-2 min-h-[300px] w-full resize-y rounded-lg border border-slate-800 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100 outline-none focus:border-emerald-300"
-          />
-        </label>
-        </section>
+        </details>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           <ResultPanel preview={preview} />
           <CertificatePanel result={result} />
         </div>
       </div>
+
+      <aside className="space-y-5">
+        <div className="vos-panel p-6 text-[rgb(var(--vos-text))]">
+          <p className="vos-label">Customer output</p>
+          <h2 className="mt-3 text-2xl font-black text-white">What they get</h2>
+          <div className="mt-5 grid gap-3">
+            {[
+              "Buyer-ready scorecard",
+              "Quality and safety summary",
+              "Risk findings with plain-English notes",
+              "Signed Verification Badge",
+              "Public verification link",
+            ].map((item) => (
+              <p key={item} className="flex gap-2 text-sm font-bold text-slate-300">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />
+                {item}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        <FulfillmentSteps paid={paid} sourceReady={sourceReady} resultReady={Boolean(result)} state={state} />
+
+        <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Evidence strength</p>
+          <div className="mt-3 flex items-end justify-between gap-3">
+            <p className="text-4xl font-black text-white">{intakeCompleteness}%</p>
+            <p className="text-right text-xs font-bold uppercase text-slate-500">{checkedEvidenceCount} areas</p>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
+            <div className="h-full bg-emerald-300 transition-all" style={{ width: `${intakeCompleteness}%` }} />
+          </div>
+          <p className="mt-3 text-xs font-semibold leading-5 text-slate-500">
+            More context improves the report, but a public repo is enough to start.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Evidence rules</p>
+          <div className="mt-3 grid gap-2 text-sm font-semibold leading-6 text-slate-300">
+            <p>Unknowns are shown instead of overclaimed.</p>
+            <p>Thin evidence lowers confidence.</p>
+            <p>Do not paste secrets.</p>
+          </div>
+        </div>
+      </aside>
     </section>
     <div className="print-hide fixed inset-x-0 bottom-0 z-50 border-t border-slate-800 bg-slate-950/92 px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1280px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -685,7 +649,7 @@ export function AppraisalIntakeClient({
           </Button>
           <Button type="button" className="min-h-11" onClick={runPaidAppraisal} disabled={state === "appraising" || !sourceReady}>
             {state === "appraising" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            Pay & Generate Full Report
+            Generate Report
           </Button>
         </div>
       </div>
@@ -845,7 +809,7 @@ function FulfillmentSteps({
   const steps = [
     { label: "Choose Report Type", done: true, active: false },
     { label: "Provide Evidence", done: sourceReady, active: !sourceReady && paid },
-    { label: "Review & Pay", done: paid, active: false },
+    { label: "Review & Generate", done: paid, active: false },
     { label: "Get Report", done: resultReady, active: appraising },
   ];
 

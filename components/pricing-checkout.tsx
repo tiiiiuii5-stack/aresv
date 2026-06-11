@@ -23,22 +23,22 @@ const plans = [
   {
     tier: "PRO",
     name: "Verified",
-    priceMonthly: "$49",
-    priceAnnual: "$49",
+    priceMonthly: "Free",
+    priceAnnual: "Free",
     features: ["Verified system report", "Signed Verification Badge", "Evidence scope", "Shareable passport"],
     signal: "For founders preparing diligence",
-    action: "Generate report",
+    action: "Generate free report",
     href: "/appraisal-intake?offer=instant",
     tone: "verified",
   },
   {
     tier: "TEAM",
     name: "Buyer Ready",
-    priceMonthly: "$199",
-    priceAnnual: "$199",
+    priceMonthly: "Free",
+    priceAnnual: "Free",
     features: ["Buyer-facing report", "Fix plan", "Risk explanation", "Signed Verification Badge", "Audit-ready unknowns"],
     signal: "For sales, acquisition, or audit review",
-    action: "Start buyer report",
+    action: "Start free buyer report",
     href: "/appraisal-intake?offer=buyer-ready",
     tone: "verified",
   },
@@ -116,7 +116,7 @@ export function PricingCheckout() {
           aside={
             <div className="grid gap-3">
               <InstitutionalMetricCard label="Public scan" value="Free" detail="Limited evidence review" />
-              <InstitutionalMetricCard label="Buyer ladder" value="$49-$199" detail="Clear next step after free review" status="verified" />
+              <InstitutionalMetricCard label="Buyer ladder" value="Free" detail="Clear next step after free review" status="verified" />
             </div>
           }
           actions={
@@ -137,7 +137,7 @@ export function PricingCheckout() {
         <section className="grid gap-3 md:grid-cols-3">
           <TrustPill icon={<Check className="h-4 w-4" />} label="Free first" value="Risk preview before commitment" />
           <TrustPill icon={<ShieldCheck className="h-4 w-4" />} label="Buyer artifact" value="Reports and verification badges" />
-          <TrustPill icon={<FileText className="h-4 w-4" />} label="Founder path" value="Free -> $49 -> $199" />
+          <TrustPill icon={<FileText className="h-4 w-4" />} label="Founder path" value="Free scan -> free report -> free badge" />
         </section>
 
         <section className="vos-panel grid gap-4 p-5 md:grid-cols-3">

@@ -6,7 +6,7 @@ import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 const steps = [
   {
     label: "Choose Report Type",
-    detail: "$49 verified or $199 buyer-ready",
+    detail: "Free verified or buyer-ready",
     href: "/software-appraisal",
     icon: ShieldCheck,
   },
@@ -17,8 +17,8 @@ const steps = [
     icon: CheckCircle2,
   },
   {
-    label: "Review & Pay",
-    detail: "Confirm scope and launch access",
+    label: "Review & Generate",
+    detail: "Confirm scope and issue report",
     href: "/appraisal-intake?offer=buyer-ready",
     icon: FileText,
   },
@@ -65,7 +65,7 @@ export function BuyerJourneyStrip({ current }: { current: "choose" | "evidence" 
 
 function stepKey(label: string) {
   if (label === "Provide Evidence") return "evidence";
-  if (label === "Review & Pay") return "review-pay";
+  if (label === "Review & Generate") return "review-pay";
   if (label === "Get Report") return "report";
   return "choose";
 }
