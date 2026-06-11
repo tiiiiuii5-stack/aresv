@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       }, { status: 200 });
     }
 
-    const priceId = stripePriceIdForAppraisalOffer(offer);
+    const priceId = await stripePriceIdForAppraisalOffer(offer);
     params.set("checkout", "success");
     params.set("session_id", "{CHECKOUT_SESSION_ID}");
     const successUrl = `${origin}/appraisal-intake?${params.toString()}`.replace(

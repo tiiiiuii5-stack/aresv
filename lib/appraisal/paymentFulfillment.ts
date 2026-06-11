@@ -187,7 +187,7 @@ export async function recordStripeCheckoutSessionPayment(input: {
   const session = input.session;
   const offer = appraisalOfferFor(session.metadata?.offerId);
   const price = firstLineItemPrice(session);
-  const expectedPriceId = stripePriceIdForAppraisalOffer(offer) || cleanMetadataValue(session.metadata?.expectedPriceId, "inline");
+  const expectedPriceId = await stripePriceIdForAppraisalOffer(offer) || cleanMetadataValue(session.metadata?.expectedPriceId, "inline");
   const amountTotal = numberOrNull(session.amount_total);
   const currency = String(session.currency || price?.currency || "").toLowerCase();
   const failures: string[] = [];

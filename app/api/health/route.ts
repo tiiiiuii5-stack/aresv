@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { loadStripeRuntimeConfig, stripeConfigHealth } from "@/lib/appraisal/stripe-runtime-config";
 import { probeDurableKvStore } from "@/lib/persistence/durable-kv";
 import { probeDatabaseRead } from "@/lib/persistence/database";
 import { compileTrust } from "@/lib/trust/compiler";
@@ -12,6 +13,7 @@ export async function GET(request: Request) {
   const deep = new URL(request.url).searchParams.get("deep") === "1";
   const primaryDatabase = await probeDatabaseRead();
   const durableFallback = deep ? await probeDurableKvStore() : null;
+  const stripeConfig = await loadStripeRuntimeConfig();
   const usingDurableFallback = Boolean(!primaryDatabase.verifiedRead && durableFallback?.verifiedRead && durableFallback.verifiedWrite);
   const database = {
     configured: primaryDatabase.configured || Boolean(durableFallback?.configured),
@@ -74,12 +76,7 @@ export async function GET(request: Request) {
         fallback: database.fallback,
       },
       stripe: {
-        checkoutEnabled: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
-        webhookEnabled: Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim()),
-        appraisalPriceIdsConfigured: {
-          instant: Boolean((process.env.STRIPE_PRICE_APPRAISAL_INSTANT || process.env.STRIPE_APPRAISAL_INSTANT_PRICE_ID)?.trim()),
-          buyerReady: Boolean((process.env.STRIPE_PRICE_APPRAISAL_BUYER || process.env.STRIPE_APPRAISAL_BUYER_PRICE_ID)?.trim()),
-        },
+        ...stripeConfigHealth(stripeConfig),
       },
     },
     timestamp: new Date().toISOString(),

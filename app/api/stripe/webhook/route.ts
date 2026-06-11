@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { recordStripeCheckoutSessionPayment } from "@/lib/appraisal/paymentFulfillment";
+import { loadStripeRuntimeConfig } from "@/lib/appraisal/stripe-runtime-config";
 import { createTrace, trace, traceError, withStep } from "@/lib/diagnostics";
 
 export const runtime = "nodejs";
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
 
   let event: Stripe.Event;
   try {
-    event = stripe().webhooks.constructEvent(body, signature, webhookSecret());
+    event = stripe().webhooks.constructEvent(body, signature, await webhookSecret());
   } catch (error) {
     traceError("stripe.webhook.POST", "signature verification failed", error, { traceId });
     return NextResponse.json({
@@ -70,8 +71,8 @@ function stripe() {
   return new Stripe(key, { apiVersion: "2026-05-27.dahlia" });
 }
 
-function webhookSecret() {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+async function webhookSecret() {
+  const secret = (await loadStripeRuntimeConfig()).webhookSecret;
   if (!secret) throw new Error("Missing required env var: STRIPE_WEBHOOK_SECRET");
   return secret;
 }

@@ -1,3 +1,5 @@
+import { loadStripeRuntimeConfig } from "@/lib/appraisal/stripe-runtime-config";
+
 export type AppraisalOfferId = "instant" | "buyer-ready";
 
 export type AppraisalOffer = {
@@ -36,6 +38,9 @@ export function appraisalOfferFor(value: unknown): AppraisalOffer {
   return APPRAISAL_OFFERS.find((offer) => offer.id === clean) || APPRAISAL_OFFERS[0];
 }
 
-export function stripePriceIdForAppraisalOffer(offer: AppraisalOffer) {
-  return offer.stripePriceEnv.map((name) => process.env[name]?.trim()).find(Boolean) || null;
+export async function stripePriceIdForAppraisalOffer(offer: AppraisalOffer) {
+  const runtimeConfig = await loadStripeRuntimeConfig();
+  if (offer.id === "instant") return runtimeConfig.instantPriceId;
+  if (offer.id === "buyer-ready") return runtimeConfig.buyerReadyPriceId;
+  return null;
 }

@@ -271,7 +271,7 @@ async function verifyPaidAppraisalSession(sessionId: string, traceId: string) {
   const rawOfferId = String(session.metadata?.offerId || "");
   const offer = appraisalOfferFor(rawOfferId);
   const price = firstLineItemPrice(session);
-  const expectedPriceId = stripePriceIdForAppraisalOffer(offer) || cleanMetadataValue(session.metadata?.expectedPriceId, "inline");
+  const expectedPriceId = await stripePriceIdForAppraisalOffer(offer) || cleanMetadataValue(session.metadata?.expectedPriceId, "inline");
   const amountTotal = numberOrNull(session.amount_total);
   const currency = String(session.currency || price?.currency || "").toLowerCase();
   const failures = [];
