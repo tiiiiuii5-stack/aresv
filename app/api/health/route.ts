@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getDatabaseCircuitStatus, isDatabaseConfigured } from "@/lib/persistence/database";
 import { compileTrust } from "@/lib/trust/compiler";
 
 export const runtime = "nodejs";
@@ -39,6 +40,10 @@ export async function GET(request: Request) {
       certificateRoutes: ["/api/certificates", "/api/certificates/:id/verify", "/certificate/:id", "/.well-known/ventureos-certificates.json"],
     },
     configuration: {
+      database: {
+        configured: isDatabaseConfigured(),
+        circuit: getDatabaseCircuitStatus(),
+      },
       stripe: {
         checkoutEnabled: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
         webhookEnabled: Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim()),
