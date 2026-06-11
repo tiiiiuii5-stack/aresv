@@ -66,7 +66,7 @@ const funnelEvents = [
   "appraisal_intake.certificate_completed",
 ] as const;
 
-const realVisitorProofPrefix = "ventureos:funnel:v2:real:visitors";
+const realVisitorProofPrefix = "ventureos:funnel:v3:real:visitors";
 
 export async function recordProductFunnelEvent(input: ProductFunnelEventInput) {
   const config = kvConfig();

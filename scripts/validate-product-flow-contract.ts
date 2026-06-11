@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
 const baseUrl = (process.env.VENTUREOS_FLOW_BASE_URL || "https://ventureos-full-fixed.vercel.app").replace(/\/+$/, "");
+const syntheticHeaders = {
+  "User-Agent": "VentureOSbot product-flow-contract synthetic-validation",
+};
 
 async function main() {
   const home = await get("/");
@@ -88,13 +91,13 @@ async function main() {
 }
 
 async function get(path: string) {
-  return fetch(`${baseUrl}${path}`, { method: "GET" });
+  return fetch(`${baseUrl}${path}`, { method: "GET", headers: syntheticHeaders });
 }
 
 async function postJson(path: string, body: unknown) {
   return fetch(`${baseUrl}${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { ...syntheticHeaders, "content-type": "application/json" },
     body: JSON.stringify(body),
   });
 }

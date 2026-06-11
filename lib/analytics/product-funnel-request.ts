@@ -52,7 +52,7 @@ export function productFunnelMetadataForRequest(
 export function isProductFunnelBotRequest(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") || "";
   if (!userAgent.trim()) return true;
-  return /bot|crawler|spider|scraper|curl|wget|python|node-fetch|httpclient|headlesschrome|playwright|lighthouse|uptimerobot|pingdom|vercel|synthetic|smoke|monitor/i.test(userAgent);
+  return /\b(bot|crawler|spider|scraper|curl|wget|python|node|undici|node-fetch|axios|httpclient|go-http-client|java|ruby|headlesschrome|playwright|lighthouse|uptimerobot|pingdom|vercel|synthetic|smoke|monitor)\b/i.test(userAgent);
 }
 
 export function visitorHashForProductFunnelRequest(request: NextRequest) {

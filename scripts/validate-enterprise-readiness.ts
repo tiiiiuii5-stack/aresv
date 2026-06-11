@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
 const baseUrl = (process.env.VENTUREOS_BASE_URL || "https://ventureos-full-fixed.vercel.app").replace(/\/+$/, "");
+const syntheticHeaders = {
+  "User-Agent": "VentureOSbot enterprise-readiness synthetic-validation",
+};
 
 type Gate = {
   name: string;
@@ -95,7 +98,7 @@ async function main() {
 }
 
 async function getJson(path: string) {
-  const response = await fetch(`${baseUrl}${path}`, { method: "GET" });
+  const response = await fetch(`${baseUrl}${path}`, { method: "GET", headers: syntheticHeaders });
   assert.equal(response.ok, true, `${path} failed with ${response.status}`);
   return response.json();
 }
@@ -103,7 +106,7 @@ async function getJson(path: string) {
 async function postJson(path: string, body: unknown) {
   const response = await fetch(`${baseUrl}${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { ...syntheticHeaders, "content-type": "application/json" },
     body: JSON.stringify(body),
   });
   assert.equal(response.ok, true, `${path} failed with ${response.status}`);
