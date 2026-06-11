@@ -200,6 +200,7 @@ export default function FreeReviewPage() {
         source: "free_review",
         framework,
         repositoryUrl: repoUrl,
+        metadata: campaignMetadataFromLocation(),
         counts: {
           hasRepositoryUrl: repoReady,
           hasPastedCode: code.trim().length >= 40,
@@ -210,7 +211,13 @@ export default function FreeReviewPage() {
       const response = await fetch("/api/public-demo-scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appCode: code, repositoryUrl: repoUrl, framework, modules: ["appraisal", "auth", "stripe", "prisma"] }),
+        body: JSON.stringify({
+          appCode: code,
+          repositoryUrl: repoUrl,
+          framework,
+          modules: ["appraisal", "auth", "stripe", "prisma"],
+          ...campaignMetadataFromLocation(),
+        }),
       });
       const payload = await response.json().catch(() => ({})) as ReviewResult & { error?: string };
       if (!response.ok) throw new Error(payload.error || "Free review scan failed.");
@@ -221,6 +228,7 @@ export default function FreeReviewPage() {
         framework,
         repositoryUrl: repoUrl,
         riskLevel: payload.riskLevel,
+        metadata: campaignMetadataFromLocation(),
         counts: {
           readinessScore: Number(payload.productionReadinessScore || 0),
           issueCount: Array.isArray(payload.issues) ? payload.issues.length : 0,
@@ -236,7 +244,7 @@ export default function FreeReviewPage() {
         source: "free_review",
         framework,
         repositoryUrl: repoUrl,
-        metadata: { reason: errorMsg.slice(0, 120) },
+        metadata: { ...campaignMetadataFromLocation(), reason: errorMsg.slice(0, 120) },
       });
     } finally {
       setScanBusy(false);
@@ -280,6 +288,7 @@ export default function FreeReviewPage() {
           offer: "buyer-ready",
           repoUrl,
           framework,
+          ...campaignMetadataFromLocation(),
         }),
       });
       const payload = await response.json().catch(() => ({})) as { url?: string; error?: string };
@@ -299,6 +308,7 @@ export default function FreeReviewPage() {
     const shareUrl = new URL("/free-review", window.location.origin);
     shareUrl.searchParams.set("repo", shareableRepoUrl);
     shareUrl.searchParams.set("framework", framework);
+    copyCampaignParamsToUrl(shareUrl);
     try {
       await navigator.clipboard.writeText(shareUrl.toString());
       setShareCopied(true);
@@ -311,6 +321,7 @@ export default function FreeReviewPage() {
       framework,
       repositoryUrl: shareableRepoUrl,
       riskLevel: result?.riskLevel,
+      metadata: campaignMetadataFromLocation(),
       counts: {
         hadScanResult: Boolean(result),
       },
@@ -555,6 +566,29 @@ export default function FreeReviewPage() {
         </section>
     </InstitutionalPageShell>
   );
+}
+
+function campaignMetadataFromLocation() {
+  if (typeof window === "undefined") return {};
+  const params = new URLSearchParams(window.location.search);
+  return {
+    campaign: cleanCampaignParam(params.get("campaign") || params.get("utm_campaign")),
+    ref: cleanCampaignParam(params.get("ref")),
+    utmSource: cleanCampaignParam(params.get("utm_source")),
+  };
+}
+
+function copyCampaignParamsToUrl(url: URL) {
+  if (typeof window === "undefined") return;
+  const params = new URLSearchParams(window.location.search);
+  for (const key of ["campaign", "ref", "utm_source", "utm_campaign"]) {
+    const value = cleanCampaignParam(params.get(key));
+    if (value) url.searchParams.set(key, value);
+  }
+}
+
+function cleanCampaignParam(value: unknown) {
+  return String(value || "").trim().replace(/[^a-zA-Z0-9_.:-]/g, "_").slice(0, 80);
 }
 
 function trackingHref(event: string, to: string, source: string) {

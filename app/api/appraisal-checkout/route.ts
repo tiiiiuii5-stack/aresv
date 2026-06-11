@@ -24,8 +24,14 @@ export async function POST(request: NextRequest) {
     const params = new URLSearchParams({ offer: offer.id });
     const repo = cleanText(body.repoUrl || body.repositoryUrl || body.repository, 260);
     const framework = cleanText(body.framework, 40);
+    const campaign = cleanText(body.campaign || body.utmCampaign || body.utm_campaign, 80);
+    const ref = cleanText(body.ref, 80);
+    const utmSource = cleanText(body.utmSource || body.utm_source, 80);
     if (repo) params.set("repo", repo);
     if (framework) params.set("framework", framework);
+    if (campaign) params.set("campaign", campaign);
+    if (ref) params.set("ref", ref);
+    if (utmSource) params.set("utm_source", utmSource);
     await recordRequestProductFunnelEvent(request, {
       eventType: "checkout_started",
       source: "appraisal_checkout",
@@ -35,6 +41,9 @@ export async function POST(request: NextRequest) {
         surface: "appraisal-checkout-api",
         offerId: offer.id,
         amount: offer.unitAmount,
+        campaign,
+        ref,
+        utmSource,
       },
     }).catch(() => false);
 
@@ -92,6 +101,9 @@ export async function POST(request: NextRequest) {
         offerId: offer.id,
         expectedPriceId: priceId || "inline",
         source: "appraisal_checkout",
+        campaign: campaign || "none",
+        ref: ref || "none",
+        utmSource: utmSource || "none",
       },
       success_url: successUrl,
       cancel_url: cancelUrl,

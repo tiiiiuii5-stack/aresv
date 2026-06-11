@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { VentureOSHeader } from "@/components/institutional/institutional-shell";
 import { Badge } from "@/components/ui/badge";
 import { loadProductFunnelMetrics } from "@/lib/analytics/product-funnel-store";
+import { canonicalAppUrl } from "@/lib/appraisal/app-url";
 import { requireAdmin } from "@/lib/auth/guards";
 import { requireSession } from "@/lib/auth/session";
 import { loadGrowthDashboardSnapshot } from "@/lib/services/growthDashboard";
@@ -30,6 +31,7 @@ export default async function AdminGrowthPage() {
   const realCheckoutStarted = funnel.uniqueReal.checkoutStarted;
   const realPaidIntent = funnel.uniqueReal.paidIntent;
   const homepageDemand = funnel.uniqueReal.homepageIntent;
+  const demandLinks = demandCampaignLinks();
 
   return (
     <main className="vos-page min-h-screen">
@@ -92,6 +94,22 @@ export default async function AdminGrowthPage() {
             </p>
           </Panel>
 
+          <Panel title="Demand Campaign Links" badge="send these">
+            <div className="grid gap-3">
+              {demandLinks.map((link) => (
+                <div key={link.label} className="rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] p-3">
+                  <p className="text-sm font-black text-[rgb(var(--vos-text))]">{link.label}</p>
+                  <p className="mt-1 text-xs font-bold leading-5 text-[rgb(var(--vos-text-muted))]">{link.detail}</p>
+                  <a href={link.href} className="mt-2 block truncate font-mono text-xs font-bold text-[rgb(var(--vos-verified))]" title={link.href}>
+                    {link.href}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </section>
+
+        <section className="mt-6">
           <Panel title="Recent Funnel Events" badge={`${funnel.recent.length} latest`}>
             <DataTable
               headers={["Event", "Source", "Kind", "Repo", "Created"]}
@@ -200,6 +218,48 @@ function AdminAccessDenied() {
       </section>
     </main>
   );
+}
+
+function demandCampaignLinks() {
+  const origin = appOriginForLinks();
+  const sampleRepo = "https://github.com/tiiiiuii5-stack/aresv.git";
+  return [
+    {
+      label: "Founder outreach",
+      detail: "Send this to founders who need a fast software trust decision.",
+      href: trackedReviewUrl(origin, "founder_outreach", "founder_dm", sampleRepo),
+    },
+    {
+      label: "Buyer proof",
+      detail: "Send this to buyers or operators reviewing a software asset.",
+      href: trackedReviewUrl(origin, "buyer_review", "buyer_email", sampleRepo),
+    },
+    {
+      label: "Public sample",
+      detail: "Use this anywhere you need a low-friction demo that starts scanning immediately.",
+      href: trackedReviewUrl(origin, "public_sample", "public_link", sampleRepo),
+    },
+  ];
+}
+
+function trackedReviewUrl(origin: string, campaign: string, source: string, repo: string) {
+  const url = new URL("/t", origin);
+  url.searchParams.set("e", "homepage.free_review_clicked");
+  url.searchParams.set("source", source);
+  url.searchParams.set("to", "/free-review");
+  url.searchParams.set("repo", repo);
+  url.searchParams.set("framework", "nextjs");
+  url.searchParams.set("campaign", campaign);
+  url.searchParams.set("utm_source", source);
+  return url.toString();
+}
+
+function appOriginForLinks() {
+  try {
+    return canonicalAppUrl();
+  } catch {
+    return "https://ventureos-full-fixed.vercel.app";
+  }
 }
 
 function Metric({ label, value, detail, tone = "muted" }: { label: string; value: number | string; detail: string; tone?: "ready" | "muted" }) {

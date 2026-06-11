@@ -13,7 +13,7 @@ const allowedRedirectEvents = new Set([
   "appraisal_intake.checkout_clicked",
 ]);
 
-const copiedParams = new Set(["repo", "framework", "offer"]);
+const copiedParams = new Set(["repo", "framework", "offer", "campaign", "ref", "utm_source", "utm_campaign"]);
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);

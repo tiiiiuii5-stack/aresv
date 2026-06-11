@@ -43,8 +43,15 @@ export async function POST(request: NextRequest) {
       repositoryUrl?: unknown;
       repoUrl?: unknown;
       repository?: unknown;
+      campaign?: unknown;
+      ref?: unknown;
+      utmSource?: unknown;
+      utm_source?: unknown;
+      utmCampaign?: unknown;
+      utm_campaign?: unknown;
     }>(request, { maxBytes: 180_000 });
     const repositoryUrl = cleanText(body.repositoryUrl || body.repoUrl || body.repository, 260);
+    const campaignMetadata = campaignMetadataForBody(body);
     const repositorySource = repositoryUrl
       ? await loadPublicGitHubRepositorySource({
         repositoryUrl,
@@ -71,6 +78,7 @@ export async function POST(request: NextRequest) {
         surface: "public-demo-scan-api",
         inputSource: repositorySource ? "public_github_repository" : "pasted_code",
         filesLoaded: repositorySource?.filesLoaded || 0,
+        ...campaignMetadata,
       },
     }).catch(() => false);
     const sbom = generateSoftwareBillOfMaterials({
@@ -95,6 +103,7 @@ export async function POST(request: NextRequest) {
         sbom,
         promptInjectionSignals: scanInput.promptInjectionSignals,
         sandbox: scanInput.sandbox,
+        ...campaignMetadata,
       },
     });
     const evidenceCoverage = assessEvidenceCoverage({
@@ -149,6 +158,7 @@ export async function POST(request: NextRequest) {
         coveragePercent: evidenceCoverage.coveragePercent,
         filesLoaded: repositorySource?.filesLoaded || 0,
         sbomComponents: sbom.componentCount,
+        ...campaignMetadata,
       },
     }).catch(() => false);
 
@@ -232,6 +242,21 @@ export async function POST(request: NextRequest) {
     }
     return secureErrorResponse("public-demo-scan.POST", traceId, error, { fallbackStatus: 400 });
   }
+}
+
+function campaignMetadataForBody(body: {
+  campaign?: unknown;
+  ref?: unknown;
+  utmSource?: unknown;
+  utm_source?: unknown;
+  utmCampaign?: unknown;
+  utm_campaign?: unknown;
+}) {
+  return {
+    campaign: cleanText(body.campaign || body.utmCampaign || body.utm_campaign, 80),
+    ref: cleanText(body.ref, 80),
+    utmSource: cleanText(body.utmSource || body.utm_source, 80),
+  };
 }
 
 type TrustDecisionAnswer = "BUY" | "INVESTIGATE" | "AVOID";
