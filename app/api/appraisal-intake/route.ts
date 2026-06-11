@@ -23,7 +23,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const intakeRateLimit = { name: "free-appraisal-intake", limit: 300, windowMs: 60 * 60_000 };
-const MAX_APPRAISAL_CODE_LENGTH = 180_000;
+const MAX_APPRAISAL_CODE_LENGTH = 6_000_000;
 
 type AppraisalCheckoutContext = Awaited<ReturnType<typeof verifyPaidAppraisalSession>> | ReturnType<typeof createFreeAppraisalSession>;
 
@@ -55,7 +55,13 @@ export async function POST(request: NextRequest) {
     const repoUrl = cleanText(body.repoUrl || body.repositoryUrl || body.repository, 260);
     const repositorySource = repoUrl
       ? await withStep("appraisal-intake.POST", traceId, "load public GitHub repository source", () =>
-        loadPublicGitHubRepositorySource({ repositoryUrl: repoUrl, maxChars: MAX_APPRAISAL_CODE_LENGTH, maxFiles: 90, maxFileBytes: 120_000 }), 25_000)
+        loadPublicGitHubRepositorySource({
+          repositoryUrl: repoUrl,
+          maxChars: MAX_APPRAISAL_CODE_LENGTH,
+          maxFiles: 2_000,
+          maxFileBytes: 1_000_000,
+          maxCharsPerFile: 1_000_000,
+        }), 30_000)
       : null;
     const code = sourceCodeForAppraisal(submittedCode, repositorySource);
     const appName = cleanText(body.appName || body.name || repoName(repoUrl) || "Software Asset", 90);
