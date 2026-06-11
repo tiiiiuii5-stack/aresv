@@ -7,6 +7,7 @@ import type {
   DiligenceRisk,
   VendorComparisonRow,
 } from "@/lib/diligence/due-diligence-engine";
+import { buildDueDiligenceWorkspace } from "@/lib/diligence/due-diligence-engine";
 
 export type PassportApiContract = {
   apiVersion: "trust-v1";
@@ -99,6 +100,13 @@ export function findPassport(workspace: DueDiligenceWorkspace, vendor: string): 
   const clean = normalizeVendor(vendor);
   if (!clean) return null;
   return workspace.passports.find((passport) => passportMatches(passport, clean)) || null;
+}
+
+export async function buildWorkspaceForVendor(vendor: string, limit = 50): Promise<DueDiligenceWorkspace> {
+  const clean = normalizeVendor(vendor);
+  const queried = await buildDueDiligenceWorkspace({ query: clean, limit, deterministic: true });
+  if (findPassport(queried, clean)) return queried;
+  return buildDueDiligenceWorkspace({ limit, deterministic: true });
 }
 
 export function evidenceForVendor(workspace: DueDiligenceWorkspace, vendor: string) {

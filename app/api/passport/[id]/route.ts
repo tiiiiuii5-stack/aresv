@@ -1,8 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { createTrace } from "@/lib/diagnostics";
-import { passportContract } from "@/lib/diligence/api-contracts";
-import { buildDueDiligenceWorkspace } from "@/lib/diligence/due-diligence-engine";
+import { buildWorkspaceForVendor, passportContract } from "@/lib/diligence/api-contracts";
 import { loadPassport } from "@/lib/passport/passport-engine";
 import { enforceRateLimit, jsonResponse, secureErrorResponse } from "@/lib/security/backendSecurity";
 import { compileTrust } from "@/lib/trust/compiler";
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const contract = request.nextUrl.searchParams.get("contract") || request.nextUrl.searchParams.get("format");
     if (contract === "trust-v1" || contract === "passport-v2") {
       const cleanId = decodeURIComponent(id || "");
-      const workspace = await buildDueDiligenceWorkspace({ query: cleanId, limit: 16, deterministic: true });
+      const workspace = await buildWorkspaceForVendor(cleanId);
       const passport = passportContract(workspace, cleanId);
       if (!passport) return jsonResponse({ ok: false, traceId, error: "Passport trust contract not found." }, { status: 404, headers: limit.headers });
       return jsonResponse({ ok: true, traceId, ...passport }, { headers: limit.headers });

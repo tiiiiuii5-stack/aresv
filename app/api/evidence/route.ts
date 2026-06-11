@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 import { createTrace } from "@/lib/diagnostics";
 import { buildDueDiligenceWorkspace, buildSubmittedEvidenceReceipt, type ExternalEvidenceAnchor } from "@/lib/diligence/due-diligence-engine";
-import { evidenceForVendor } from "@/lib/diligence/api-contracts";
+import { buildWorkspaceForVendor, evidenceForVendor } from "@/lib/diligence/api-contracts";
 import { enforceRateLimit, jsonResponse, secureErrorResponse } from "@/lib/security/backendSecurity";
 import { compileTrust, readCompiledJson } from "@/lib/trust/compiler";
 
@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
     await compileTrust(request, { mode: "publicRead", reason: "evidence ledger API" });
     const limit = await enforceRateLimit(request, readRateLimit);
     const vendor = request.nextUrl.searchParams.get("vendor") || request.nextUrl.searchParams.get("q") || "";
-    const workspace = await buildDueDiligenceWorkspace({ query: vendor, limit: boundedLimit(request.nextUrl.searchParams.get("limit")), deterministic: true });
+    const workspace = vendor
+      ? await buildWorkspaceForVendor(vendor, boundedLimit(request.nextUrl.searchParams.get("limit")))
+      : await buildDueDiligenceWorkspace({ limit: boundedLimit(request.nextUrl.searchParams.get("limit")), deterministic: true });
     const evidence = vendor ? evidenceForVendor(workspace, vendor).evidence : workspace.evidence;
     return jsonResponse(
       {

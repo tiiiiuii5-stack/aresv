@@ -1,8 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { createTrace } from "@/lib/diagnostics";
-import { riskContract } from "@/lib/diligence/api-contracts";
-import { buildDueDiligenceWorkspace } from "@/lib/diligence/due-diligence-engine";
+import { buildWorkspaceForVendor, riskContract } from "@/lib/diligence/api-contracts";
 import { enforceRateLimit, jsonResponse, secureErrorResponse } from "@/lib/security/backendSecurity";
 import { compileTrust } from "@/lib/trust/compiler";
 
@@ -18,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const limit = await enforceRateLimit(request, rateLimit);
     const { vendor } = await params;
     const cleanVendor = decodeURIComponent(vendor || "");
-    const workspace = await buildDueDiligenceWorkspace({ query: cleanVendor, limit: 16, deterministic: true });
+    const workspace = await buildWorkspaceForVendor(cleanVendor);
     const contract = riskContract(workspace, cleanVendor);
     if (!contract) {
       return jsonResponse({ ok: false, traceId, error: "Vendor risk record not found." }, { status: 404, headers: limit.headers });
