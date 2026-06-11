@@ -18,7 +18,7 @@ import { compileTrust } from "@/lib/trust/compiler";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_DEMO_CODE_LENGTH = 120_000;
+const MAX_DEMO_CODE_LENGTH = 6_000_000;
 
 export async function GET() {
   return jsonResponse({
@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
       ? await loadPublicGitHubRepositorySource({
         repositoryUrl,
         maxChars: MAX_DEMO_CODE_LENGTH,
-        maxFiles: 120,
-        maxFileBytes: 180_000,
-        maxCharsPerFile: 900,
+        maxFiles: 2_000,
+        maxFileBytes: 1_000_000,
+        maxCharsPerFile: 1_000_000,
       })
       : null;
 

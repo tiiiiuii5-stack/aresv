@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 
 import { createTrace } from "@/lib/diagnostics";
+import { recordProductFunnelEvent } from "@/lib/analytics/product-funnel-store";
 import { tryDatabase } from "@/lib/prisma";
 import { enforceRateLimit, jsonResponse, readJsonBody, secureErrorResponse } from "@/lib/security/backendSecurity";
 import { sanitizeMetadata } from "@/lib/services/platformSupport";
@@ -61,6 +62,9 @@ export async function POST(request: NextRequest) {
     }
 
     const metadata = metadataForEvent(body, request);
+    const framework = cleanOptionalIdentifier(body.framework, 40);
+    const riskLevel = cleanOptionalIdentifier(body.riskLevel, 40);
+    const severity = cleanOptionalIdentifier(body.severity, 40);
     const stored = await tryDatabase(async (db) => {
       await db.$executeRawUnsafe(
         `INSERT INTO "app_telemetry_events" ("id", "projectId", "snapshotId", "analysisResultId", "eventType", "dataset", "framework", "riskLevel", "severity", "counts", "metadata")
@@ -68,14 +72,22 @@ export async function POST(request: NextRequest) {
         randomUUID(),
         eventType,
         "product_funnel",
-        cleanOptionalIdentifier(body.framework, 40),
-        cleanOptionalIdentifier(body.riskLevel, 40),
-        cleanOptionalIdentifier(body.severity, 40),
+        framework,
+        riskLevel,
+        severity,
         JSON.stringify(countsForEvent(body.counts)),
         JSON.stringify(metadata),
       );
       return true;
     });
+    const kvStored = await recordProductFunnelEvent({
+      eventType,
+      source: String(metadata.source || "unknown"),
+      framework,
+      riskLevel,
+      hasRepositoryUrl: Boolean(metadata.hasRepositoryUrl),
+      metadata,
+    }).catch(() => false);
 
     console.log(JSON.stringify({
       level: "info",
@@ -83,14 +95,15 @@ export async function POST(request: NextRequest) {
       action: "product_funnel.event",
       eventType,
       stored: Boolean(stored),
+      kvStored: Boolean(kvStored),
       sourcePage: metadata.source,
       hasRepositoryUrl: Boolean(metadata.hasRepositoryUrl),
-      framework: cleanOptionalIdentifier(body.framework, 40),
-      riskLevel: cleanOptionalIdentifier(body.riskLevel, 40),
+      framework,
+      riskLevel,
       timestamp: new Date().toISOString(),
     }));
 
-    return jsonResponse({ ok: true, traceId, stored: Boolean(stored) }, { headers: rateLimit.headers });
+    return jsonResponse({ ok: true, traceId, stored: Boolean(stored || kvStored), dbStored: Boolean(stored), kvStored: Boolean(kvStored) }, { headers: rateLimit.headers });
   } catch (error) {
     return secureErrorResponse("product-events.POST", traceId, error, { fallbackStatus: 400 });
   }

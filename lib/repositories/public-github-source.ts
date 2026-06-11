@@ -84,10 +84,10 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
     throw new Error("Only public GitHub repository URLs are supported. Use https://github.com/owner/repo.");
   }
 
-  const maxChars = Math.max(1_000, Math.min(input.maxChars, 250_000));
-  const maxFiles = Math.max(1, Math.min(input.maxFiles || DEFAULT_MAX_FILES, 200));
-  const maxFileBytes = Math.max(1_000, Math.min(input.maxFileBytes || DEFAULT_MAX_FILE_BYTES, 250_000));
-  const maxCharsPerFile = Math.max(800, Math.min(input.maxCharsPerFile || DEFAULT_MAX_CHARS_PER_FILE, 20_000));
+  const maxChars = Math.max(1_000, Math.min(input.maxChars, 6_000_000));
+  const maxFiles = Math.max(1, Math.min(input.maxFiles || DEFAULT_MAX_FILES, 2_000));
+  const maxFileBytes = Math.max(1_000, Math.min(input.maxFileBytes || DEFAULT_MAX_FILE_BYTES, 1_000_000));
+  const maxCharsPerFile = Math.max(800, Math.min(input.maxCharsPerFile || DEFAULT_MAX_CHARS_PER_FILE, 1_000_000));
   const repository = await githubRequest<GitHubRepositoryInfo>(`/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`);
   if (repository.private) {
     throw new Error("This repository is private. Connect the GitHub App or upload source files instead.");
@@ -108,11 +108,11 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
   const codeParts: string[] = [];
   const warnings: string[] = [];
   let totalChars = 0;
-  let truncated = Boolean(tree.truncated) || discovered.length > candidates.length;
+  let truncated = Boolean(tree.truncated) || eligible.length > candidates.length;
 
-  for (const candidate of candidates) {
+  const fetchedCandidates = await loadCandidateContents(parsed.owner, parsed.repo, ref, candidates);
+  for (const { candidate, content } of fetchedCandidates) {
     if (!candidate.path) continue;
-    const content = await loadRawFileContent(parsed.owner, parsed.repo, ref, candidate.path);
     if (!isTextContent(content)) continue;
 
     const header = `// FILE: ${candidate.path}\n`;
@@ -151,11 +151,25 @@ export async function loadPublicGitHubRepositorySource(input: LoadPublicGitHubRe
     ref,
     code: codeParts.join("\n\n").slice(0, maxChars),
     files,
-    totalFilesDiscovered: discovered.length,
+    totalFilesDiscovered: eligible.length,
     filesLoaded: files.length,
     truncated,
     warnings,
   };
+}
+
+async function loadCandidateContents(owner: string, repo: string, ref: string, candidates: GitHubTreeItem[]) {
+  const output: Array<{ candidate: GitHubTreeItem; content: string }> = [];
+  const concurrency = 16;
+  for (let index = 0; index < candidates.length; index += concurrency) {
+    const batch = candidates.slice(index, index + concurrency);
+    const loaded = await Promise.all(batch.map(async (candidate) => ({
+      candidate,
+      content: candidate.path ? await loadRawFileContent(owner, repo, ref, candidate.path) : "",
+    })));
+    output.push(...loaded);
+  }
+  return output;
 }
 
 async function githubRequest<T>(path: string): Promise<T> {
@@ -192,7 +206,6 @@ async function loadRawFileContent(owner: string, repo: string, ref: string, file
 function ignoredRepositoryPath(path: string) {
   return (
     /(^|\/)(node_modules|\.next|dist|build|coverage|\.git|vendor|generated-apps|tmp|temp|logs?)\//i.test(path) ||
-    /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock)$/i.test(path) ||
     /\.(png|jpg|jpeg|gif|webp|ico|zip|pdf|lockb|woff2?|ttf|eot|mp4|mov|avi|bin|wasm|map)$/i.test(path)
   );
 }
@@ -200,7 +213,7 @@ function ignoredRepositoryPath(path: string) {
 function sourceExtensionAllowed(path: string) {
   return (
     /\.(ts|tsx|js|jsx|mjs|cjs|json|prisma|md|mdx|yml|yaml|toml|sql|css|scss|html|txt)$/i.test(path) ||
-    /(^|\/)(Dockerfile|Procfile|\.env\.example|\.env\.sample|vercel\.json|next\.config\.(js|mjs|ts))$/i.test(path)
+    /(^|\/)(Dockerfile|Procfile|\.env\.example|\.env\.sample|vercel\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock|next\.config\.(js|mjs|ts))$/i.test(path)
   );
 }
 
