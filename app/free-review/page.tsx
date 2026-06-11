@@ -335,6 +335,11 @@ export default function FreeReviewPage() {
 
   const saveVerdictLead = useCallback(async () => {
     if (!result || leadBusy) return;
+    const cleanLeadEmail = leadEmail.trim().toLowerCase();
+    if (!cleanLeadEmail) {
+      setLeadError("Enter an email to save this decision.");
+      return;
+    }
     setLeadBusy(true);
     setLeadMessage("");
     setLeadError("");
@@ -343,7 +348,7 @@ export default function FreeReviewPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: leadEmail,
+          email: cleanLeadEmail,
           role: leadRole,
           source: "free_review_verdict",
           useCase: [
@@ -358,7 +363,20 @@ export default function FreeReviewPage() {
       });
       const payload = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) throw new Error(payload.error || "Could not save this verdict.");
-      setLeadMessage("Saved. We can follow up with the full report path or a human-assisted review.");
+      await trackProductEvent("free_review.feedback_submitted", {
+        source: "free_review_verdict",
+        framework,
+        repositoryUrl: repoUrl,
+        riskLevel: result.riskLevel,
+        metadata: campaignMetadataFromLocation(),
+        counts: {
+          hadScanResult: true,
+          leadCaptured: true,
+          readinessScore: Number(result.productionReadinessScore || 0),
+          issueCount: Array.isArray(result.issues) ? result.issues.length : 0,
+        },
+      });
+      setLeadMessage("Saved. We will use this to follow up with the full report path or a human-assisted review.");
       setLeadEmail("");
     } catch (saveError) {
       setLeadError(saveError instanceof Error ? saveError.message : "Could not save this verdict.");
@@ -498,6 +516,44 @@ export default function FreeReviewPage() {
             <div className="mt-5 grid gap-5">
               <DecisionMemoPanel decision={trustDecision} fallbackDetail={verdict.detail} toneClassName={trustDecisionTone.panelClassName} />
 
+              <section className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-4">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-normal text-emerald-100">Save this decision</p>
+                    <h3 className="mt-2 text-2xl font-black text-white">Send the verdict path to yourself</h3>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-emerald-50/80">
+                      Use this if you want the full report path, a buyer-ready review, or a human-assisted check. This is the demand signal VentureOS tracks for real users.
+                    </p>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_160px]">
+                    <input
+                      value={leadEmail}
+                      onChange={(event) => setLeadEmail(event.target.value)}
+                      type="email"
+                      placeholder="you@company.com"
+                      className="h-11 rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none placeholder:text-emerald-50/35 focus:border-emerald-300"
+                    />
+                    <select
+                      value={leadRole}
+                      onChange={(event) => setLeadRole(event.target.value)}
+                      className="h-11 rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none focus:border-emerald-300"
+                      aria-label="Role"
+                    >
+                      <option>Founder / owner</option>
+                      <option>Buyer / investor</option>
+                      <option>Security reviewer</option>
+                      <option>Operator / engineering lead</option>
+                    </select>
+                    <Button type="button" onClick={saveVerdictLead} disabled={leadBusy || !leadEmail.trim()} className="sm:col-span-2">
+                      {leadBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      {leadBusy ? "Saving" : "Send me this decision"}
+                    </Button>
+                    {leadMessage ? <p className="sm:col-span-2 text-xs font-bold leading-5 text-emerald-100">{leadMessage}</p> : null}
+                    {leadError ? <p className="sm:col-span-2 text-xs font-bold leading-5 text-red-100">{leadError}</p> : null}
+                  </div>
+                </div>
+              </section>
+
               <div>
                 <p className="mb-3 text-xs font-black uppercase tracking-normal text-slate-500">Reference metrics</p>
                 <div className="grid gap-3 md:grid-cols-4">
@@ -574,41 +630,6 @@ export default function FreeReviewPage() {
                       </Button>
                     </div>
                   ) : null}
-                  <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/50 p-3">
-                    <p className="text-xs font-black uppercase tracking-normal text-emerald-100">Save this verdict</p>
-                    <p className="mt-1 text-sm font-semibold leading-6 text-emerald-50/80">
-                      Leave an email if you want the full report path or a human-assisted review.
-                    </p>
-                    <label className="mt-3 block">
-                      <span className="sr-only">Email address</span>
-                      <input
-                        value={leadEmail}
-                        onChange={(event) => setLeadEmail(event.target.value)}
-                        type="email"
-                        placeholder="you@company.com"
-                        className="h-10 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none placeholder:text-emerald-50/35 focus:border-emerald-300"
-                      />
-                    </label>
-                    <label className="mt-2 block">
-                      <span className="sr-only">Role</span>
-                      <select
-                        value={leadRole}
-                        onChange={(event) => setLeadRole(event.target.value)}
-                        className="h-10 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none focus:border-emerald-300"
-                      >
-                        <option>Founder / owner</option>
-                        <option>Buyer / investor</option>
-                        <option>Security reviewer</option>
-                        <option>Operator / engineering lead</option>
-                      </select>
-                    </label>
-                    <Button type="button" variant="outline" size="sm" onClick={saveVerdictLead} disabled={leadBusy} className="mt-3 w-full">
-                      {leadBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                      {leadBusy ? "Saving" : "Save verdict"}
-                    </Button>
-                    {leadMessage ? <p className="mt-2 text-xs font-bold leading-5 text-emerald-100">{leadMessage}</p> : null}
-                    {leadError ? <p className="mt-2 text-xs font-bold leading-5 text-red-100">{leadError}</p> : null}
-                  </div>
                 </div>
               </div>
 

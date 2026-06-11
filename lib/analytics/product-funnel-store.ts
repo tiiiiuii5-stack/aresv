@@ -52,6 +52,7 @@ const funnelEvents = [
   "free_review.scan_failed",
   "free_review.upgrade_shown",
   "free_review.share_clicked",
+  "free_review.feedback_submitted",
   "free_review.paid_cta_clicked",
   "waitlist.joined",
   "homepage.view",

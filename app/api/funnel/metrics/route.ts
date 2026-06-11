@@ -43,11 +43,12 @@ export async function GET(request: NextRequest) {
         },
         conversionFunnel: {
           proven: previewToCheckoutPath > 0,
-          previewToCheckoutRate: previewStarted > 0 ? roundRate(checkoutStarted / previewStarted) : 0,
+          previewToCheckoutRate: previewStarted > 0 ? roundRate(previewToCheckoutPath / previewStarted) : 0,
           paidIntent,
           checkoutStarted,
           reportGenerated,
           previewToCheckoutPath,
+          rateBasis: "unique real visitors who started preview and later started checkout divided by unique real preview starters",
           requirement: "At least one unique real visitor must start a preview and then start checkout. Synthetic tests and obvious bots do not count.",
         },
       },
