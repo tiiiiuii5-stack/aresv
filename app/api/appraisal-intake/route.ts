@@ -21,7 +21,7 @@ import type { ProjectRecord } from "@/lib/project-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const intakeRateLimit = { name: "free-appraisal-intake", limit: 20, windowMs: 60 * 60_000 };
+const intakeRateLimit = { name: "free-appraisal-intake", limit: 60, windowMs: 60 * 60_000 };
 const MAX_APPRAISAL_CODE_LENGTH = 180_000;
 
 export async function GET() {
