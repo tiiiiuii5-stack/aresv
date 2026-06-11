@@ -41,7 +41,16 @@ export function EvidenceExplorer({ records }: { records: EvidenceRecord[] }) {
     return records.filter((record) => {
       const matchesQuery =
         !normalized ||
-        [record.subjectName, record.subjectId, record.source, record.type, record.summary, record.hash]
+        [
+          record.subjectName,
+          record.subjectId,
+          record.source,
+          record.type,
+          record.summary,
+          record.hash,
+          ...record.anchors.map((anchor) => `${anchor.kind} ${anchor.externalId} ${anchor.url}`),
+          ...record.provenance.map((step) => step.label),
+        ]
           .join(" ")
           .toLowerCase()
           .includes(normalized);
@@ -147,6 +156,11 @@ export function EvidenceExplorer({ records }: { records: EvidenceRecord[] }) {
                     <td>
                       <Badge variant={record.verified ? "ready" : "muted"}>{labelize(record.sourceKind)}</Badge>
                       <p className="mt-2 max-w-[240px] truncate text-xs font-bold text-[rgb(var(--vos-text-muted))]">{record.source}</p>
+                      {record.anchors[0] ? (
+                        <a href={record.anchors[0].url} target="_blank" rel="noreferrer" className="mt-2 block max-w-[240px] truncate text-xs font-black text-[rgb(var(--vos-primary))]">
+                          {labelize(record.anchors[0].kind)}
+                        </a>
+                      ) : null}
                     </td>
                     <td>
                       <p className="font-black">{labelize(record.type)}</p>
@@ -160,6 +174,23 @@ export function EvidenceExplorer({ records }: { records: EvidenceRecord[] }) {
                       {record.limitations.length ? (
                         <p className="mt-2 text-xs font-semibold leading-5 text-[rgb(var(--vos-text-subtle))]">{record.limitations[0]}</p>
                       ) : null}
+                      <details className="mt-3">
+                        <summary className="cursor-pointer text-xs font-black uppercase text-[rgb(var(--vos-primary))]">Provenance</summary>
+                        <div className="mt-2 grid gap-2">
+                          {record.provenance.slice(0, 4).map((step) => (
+                            <div key={`${record.id}:${step.stage}:${step.outputHash}`} className="rounded-md border border-[rgb(var(--vos-border))] p-2">
+                              <p className="text-xs font-black uppercase text-[rgb(var(--vos-text))]">{labelize(step.stage)}</p>
+                              <p className="mt-1 text-xs font-semibold text-[rgb(var(--vos-text-muted))]">{step.label}</p>
+                              <p className="mt-1 truncate font-mono text-[11px] text-[rgb(var(--vos-text-subtle))]">{step.outputHash}</p>
+                              {step.impact ? (
+                                <p className="mt-1 font-mono text-xs font-black text-[rgb(var(--vos-text))]">
+                                  impact {step.impact.impact >= 0 ? "+" : ""}{step.impact.impact}
+                                </p>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
                     </td>
                     <td>
                       <p className="max-w-[180px] truncate font-mono text-xs font-bold text-[rgb(var(--vos-text-subtle))]">{record.hash}</p>

@@ -21,6 +21,46 @@ export type EvidenceSourceKind =
   | "event_log"
   | "self_attested";
 
+export type PassportDimensionKey = "identity" | "security" | "reliability" | "maintainability" | "buyer_readiness";
+
+export type BuyerLens = "investor" | "enterprise_buyer" | "security_team" | "procurement_officer";
+
+export type ExternalAnchorKind =
+  | "github_api_object"
+  | "osv_advisory"
+  | "domain_whois_record"
+  | "sbom_file_hash"
+  | "package_registry_version"
+  | "ssl_certificate_record"
+  | "ventureos_registry_record"
+  | "transparency_log_entry";
+
+export type ExternalEvidenceAnchor = {
+  kind: ExternalAnchorKind;
+  label: string;
+  externalId: string;
+  url: string;
+  verificationMethod: "api_object" | "hash_match" | "public_record" | "internal_ledger";
+  immutable: boolean;
+  confidence: number;
+};
+
+export type ScoreImpact = {
+  dimension: PassportDimensionKey | "trust";
+  label: string;
+  impact: number;
+  direction: "positive" | "negative" | "neutral";
+  formula: string;
+};
+
+export type EvidenceProvenanceStep = {
+  stage: "source" | "normalization" | "metric" | "scoring";
+  label: string;
+  inputHash: string;
+  outputHash: string;
+  impact?: ScoreImpact;
+};
+
 export type EvidenceRecord = {
   id: string;
   subjectId: string;
@@ -36,10 +76,14 @@ export type EvidenceRecord = {
   verified: boolean;
   href?: string;
   limitations: string[];
+  anchors: ExternalEvidenceAnchor[];
+  provenance: EvidenceProvenanceStep[];
+  scoringImpacts: ScoreImpact[];
+  deterministicInputHash: string;
 };
 
 export type PassportDimension = {
-  key: "identity" | "security" | "reliability" | "maintainability" | "buyer_readiness";
+  key: PassportDimensionKey;
   label: string;
   score: number;
   confidence: number;
@@ -48,6 +92,12 @@ export type PassportDimension = {
   inferred: string[];
   unknown: string[];
   evidenceIds: string[];
+  explanation: {
+    formula: string;
+    positive: ScoreImpact[];
+    negative: ScoreImpact[];
+    neutral: ScoreImpact[];
+  };
 };
 
 export type RiskSeverity = "critical" | "high" | "medium" | "low" | "informational";
@@ -90,6 +140,18 @@ export type SoftwarePassportV2 = {
   monitoringStatus: "ok" | "watch" | "attention";
   publicUrl: string;
   dimensions: PassportDimension[];
+  buyerLenses: Record<BuyerLens, BuyerLensInterpretation>;
+  deterministicHash: string;
+};
+
+export type BuyerLensInterpretation = {
+  lens: BuyerLens;
+  label: string;
+  decisionQuestion: string;
+  recommendation: "Proceed" | "Review" | "Do Not Approve";
+  prioritySignals: string[];
+  concerns: string[];
+  nextAction: string;
 };
 
 export type TrustGraphData = {
@@ -123,6 +185,9 @@ export type VendorComparisonRow = {
 
 export type DueDiligenceWorkspace = {
   generatedAt: string;
+  deterministic: boolean;
+  deterministicInputHash: string;
+  snapshot: SignedPassportSnapshot;
   isSampleData: boolean;
   metrics: {
     vendors: number;
@@ -140,21 +205,65 @@ export type DueDiligenceWorkspace = {
   comparison: VendorComparisonRow[];
 };
 
-export async function buildDueDiligenceWorkspace(input: { query?: string; limit?: number } = {}): Promise<DueDiligenceWorkspace> {
+export type SignedPassportSnapshot = {
+  version: "3.0.0";
+  snapshotId: string;
+  issuedAt: string;
+  deterministicInputHash: string;
+  evidenceRootHash: string;
+  riskRootHash: string;
+  passportRootHash: string;
+  workspaceRootHash: string;
+  signature: string;
+  signatureAlgorithm: "sha256-platform-signature-v1";
+  jsonUrl: string;
+  pdfUrl: string;
+};
+
+type EvidenceRecordDraft = Omit<EvidenceRecord, "id" | "hash" | "anchors" | "provenance" | "scoringImpacts" | "deterministicInputHash"> & {
+  anchors?: ExternalEvidenceAnchor[];
+  scoringImpacts?: ScoreImpact[];
+};
+
+export async function buildDueDiligenceWorkspace(input: { query?: string; limit?: number; deterministic?: boolean } = {}): Promise<DueDiligenceWorkspace> {
   const registry = await buildRegistryItems({ query: input.query, limit: input.limit || 12 });
-  const generatedAt = new Date().toISOString();
-  const evidence = registry.items.flatMap((item) => evidenceForRegistryItem(item, generatedAt));
-  const risks = registry.items.flatMap((item) => risksForRegistryItem(item, evidence.filter((record) => record.subjectId === item.ventureOsId)));
-  const monitoring = registry.items.flatMap((item) => monitoringForRegistryItem(item, risks.filter((risk) => risk.subjectId === item.ventureOsId), generatedAt));
+  const deterministicInputHash = sha256(registry.items.map(registryItemForHash));
+  const deterministic = Boolean(input.deterministic);
+  const generatedAt = deterministic ? deterministicTimestampFor(registry.items) : new Date().toISOString();
+  const evidence = registry.items.flatMap((item) => evidenceForRegistryItem(item, generatedAt)).sort(byId);
+  const risks = registry.items.flatMap((item) => risksForRegistryItem(item, evidence.filter((record) => record.subjectId === item.ventureOsId))).sort(byId);
+  const monitoring = registry.items.flatMap((item) => monitoringForRegistryItem(item, risks.filter((risk) => risk.subjectId === item.ventureOsId), generatedAt)).sort(byId);
   const passports = registry.items.map((item) => {
     const itemEvidence = evidence.filter((record) => record.subjectId === item.ventureOsId);
     const itemRisks = risks.filter((risk) => risk.subjectId === item.ventureOsId);
     const itemAlerts = monitoring.filter((alert) => alert.subjectId === item.ventureOsId);
     return passportV2ForRegistryItem(item, itemEvidence, itemRisks, itemAlerts);
+  }).sort(byId);
+  const comparison = passports.map((passport) => ({
+    id: passport.id,
+    name: passport.name,
+    trustScore: passport.trustScore,
+    confidence: passport.confidence,
+    evidenceCount: passport.evidenceCount,
+    criticalRisks: passport.openCriticalRisks,
+    status: passport.status,
+    recommendation: recommendationFor(passport.trustScore, passport.openCriticalRisks, passport.confidence),
+    publicUrl: passport.publicUrl,
+  }));
+  const snapshot = signedSnapshotFor({
+    generatedAt,
+    deterministicInputHash,
+    evidence,
+    risks,
+    passports,
+    comparison,
   });
 
   return {
     generatedAt,
+    deterministic,
+    deterministicInputHash,
+    snapshot,
     isSampleData: registry.items.some((item) => item.evidenceCoverageLevel === "sample"),
     metrics: {
       vendors: registry.items.length,
@@ -169,22 +278,12 @@ export async function buildDueDiligenceWorkspace(input: { query?: string; limit?
     risks,
     monitoring,
     graph: graphForWorkspace(registry.items, evidence, risks),
-    comparison: passports.map((passport) => ({
-      id: passport.id,
-      name: passport.name,
-      trustScore: passport.trustScore,
-      confidence: passport.confidence,
-      evidenceCount: passport.evidenceCount,
-      criticalRisks: passport.openCriticalRisks,
-      status: passport.status,
-      recommendation: recommendationFor(passport.trustScore, passport.openCriticalRisks, passport.confidence),
-      publicUrl: passport.publicUrl,
-    })),
+    comparison,
   };
 }
 
 function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): EvidenceRecord[] {
-  const records: Omit<EvidenceRecord, "id" | "hash">[] = [
+  const records: EvidenceRecordDraft[] = [
     {
       subjectId: item.ventureOsId,
       subjectName: item.name,
@@ -198,6 +297,11 @@ function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): Evide
       verified: item.evidenceCoverageLevel !== "sample",
       href: `/registry/${encodeURIComponent(item.ventureOsId)}`,
       limitations: item.evidenceCoverageLevel === "sample" ? ["Sample registry fallback record. Replace with live evidence before using for a buyer decision."] : [],
+      anchors: [ventureOsRegistryAnchor(item)],
+      scoringImpacts: [
+        impact("identity", "Registry profile present", item.evidenceCoverageLevel === "sample" ? 2 : 8, "Registry evidence raises identity confidence."),
+        impact("buyer_readiness", "Evidence coverage available", Math.round(item.evidenceCoverage / 12), "Evidence coverage contributes to buyer readiness."),
+      ],
     },
     {
       subjectId: item.ventureOsId,
@@ -212,6 +316,11 @@ function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): Evide
       verified: item.trustScore > 0 && item.evidenceCoverageLevel !== "sample",
       href: item.publicVerificationUrl,
       limitations: item.trustScore > 0 ? [] : ["No completed trust score is available yet."],
+      anchors: [ventureOsRegistryAnchor(item)],
+      scoringImpacts: [
+        impact("trust", "Compiled trust score", item.trustScore > 0 ? Math.round(item.trustScore / 10) : -12, "Compiled score is included as the trust baseline."),
+        impact("security", "Trust score security proxy", item.trustScore >= 80 ? 8 : item.trustScore >= 60 ? 2 : -10, "Low trust score reduces security interpretation until source evidence improves."),
+      ],
     },
   ];
 
@@ -229,6 +338,11 @@ function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): Evide
       verified: item.evidenceCoverageLevel !== "sample",
       href: `https://github.com/${item.repository}`,
       limitations: ["Repository presence does not prove production deployment, ownership, or internal controls by itself."],
+      anchors: [githubRepositoryAnchor(item.repository)],
+      scoringImpacts: [
+        impact("identity", "GitHub repository linked", 12, "Repository identity improves ownership and provenance review."),
+        impact("maintainability", "Source available for inspection", 18, "Source visibility improves maintainability confidence."),
+      ],
     });
   }
 
@@ -246,6 +360,10 @@ function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): Evide
       verified: false,
       href: `https://${item.domain}`,
       limitations: ["Domain ownership and DNS control require external verification."],
+      anchors: [rdapDomainAnchor(item.domain), sslCertificateAnchor(item.domain)],
+      scoringImpacts: [
+        impact("buyer_readiness", "Public domain observed", 8, "Domain presence improves buyer-facing readiness but needs ownership validation."),
+      ],
     });
   }
 
@@ -263,6 +381,11 @@ function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): Evide
       verified: true,
       href: item.certificateUrl || item.publicVerificationUrl,
       limitations: ["Receipt proves the reviewed evidence state, not future software behavior."],
+      anchors: [signedReceiptAnchor(item)],
+      scoringImpacts: [
+        impact("buyer_readiness", "Signed evidence receipt active", 24, "Signed receipt improves buyer readiness."),
+        impact("trust", "Attested snapshot present", 12, "Signed snapshot increases trust record defensibility."),
+      ],
     });
   }
 
@@ -280,6 +403,10 @@ function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): Evide
       verified: true,
       href: "/transparency-log",
       limitations: ["Transparency entries show recorded events, not independent legal certification."],
+      anchors: [transparencyLogAnchor(item)],
+      scoringImpacts: [
+        impact("trust", "Transparency log entries", Math.min(10, item.transparencyEntries), "Hash-linked entries increase auditability."),
+      ],
     });
   }
 
@@ -297,6 +424,10 @@ function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): Evide
       verified: true,
       href: item.passportUrl,
       limitations: ["Event history may be incomplete if integrations were not connected at the time."],
+      anchors: [ventureOsRegistryAnchor(item)],
+      scoringImpacts: [
+        impact("reliability", "Lifecycle events recorded", Math.min(10, item.eventCount), "Lifecycle events support operational history."),
+      ],
     });
   }
 
@@ -557,6 +688,22 @@ function passportV2ForRegistryItem(
         unknown: ["Commercial terms", "Privacy/security contacts", "Business continuity procedures"],
       }),
     ],
+    buyerLenses: buyerLensesFor({
+      item,
+      trustScore: item.trustScore,
+      confidence,
+      risks,
+      evidence,
+      criticalRisks,
+      highRisks,
+    }),
+    deterministicHash: sha256({
+      id: item.ventureOsId,
+      trustScore: item.trustScore,
+      confidence,
+      evidenceIds: evidence.map((record) => record.id).sort(),
+      riskIds: risks.map((risk) => risk.id).sort(),
+    }),
   };
 }
 
@@ -618,6 +765,8 @@ function dimension(input: {
   unknown: string[];
 }): PassportDimension {
   const score = clamp(input.score);
+  const relevantEvidence = input.evidence.filter((record) => record.category === input.category || record.category === "ledger");
+  const impacts = relevantEvidence.flatMap((record) => record.scoringImpacts.filter((impact) => impact.dimension === input.key || impact.dimension === "trust"));
   return {
     key: input.key,
     label: input.label,
@@ -627,25 +776,334 @@ function dimension(input: {
     observed: input.observed.filter(Boolean),
     inferred: input.inferred.filter(Boolean),
     unknown: input.unknown.filter(Boolean),
-    evidenceIds: input.evidence.filter((record) => record.category === input.category || record.category === "ledger").map((record) => record.id),
+    evidenceIds: relevantEvidence.map((record) => record.id),
+    explanation: {
+      formula: formulaForDimension(input.key),
+      positive: impacts.filter((impact) => impact.direction === "positive"),
+      negative: impacts.filter((impact) => impact.direction === "negative"),
+      neutral: impacts.filter((impact) => impact.direction === "neutral"),
+    },
   };
 }
 
-function materializeEvidenceRecord(record: Omit<EvidenceRecord, "id" | "hash">): EvidenceRecord {
-  const hash = sha256({
+function materializeEvidenceRecord(record: EvidenceRecordDraft): EvidenceRecord {
+  const deterministicInputHash = sha256({
     subjectId: record.subjectId,
     source: record.source,
+    sourceKind: record.sourceKind,
     type: record.type,
     category: record.category,
     timestamp: record.timestamp,
     confidence: record.confidence,
     verified: record.verified,
+    anchors: record.anchors || [],
   });
+  const hash = sha256({
+    subjectId: record.subjectId,
+    source: record.source,
+    sourceKind: record.sourceKind,
+    type: record.type,
+    category: record.category,
+    timestamp: record.timestamp,
+    confidence: record.confidence,
+    verified: record.verified,
+    anchors: record.anchors || [],
+    deterministicInputHash,
+  });
+  const scoringImpacts = record.scoringImpacts || [];
   return {
     ...record,
     hash,
+    anchors: record.anchors || [],
+    scoringImpacts,
+    deterministicInputHash,
+    provenance: provenanceForEvidence({ ...record, deterministicInputHash, hash, scoringImpacts }),
     id: deterministicId("evidence", record.subjectId, record.source, record.type, hash),
   };
+}
+
+function impact(dimension: ScoreImpact["dimension"], label: string, impactValue: number, formula: string): ScoreImpact {
+  return {
+    dimension,
+    label,
+    impact: clampSigned(impactValue),
+    direction: impactValue > 0 ? "positive" : impactValue < 0 ? "negative" : "neutral",
+    formula,
+  };
+}
+
+function ventureOsRegistryAnchor(item: RegistryItem): ExternalEvidenceAnchor {
+  return {
+    kind: "ventureos_registry_record",
+    label: "VentureOS registry record",
+    externalId: item.ventureOsId,
+    url: `/registry/${encodeURIComponent(item.ventureOsId)}`,
+    verificationMethod: "internal_ledger",
+    immutable: false,
+    confidence: confidenceFromCoverage(item.evidenceCoverage, item.evidenceCoverageLevel),
+  };
+}
+
+function githubRepositoryAnchor(repository: string): ExternalEvidenceAnchor {
+  return {
+    kind: "github_api_object",
+    label: "GitHub repository API object",
+    externalId: repository,
+    url: `https://api.github.com/repos/${repository}`,
+    verificationMethod: "api_object",
+    immutable: false,
+    confidence: 88,
+  };
+}
+
+function rdapDomainAnchor(domain: string): ExternalEvidenceAnchor {
+  return {
+    kind: "domain_whois_record",
+    label: "Domain RDAP/WHOIS record",
+    externalId: domain,
+    url: `https://rdap.org/domain/${domain}`,
+    verificationMethod: "public_record",
+    immutable: false,
+    confidence: 70,
+  };
+}
+
+function sslCertificateAnchor(domain: string): ExternalEvidenceAnchor {
+  return {
+    kind: "ssl_certificate_record",
+    label: "Public SSL certificate search",
+    externalId: domain,
+    url: `https://crt.sh/?q=${encodeURIComponent(domain)}`,
+    verificationMethod: "public_record",
+    immutable: false,
+    confidence: 62,
+  };
+}
+
+function signedReceiptAnchor(item: RegistryItem): ExternalEvidenceAnchor {
+  return {
+    kind: "ventureos_registry_record",
+    label: "Signed evidence receipt",
+    externalId: item.certificateId || item.ventureOsId,
+    url: item.certificateUrl || item.publicVerificationUrl,
+    verificationMethod: "hash_match",
+    immutable: true,
+    confidence: 92,
+  };
+}
+
+function transparencyLogAnchor(item: RegistryItem): ExternalEvidenceAnchor {
+  return {
+    kind: "transparency_log_entry",
+    label: "Transparency log entry set",
+    externalId: `${item.ventureOsId}:${item.transparencyEntries}`,
+    url: "/transparency-log",
+    verificationMethod: "internal_ledger",
+    immutable: true,
+    confidence: 86,
+  };
+}
+
+function provenanceForEvidence(record: EvidenceRecordDraft & { deterministicInputHash: string; hash: string; scoringImpacts: ScoreImpact[] }): EvidenceProvenanceStep[] {
+  const sourceHash = sha256({
+    source: record.source,
+    sourceKind: record.sourceKind,
+    anchors: record.anchors || [],
+  });
+  const normalizedHash = sha256({
+    sourceHash,
+    type: record.type,
+    category: record.category,
+    confidence: record.confidence,
+  });
+  const metricHash = sha256({
+    normalizedHash,
+    summary: record.summary,
+    limitations: record.limitations,
+  });
+  return [
+    {
+      stage: "source",
+      label: `${record.sourceKind.replace(/_/g, " ")} source captured`,
+      inputHash: sourceHash,
+      outputHash: normalizedHash,
+    },
+    {
+      stage: "normalization",
+      label: `${record.type.replace(/_/g, " ")} normalized with confidence ${record.confidence}/100`,
+      inputHash: normalizedHash,
+      outputHash: metricHash,
+    },
+    ...record.scoringImpacts.map((entry) => ({
+      stage: "scoring" as const,
+      label: entry.label,
+      inputHash: metricHash,
+      outputHash: sha256({ metricHash, entry }),
+      impact: entry,
+    })),
+    {
+      stage: "scoring",
+      label: "Evidence record hash finalized",
+      inputHash: record.deterministicInputHash,
+      outputHash: record.hash,
+    },
+  ];
+}
+
+function formulaForDimension(key: PassportDimensionKey) {
+  const formulas: Record<PassportDimensionKey, string> = {
+    identity: "identity = registry profile + repository/domain anchors - ownership unknowns",
+    security: "security = trust baseline - critical/high risk penalties + signed/ledger evidence",
+    reliability: "reliability = readiness baseline + lifecycle events - failed pipeline jobs",
+    maintainability: "maintainability = readiness baseline + source visibility + evidence confidence",
+    buyer_readiness: "buyer readiness = evidence coverage + signed receipt + public record completeness",
+  };
+  return formulas[key];
+}
+
+function buyerLensesFor(input: {
+  item: RegistryItem;
+  trustScore: number;
+  confidence: number;
+  risks: DiligenceRisk[];
+  evidence: EvidenceRecord[];
+  criticalRisks: number;
+  highRisks: number;
+}): Record<BuyerLens, BuyerLensInterpretation> {
+  const baseRecommendation = recommendationFor(input.trustScore, input.criticalRisks, input.confidence);
+  const hasSignedReceipt = input.item.certificateStatus === "Active";
+  const hasRepository = Boolean(input.item.repository);
+  const highRiskCount = input.criticalRisks + input.highRisks;
+  return {
+    investor: {
+      lens: "investor",
+      label: "Investor",
+      decisionQuestion: "Is this vendor technically credible enough for diligence to continue?",
+      recommendation: input.confidence < 55 || input.trustScore < 60 ? "Review" : baseRecommendation === "Do Not Approve" ? "Review" : "Proceed",
+      prioritySignals: [
+        `${input.evidence.length} evidence records available`,
+        hasRepository ? "Repository identity is linked" : "Repository identity is missing",
+        `Trust score ${input.trustScore || "pending"}`,
+      ],
+      concerns: [
+        input.confidence < 70 ? "Evidence confidence is below enterprise-grade threshold." : "",
+        highRiskCount ? `${highRiskCount} high-priority risk item(s) need diligence follow-up.` : "",
+      ].filter(Boolean),
+      nextAction: "Request missing operational evidence and use this as a diligence appendix.",
+    },
+    enterprise_buyer: {
+      lens: "enterprise_buyer",
+      label: "Enterprise Buyer",
+      decisionQuestion: "Can this software enter a vendor approval workflow?",
+      recommendation: baseRecommendation,
+      prioritySignals: [
+        hasSignedReceipt ? "Signed evidence receipt is active" : "Signed evidence receipt is pending",
+        `${input.item.evidenceCoverage}% evidence coverage`,
+        `${input.item.transparencyEntries} transparency entries`,
+      ],
+      concerns: [
+        !hasSignedReceipt ? "No active signed evidence receipt." : "",
+        input.item.evidenceCoverage < 80 ? "Evidence coverage is below buyer-ready threshold." : "",
+      ].filter(Boolean),
+      nextAction: "Use the signed audit export as the procurement record and request any missing controls.",
+    },
+    security_team: {
+      lens: "security_team",
+      label: "Security Team",
+      decisionQuestion: "What must security review before approval?",
+      recommendation: highRiskCount > 0 || input.trustScore < 65 ? "Review" : baseRecommendation,
+      prioritySignals: [
+        `${highRiskCount} critical/high risks`,
+        hasRepository ? "Source repository anchor exists" : "No source repository anchor",
+        `${input.evidence.filter((record) => record.category === "security" || record.category === "supply_chain").length} security/supply-chain evidence records`,
+      ],
+      concerns: [
+        highRiskCount ? "Open high-severity risks require review." : "",
+        "Runtime penetration testing and private infrastructure controls remain unknown unless submitted.",
+      ].filter(Boolean),
+      nextAction: "Review high-severity risks first, then validate SBOM, secrets, auth, and deployment controls.",
+    },
+    procurement_officer: {
+      lens: "procurement_officer",
+      label: "Procurement Officer",
+      decisionQuestion: "Is the vendor file complete enough to route for approval?",
+      recommendation: input.item.evidenceCoverage < 70 || !hasSignedReceipt ? "Review" : baseRecommendation,
+      prioritySignals: [
+        `${input.item.evidenceCoverage}% evidence coverage`,
+        hasSignedReceipt ? "Signed receipt attached" : "Signed receipt missing",
+        input.item.domain ? `Domain observed: ${input.item.domain}` : "Domain not attached",
+      ],
+      concerns: [
+        input.item.evidenceCoverage < 70 ? "Vendor file is not complete enough for low-friction approval." : "",
+        !input.item.domain ? "Public domain evidence is missing." : "",
+      ].filter(Boolean),
+      nextAction: "Collect missing vendor evidence and export the signed JSON/PDF audit packet.",
+    },
+  };
+}
+
+function signedSnapshotFor(input: {
+  generatedAt: string;
+  deterministicInputHash: string;
+  evidence: EvidenceRecord[];
+  risks: DiligenceRisk[];
+  passports: SoftwarePassportV2[];
+  comparison: VendorComparisonRow[];
+}): SignedPassportSnapshot {
+  const evidenceRootHash = sha256(input.evidence.map((record) => ({ id: record.id, hash: record.hash })).sort(byId));
+  const riskRootHash = sha256(input.risks.map((risk) => ({ id: risk.id, evidenceIds: risk.evidenceIds, confidence: risk.confidence, severity: risk.severity })).sort(byId));
+  const passportRootHash = sha256(input.passports.map((passport) => ({ id: passport.id, hash: passport.deterministicHash })).sort(byId));
+  const workspaceRootHash = sha256({
+    version: "3.0.0",
+    deterministicInputHash: input.deterministicInputHash,
+    evidenceRootHash,
+    riskRootHash,
+    passportRootHash,
+    comparison: input.comparison,
+  });
+  const snapshotId = `vos-snap-${workspaceRootHash.slice(0, 16)}`;
+  return {
+    version: "3.0.0",
+    snapshotId,
+    issuedAt: input.generatedAt,
+    deterministicInputHash: input.deterministicInputHash,
+    evidenceRootHash,
+    riskRootHash,
+    passportRootHash,
+    workspaceRootHash,
+    signature: sha256(`ventureos:${workspaceRootHash}:sha256-platform-signature-v1`),
+    signatureAlgorithm: "sha256-platform-signature-v1",
+    jsonUrl: `/api/diligence/audit?snapshot=${encodeURIComponent(snapshotId)}&format=json`,
+    pdfUrl: `/api/diligence/audit?snapshot=${encodeURIComponent(snapshotId)}&format=pdf`,
+  };
+}
+
+function registryItemForHash(item: RegistryItem) {
+  return {
+    id: item.ventureOsId,
+    name: item.name,
+    repository: item.repository,
+    domain: item.domain,
+    currentState: item.currentState,
+    trustScore: item.trustScore,
+    readinessScore: item.readinessScore,
+    evidenceCoverage: item.evidenceCoverage,
+    certificateStatus: item.certificateStatus,
+    transparencyEntries: item.transparencyEntries,
+    eventCount: item.eventCount,
+    lastScan: item.lastScan,
+    lastVerification: item.lastVerification,
+  };
+}
+
+function deterministicTimestampFor(items: RegistryItem[]) {
+  const timestamps = items
+    .flatMap((item) => [item.lastVerification, item.lastScan || ""])
+    .filter(Boolean)
+    .map((value) => new Date(value).getTime())
+    .filter(Number.isFinite);
+  if (!timestamps.length) return "1970-01-01T00:00:00.000Z";
+  return new Date(Math.max(...timestamps)).toISOString();
 }
 
 function confidenceFromCoverage(coverage: number, level: string) {
@@ -686,9 +1144,18 @@ function average(values: number[]) {
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
 
+function byId<T extends { id: string }>(left: T, right: T) {
+  return left.id.localeCompare(right.id);
+}
+
 function clamp(value: number) {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function clampSigned(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(-100, Math.min(100, Math.round(value)));
 }
 
 function formatDate(value: string) {
