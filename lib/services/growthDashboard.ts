@@ -33,7 +33,7 @@ const MONTHLY_RECURRING_CENTS: Record<string, number> = {
 
 export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnapshot> {
   const db = getPrisma();
-  if (!db) throw new Error("Database is not configured.");
+  if (!db) return emptyGrowthDashboardSnapshot();
 
   const since7 = daysAgo(7);
   const since30 = daysAgo(30);
@@ -144,6 +144,30 @@ export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnap
       currency: payment.currency,
       createdAt: payment.createdAt.toISOString(),
     })),
+  };
+}
+
+function emptyGrowthDashboardSnapshot(): GrowthDashboardSnapshot {
+  return {
+    generatedAt: new Date().toISOString(),
+    users: {
+      total: 0,
+      likelyReal: 0,
+      systemOrTest: 0,
+      newLast7Days: 0,
+      newLast30Days: 0,
+    },
+    revenue: {
+      paidUsers: 0,
+      activeSubscribers: 0,
+      totalPaidRevenueCents: 0,
+      estimatedMrrCents: 0,
+      currency: "usd",
+    },
+    plans: [],
+    subscriptions: [],
+    recentUsers: [],
+    recentPayments: [],
   };
 }
 
