@@ -66,6 +66,8 @@ const funnelEvents = [
   "appraisal_intake.certificate_completed",
 ] as const;
 
+const realVisitorProofPrefix = "ventureos:funnel:v2:real:visitors";
+
 export async function recordProductFunnelEvent(input: ProductFunnelEventInput) {
   const config = kvConfig();
   if (!config) return false;
@@ -94,7 +96,7 @@ export async function recordProductFunnelEvent(input: ProductFunnelEventInput) {
   if (proofNamespace === "real" && input.visitorHash) {
     commands.push(["PFADD", `ventureos:funnel:real:unique:event:${input.eventType}`, input.visitorHash]);
     for (const group of proofGroupsForEvent(input.eventType)) {
-      commands.push(["SADD", `ventureos:funnel:real:visitors:${group}`, input.visitorHash]);
+      commands.push(["SADD", `${realVisitorProofPrefix}:${group}`, input.visitorHash]);
     }
   }
 
@@ -124,13 +126,13 @@ export async function loadProductFunnelMetrics(): Promise<ProductFunnelMetrics> 
     ...funnelEvents.map((event) => ["GET", `ventureos:funnel:synthetic:event:${event}`]),
     ["GET", "ventureos:funnel:bot:events:total"],
     ...funnelEvents.map((event) => ["GET", `ventureos:funnel:bot:event:${event}`]),
-    ["SCARD", "ventureos:funnel:real:visitors:preview_started"],
-    ["SCARD", "ventureos:funnel:real:visitors:preview_completed"],
-    ["SCARD", "ventureos:funnel:real:visitors:checkout_started"],
-    ["SCARD", "ventureos:funnel:real:visitors:paid_intent"],
-    ["SCARD", "ventureos:funnel:real:visitors:homepage_intent"],
-    ["SCARD", "ventureos:funnel:real:visitors:report_generated"],
-    ["SINTER", "ventureos:funnel:real:visitors:preview_started", "ventureos:funnel:real:visitors:checkout_started"],
+    ["SCARD", `${realVisitorProofPrefix}:preview_started`],
+    ["SCARD", `${realVisitorProofPrefix}:preview_completed`],
+    ["SCARD", `${realVisitorProofPrefix}:checkout_started`],
+    ["SCARD", `${realVisitorProofPrefix}:paid_intent`],
+    ["SCARD", `${realVisitorProofPrefix}:homepage_intent`],
+    ["SCARD", `${realVisitorProofPrefix}:report_generated`],
+    ["SINTER", `${realVisitorProofPrefix}:preview_started`, `${realVisitorProofPrefix}:checkout_started`],
     ["LRANGE", "ventureos:funnel:recent", "0", "49"],
   ];
   const response = await fetch(`${config.url}/pipeline`, {
