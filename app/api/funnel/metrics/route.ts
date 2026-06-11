@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
     await compileTrust(request, { mode: "publicRead", reason: "aggregate public funnel readiness metrics" });
     const metrics = await loadProductFunnelMetrics();
     const realEvents = metrics.realEvents || {};
-    const previewStarted = eventCount(realEvents, "preview_started") + eventCount(realEvents, "free_review.scan_started");
-    const previewCompleted = eventCount(realEvents, "preview_completed") + eventCount(realEvents, "free_review.scan_completed");
+    const previewStarted = eventCount(realEvents, "preview_started") + eventCount(realEvents, "free_review.scan_started") + eventCount(realEvents, "appraisal_intake.preview_started");
+    const previewCompleted = eventCount(realEvents, "preview_completed") + eventCount(realEvents, "free_review.scan_completed") + eventCount(realEvents, "appraisal_intake.preview_completed");
     const checkoutStarted = eventCount(realEvents, "checkout_started") + eventCount(realEvents, "appraisal_intake.checkout_started") + eventCount(realEvents, "appraisal_intake.checkout_clicked");
     const reportGenerated = eventCount(realEvents, "report_generated") + eventCount(realEvents, "appraisal_intake.certificate_completed");
     const paidIntent = eventCount(realEvents, "free_review.paid_cta_clicked") + checkoutStarted;

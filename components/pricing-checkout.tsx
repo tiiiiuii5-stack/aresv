@@ -80,6 +80,13 @@ export function PricingCheckout() {
     setLoadingTier(tier);
     setError(null);
     try {
+      await trackPricingEvent("checkout_started", {
+        counts: {
+          annual,
+          tierPro: tier === "PRO",
+          tierTeam: tier === "TEAM",
+        },
+      });
       const response = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -205,6 +212,23 @@ export function PricingCheckout() {
       <StickyConversionBar primaryHref="/free-review" secondaryHref="/sample-appraisal" source="pricing_sticky" />
     </InstitutionalPageShell>
   );
+}
+
+async function trackPricingEvent(event: "checkout_started", input: { counts?: Record<string, number | boolean> } = {}) {
+  try {
+    await fetch("/api/product-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event,
+        source: "pricing",
+        counts: input.counts || {},
+      }),
+      keepalive: true,
+    });
+  } catch {
+    // Tracking must not block checkout.
+  }
 }
 
 function planIcon(tier: Plan["tier"]) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, FileText, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { VentureOSFooter } from "@/components/institutional/institutional-shell";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -31,6 +31,13 @@ const nextSteps = [
 
 export default function HomePage() {
   const [target, setTarget] = useState("");
+  const viewTracked = useRef(false);
+
+  useEffect(() => {
+    if (viewTracked.current) return;
+    viewTracked.current = true;
+    void trackHomeEvent("homepage.view", { metadata: { surface: "homepage" } });
+  }, []);
 
   return (
     <main className="vos-page min-h-screen">
@@ -68,6 +75,7 @@ export default function HomePage() {
             <form
               action="/free-review"
               method="get"
+              onSubmit={() => void trackHomeEvent("homepage.free_review_clicked", { repositoryUrl: target, metadata: { surface: "homepage_form" } })}
               className="mt-8 max-w-3xl rounded-xl border border-[rgb(var(--vos-primary))]/60 bg-[rgb(var(--vos-panel))]/95 p-4 shadow-2xl shadow-[rgb(var(--vos-primary))]/15 ring-1 ring-[rgb(var(--vos-primary))]/25"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -100,10 +108,10 @@ export default function HomePage() {
             </form>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Link href="/sample-appraisal" className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
+              <Link href="/sample-appraisal" onClick={() => void trackHomeEvent("homepage.sample_clicked", { metadata: { surface: "homepage_secondary_cta" } })} className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
                 See sample report
               </Link>
-              <Link href="/pricing" className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
+              <Link href="/pricing" onClick={() => void trackHomeEvent("homepage.pricing_clicked", { metadata: { surface: "homepage_secondary_cta" } })} className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
                 View pricing
               </Link>
             </div>
@@ -152,4 +160,25 @@ export default function HomePage() {
       <VentureOSFooter />
     </main>
   );
+}
+
+async function trackHomeEvent(
+  event: "homepage.view" | "homepage.free_review_clicked" | "homepage.sample_clicked" | "homepage.pricing_clicked",
+  input: { repositoryUrl?: string; metadata?: Record<string, unknown> } = {},
+) {
+  try {
+    await fetch("/api/product-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event,
+        source: "homepage",
+        repositoryUrl: input.repositoryUrl,
+        metadata: input.metadata || {},
+      }),
+      keepalive: true,
+    });
+  } catch {
+    // Demand tracking must never block navigation.
+  }
 }
