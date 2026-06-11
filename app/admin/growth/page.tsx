@@ -25,11 +25,11 @@ export default async function AdminGrowthPage() {
     loadGrowthDashboardSnapshot(),
     loadProductFunnelMetrics(),
   ]);
-  const realPreviewStarted = eventCount(funnel.realEvents, "preview_started") + eventCount(funnel.realEvents, "free_review.scan_started") + eventCount(funnel.realEvents, "appraisal_intake.preview_started");
-  const realPreviewCompleted = eventCount(funnel.realEvents, "preview_completed") + eventCount(funnel.realEvents, "free_review.scan_completed") + eventCount(funnel.realEvents, "appraisal_intake.preview_completed");
-  const realCheckoutStarted = eventCount(funnel.realEvents, "checkout_started") + eventCount(funnel.realEvents, "appraisal_intake.checkout_started") + eventCount(funnel.realEvents, "appraisal_intake.checkout_clicked");
-  const realPaidIntent = eventCount(funnel.realEvents, "free_review.paid_cta_clicked") + realCheckoutStarted;
-  const homepageDemand = eventCount(funnel.realEvents, "homepage.free_review_clicked") + eventCount(funnel.realEvents, "homepage.pricing_clicked");
+  const realPreviewStarted = funnel.uniqueReal.previewStarted;
+  const realPreviewCompleted = funnel.uniqueReal.previewCompleted;
+  const realCheckoutStarted = funnel.uniqueReal.checkoutStarted;
+  const realPaidIntent = funnel.uniqueReal.paidIntent;
+  const homepageDemand = funnel.uniqueReal.homepageIntent;
 
   return (
     <main className="vos-page min-h-screen">
@@ -69,22 +69,23 @@ export default async function AdminGrowthPage() {
         </section>
 
         <section className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <Metric label="Real preview starts" value={realPreviewStarted} detail="Free or intake preview actions" tone={realPreviewStarted >= 10 ? "ready" : "muted"} />
-          <Metric label="Real previews done" value={realPreviewCompleted} detail="Completed preview decisions" tone={realPreviewCompleted ? "ready" : "muted"} />
-          <Metric label="Real paid intent" value={realPaidIntent} detail="Paid CTA or checkout starts" tone={realPaidIntent ? "ready" : "muted"} />
-          <Metric label="Real checkouts" value={realCheckoutStarted} detail="Checkout start events" tone={realCheckoutStarted ? "ready" : "muted"} />
-          <Metric label="Homepage intent" value={homepageDemand} detail="Free review or pricing clicks" tone={homepageDemand ? "ready" : "muted"} />
+          <Metric label="Unique previews" value={realPreviewStarted} detail="Real non-bot preview visitors" tone={realPreviewStarted >= 10 ? "ready" : "muted"} />
+          <Metric label="Unique completions" value={realPreviewCompleted} detail="Real completed preview visitors" tone={realPreviewCompleted ? "ready" : "muted"} />
+          <Metric label="Unique paid intent" value={realPaidIntent} detail="Real paid CTA or checkout visitors" tone={realPaidIntent ? "ready" : "muted"} />
+          <Metric label="Unique checkouts" value={realCheckoutStarted} detail="Real checkout-start visitors" tone={realCheckoutStarted ? "ready" : "muted"} />
+          <Metric label="Homepage intent" value={homepageDemand} detail="Real free review or pricing visitors" tone={homepageDemand ? "ready" : "muted"} />
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
           <Panel title="Funnel Proof Gates" badge={funnel.available ? "live kv" : "unavailable"}>
             <div className="grid gap-2">
               <BreakdownRow label="Demand proof" value={realPreviewStarted} total={10} />
-              <BreakdownRow label="Conversion proof" value={realCheckoutStarted ? 1 : 0} total={1} />
+              <BreakdownRow label="Conversion proof" value={funnel.uniqueReal.previewToCheckoutPath ? 1 : 0} total={1} />
               <BreakdownRow label="Synthetic events" value={funnel.syntheticTotalEvents} total={Math.max(1, funnel.totalEvents)} />
+              <BreakdownRow label="Bot events" value={funnel.botTotalEvents} total={Math.max(1, funnel.totalEvents)} />
             </div>
             <p className="mt-3 px-1 text-xs font-bold leading-5 text-[rgb(var(--vos-text-muted))]">
-              Enterprise readiness requires 10 real preview starts and at least one real checkout path. Synthetic contract tests are tracked but excluded.
+              Enterprise readiness requires 10 unique real preview visitors and at least one unique real visitor with both preview and checkout. Synthetic tests and obvious bots are tracked but excluded.
             </p>
           </Panel>
 
@@ -94,7 +95,7 @@ export default async function AdminGrowthPage() {
               rows={funnel.recent.map((event) => [
                 event.eventType,
                 event.source,
-                event.synthetic ? "synthetic" : "real",
+                event.bot ? "bot" : event.synthetic ? "synthetic" : "real",
                 event.hasRepositoryUrl ? "yes" : "no",
                 formatDateTime(event.createdAt),
               ])}
@@ -277,8 +278,4 @@ function formatDateTime(value: string) {
 
 function formatMoney(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
-}
-
-function eventCount(events: Record<string, number>, key: string) {
-  return Math.max(0, Math.round(Number(events[key] || 0)));
 }

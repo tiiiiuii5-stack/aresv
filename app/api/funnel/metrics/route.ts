@@ -13,12 +13,12 @@ export async function GET(request: NextRequest) {
   try {
     await compileTrust(request, { mode: "publicRead", reason: "aggregate public funnel readiness metrics" });
     const metrics = await loadProductFunnelMetrics();
-    const realEvents = metrics.realEvents || {};
-    const previewStarted = eventCount(realEvents, "preview_started") + eventCount(realEvents, "free_review.scan_started") + eventCount(realEvents, "appraisal_intake.preview_started");
-    const previewCompleted = eventCount(realEvents, "preview_completed") + eventCount(realEvents, "free_review.scan_completed") + eventCount(realEvents, "appraisal_intake.preview_completed");
-    const checkoutStarted = eventCount(realEvents, "checkout_started") + eventCount(realEvents, "appraisal_intake.checkout_started") + eventCount(realEvents, "appraisal_intake.checkout_clicked");
-    const reportGenerated = eventCount(realEvents, "report_generated") + eventCount(realEvents, "appraisal_intake.certificate_completed");
-    const paidIntent = eventCount(realEvents, "free_review.paid_cta_clicked") + checkoutStarted;
+    const previewStarted = metrics.uniqueReal.previewStarted;
+    const previewCompleted = metrics.uniqueReal.previewCompleted;
+    const checkoutStarted = metrics.uniqueReal.checkoutStarted;
+    const reportGenerated = metrics.uniqueReal.reportGenerated;
+    const paidIntent = metrics.uniqueReal.paidIntent;
+    const previewToCheckoutPath = metrics.uniqueReal.previewToCheckoutPath;
 
     return jsonResponse({
       ok: true,
@@ -29,15 +29,17 @@ export async function GET(request: NextRequest) {
           proven: previewStarted >= 10,
           previewStarted,
           previewCompleted,
-          requirement: "At least 10 real preview starts from production traffic. Synthetic contract-test events do not count.",
+          uniqueVisitors: previewStarted,
+          requirement: "At least 10 unique real preview visitors from production traffic. Synthetic tests and obvious bots do not count.",
         },
         conversionFunnel: {
-          proven: checkoutStarted > 0 && previewStarted > 0,
+          proven: previewToCheckoutPath > 0,
           previewToCheckoutRate: previewStarted > 0 ? roundRate(checkoutStarted / previewStarted) : 0,
           paidIntent,
           checkoutStarted,
           reportGenerated,
-          requirement: "At least one real checkout start and measurable real preview-to-checkout path. Synthetic contract-test events do not count.",
+          previewToCheckoutPath,
+          requirement: "At least one unique real visitor must start a preview and then start checkout. Synthetic tests and obvious bots do not count.",
         },
       },
       timestamp: new Date().toISOString(),
@@ -45,10 +47,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return secureErrorResponse("funnel.metrics.GET", traceId, error, { fallbackStatus: 500 });
   }
-}
-
-function eventCount(events: Record<string, number>, key: string) {
-  return Math.max(0, Math.round(Number(events[key] || 0)));
 }
 
 function roundRate(value: number) {

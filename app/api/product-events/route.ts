@@ -66,6 +66,9 @@ export async function POST(request: NextRequest) {
     }
 
     const metadata = metadataForEvent(body, request);
+    const visitorHash = visitorHashForRequest(request);
+    const bot = isBotRequest(request);
+    metadata.bot = bot;
     const framework = cleanOptionalIdentifier(body.framework, 40);
     const riskLevel = cleanOptionalIdentifier(body.riskLevel, 40);
     const severity = cleanOptionalIdentifier(body.severity, 40);
@@ -90,6 +93,8 @@ export async function POST(request: NextRequest) {
       framework,
       riskLevel,
       hasRepositoryUrl: Boolean(metadata.hasRepositoryUrl),
+      visitorHash,
+      bot,
       metadata,
     }).catch(() => false);
 
@@ -102,6 +107,7 @@ export async function POST(request: NextRequest) {
       kvStored: Boolean(kvStored),
       sourcePage: metadata.source,
       hasRepositoryUrl: Boolean(metadata.hasRepositoryUrl),
+      bot,
       framework,
       riskLevel,
       timestamp: new Date().toISOString(),
@@ -131,6 +137,24 @@ function isSyntheticEvent(source: unknown, counts: unknown, metadata: unknown) {
   const sourceText = String(source || "").toLowerCase();
   if (/(^|[_.:-])(test|contract|synthetic|qa|smoke)([_.:-]|$)/.test(sourceText)) return true;
   return Boolean(flagValue(counts, "contractTest") || flagValue(counts, "synthetic") || flagValue(metadata, "synthetic"));
+}
+
+function isBotRequest(request: NextRequest) {
+  const userAgent = request.headers.get("user-agent") || "";
+  if (!userAgent.trim()) return true;
+  return /\b(bot|crawler|spider|scraper|curl|wget|python|node-fetch|httpclient|headlesschrome|playwright|lighthouse|uptimerobot|pingdom|vercelbot)\b/i.test(userAgent);
+}
+
+function visitorHashForRequest(request: NextRequest) {
+  const userAgent = request.headers.get("user-agent") || "unknown";
+  const forwardedFor = request.headers.get("x-forwarded-for") || "";
+  const ip = forwardedFor.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-vercel-forwarded-for") ||
+    "unknown";
+  const salt = process.env.ANALYTICS_HASH_SALT || process.env.SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || process.env.NEXTAUTH_SECRET || "ventureos-funnel-proof";
+  return createHash("sha256").update(`${salt}:${ip}:${userAgent}`).digest("hex").slice(0, 32);
 }
 
 function flagValue(value: unknown, key: string) {

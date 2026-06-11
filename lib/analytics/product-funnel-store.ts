@@ -4,6 +4,8 @@ export type ProductFunnelEventInput = {
   framework?: string | null;
   riskLevel?: string | null;
   hasRepositoryUrl?: boolean;
+  visitorHash?: string | null;
+  bot?: boolean;
   metadata?: Record<string, unknown>;
 };
 
@@ -13,8 +15,19 @@ export type ProductFunnelMetrics = {
   events: Record<string, number>;
   realEvents: Record<string, number>;
   syntheticEvents: Record<string, number>;
+  botEvents: Record<string, number>;
   realTotalEvents: number;
   syntheticTotalEvents: number;
+  botTotalEvents: number;
+  uniqueReal: {
+    previewStarted: number;
+    previewCompleted: number;
+    checkoutStarted: number;
+    paidIntent: number;
+    homepageIntent: number;
+    reportGenerated: number;
+    previewToCheckoutPath: number;
+  };
   recent: Array<{
     eventType: string;
     source: string;
@@ -22,6 +35,7 @@ export type ProductFunnelMetrics = {
     riskLevel?: string | null;
     hasRepositoryUrl?: boolean;
     synthetic?: boolean;
+    bot?: boolean;
     createdAt: string;
   }>;
 };
@@ -63,11 +77,12 @@ export async function recordProductFunnelEvent(input: ProductFunnelEventInput) {
     riskLevel: input.riskLevel || null,
     hasRepositoryUrl: Boolean(input.hasRepositoryUrl),
     synthetic: isSyntheticEvent(input),
+    bot: Boolean(input.bot),
     createdAt: new Date().toISOString(),
   };
-  const proofNamespace = event.synthetic ? "synthetic" : "real";
+  const proofNamespace = event.bot ? "bot" : event.synthetic ? "synthetic" : "real";
 
-  const commands = [
+  const commands: string[][] = [
     ["INCR", "ventureos:funnel:events:total"],
     ["INCR", `ventureos:funnel:event:${input.eventType}`],
     ["INCR", `ventureos:funnel:${proofNamespace}:events:total`],
@@ -75,6 +90,13 @@ export async function recordProductFunnelEvent(input: ProductFunnelEventInput) {
     ["LPUSH", "ventureos:funnel:recent", JSON.stringify(event)],
     ["LTRIM", "ventureos:funnel:recent", "0", "499"],
   ];
+
+  if (proofNamespace === "real" && input.visitorHash) {
+    commands.push(["PFADD", `ventureos:funnel:real:unique:event:${input.eventType}`, input.visitorHash]);
+    for (const group of proofGroupsForEvent(input.eventType)) {
+      commands.push(["SADD", `ventureos:funnel:real:visitors:${group}`, input.visitorHash]);
+    }
+  }
 
   const response = await fetch(`${config.url}/pipeline`, {
     method: "POST",
@@ -100,6 +122,15 @@ export async function loadProductFunnelMetrics(): Promise<ProductFunnelMetrics> 
     ...funnelEvents.map((event) => ["GET", `ventureos:funnel:real:event:${event}`]),
     ["GET", "ventureos:funnel:synthetic:events:total"],
     ...funnelEvents.map((event) => ["GET", `ventureos:funnel:synthetic:event:${event}`]),
+    ["GET", "ventureos:funnel:bot:events:total"],
+    ...funnelEvents.map((event) => ["GET", `ventureos:funnel:bot:event:${event}`]),
+    ["SCARD", "ventureos:funnel:real:visitors:preview_started"],
+    ["SCARD", "ventureos:funnel:real:visitors:preview_completed"],
+    ["SCARD", "ventureos:funnel:real:visitors:checkout_started"],
+    ["SCARD", "ventureos:funnel:real:visitors:paid_intent"],
+    ["SCARD", "ventureos:funnel:real:visitors:homepage_intent"],
+    ["SCARD", "ventureos:funnel:real:visitors:report_generated"],
+    ["SINTER", "ventureos:funnel:real:visitors:preview_started", "ventureos:funnel:real:visitors:checkout_started"],
     ["LRANGE", "ventureos:funnel:recent", "0", "49"],
   ];
   const response = await fetch(`${config.url}/pipeline`, {
@@ -114,28 +145,40 @@ export async function loadProductFunnelMetrics(): Promise<ProductFunnelMetrics> 
   if (!response.ok) return emptyMetrics();
 
   const payload = await response.json().catch(() => []) as Array<{ result?: unknown }>;
-  const totalEvents = numberValue(payload[0]?.result);
+  let cursor = 0;
+  const totalEvents = numberValue(payload[cursor++]?.result);
   const events: Record<string, number> = {};
-  funnelEvents.forEach((event, index) => {
-    events[event] = numberValue(payload[index + 1]?.result);
+  funnelEvents.forEach((event) => {
+    events[event] = numberValue(payload[cursor++]?.result);
   });
-  const realTotalOffset = funnelEvents.length + 1;
-  const realTotalEvents = numberValue(payload[realTotalOffset]?.result);
+  const realTotalEvents = numberValue(payload[cursor++]?.result);
   const realEvents: Record<string, number> = {};
-  funnelEvents.forEach((event, index) => {
-    realEvents[event] = numberValue(payload[realTotalOffset + index + 1]?.result);
+  funnelEvents.forEach((event) => {
+    realEvents[event] = numberValue(payload[cursor++]?.result);
   });
-  const syntheticTotalOffset = realTotalOffset + funnelEvents.length + 1;
-  const syntheticTotalEvents = numberValue(payload[syntheticTotalOffset]?.result);
+  const syntheticTotalEvents = numberValue(payload[cursor++]?.result);
   const syntheticEvents: Record<string, number> = {};
-  funnelEvents.forEach((event, index) => {
-    syntheticEvents[event] = numberValue(payload[syntheticTotalOffset + index + 1]?.result);
+  funnelEvents.forEach((event) => {
+    syntheticEvents[event] = numberValue(payload[cursor++]?.result);
   });
-  const recentOffset = syntheticTotalOffset + funnelEvents.length + 1;
-  const recentRaw = Array.isArray(payload[recentOffset]?.result) ? payload[recentOffset].result as unknown[] : [];
+  const botTotalEvents = numberValue(payload[cursor++]?.result);
+  const botEvents: Record<string, number> = {};
+  funnelEvents.forEach((event) => {
+    botEvents[event] = numberValue(payload[cursor++]?.result);
+  });
+  const uniqueReal = {
+    previewStarted: numberValue(payload[cursor++]?.result),
+    previewCompleted: numberValue(payload[cursor++]?.result),
+    checkoutStarted: numberValue(payload[cursor++]?.result),
+    paidIntent: numberValue(payload[cursor++]?.result),
+    homepageIntent: numberValue(payload[cursor++]?.result),
+    reportGenerated: numberValue(payload[cursor++]?.result),
+    previewToCheckoutPath: arrayCount(payload[cursor++]?.result),
+  };
+  const recentRaw = Array.isArray(payload[cursor]?.result) ? payload[cursor].result as unknown[] : [];
   const recent = recentRaw.map(parseRecentEvent).filter(Boolean).slice(0, 50) as ProductFunnelMetrics["recent"];
 
-  return { available: true, totalEvents, events, realEvents, syntheticEvents, realTotalEvents, syntheticTotalEvents, recent };
+  return { available: true, totalEvents, events, realEvents, syntheticEvents, botEvents, realTotalEvents, syntheticTotalEvents, botTotalEvents, uniqueReal, recent };
 }
 
 function emptyMetrics(): ProductFunnelMetrics {
@@ -145,8 +188,19 @@ function emptyMetrics(): ProductFunnelMetrics {
     events: {},
     realEvents: {},
     syntheticEvents: {},
+    botEvents: {},
     realTotalEvents: 0,
     syntheticTotalEvents: 0,
+    botTotalEvents: 0,
+    uniqueReal: {
+      previewStarted: 0,
+      previewCompleted: 0,
+      checkoutStarted: 0,
+      paidIntent: 0,
+      homepageIntent: 0,
+      reportGenerated: 0,
+      previewToCheckoutPath: 0,
+    },
     recent: [],
   };
 }
@@ -163,6 +217,17 @@ function isSyntheticEvent(input: ProductFunnelEventInput) {
   return explicitSynthetic || /(^|[_.:-])(test|contract|synthetic|qa|smoke)([_.:-]|$)/.test(source);
 }
 
+function proofGroupsForEvent(eventType: string) {
+  const groups: string[] = [];
+  if (eventType === "preview_started" || eventType === "free_review.scan_started" || eventType === "appraisal_intake.preview_started") groups.push("preview_started");
+  if (eventType === "preview_completed" || eventType === "free_review.scan_completed" || eventType === "appraisal_intake.preview_completed") groups.push("preview_completed");
+  if (eventType === "checkout_started" || eventType === "appraisal_intake.checkout_started" || eventType === "appraisal_intake.checkout_clicked") groups.push("checkout_started", "paid_intent");
+  if (eventType === "free_review.paid_cta_clicked") groups.push("paid_intent");
+  if (eventType === "homepage.free_review_clicked" || eventType === "homepage.pricing_clicked") groups.push("homepage_intent");
+  if (eventType === "report_generated" || eventType === "appraisal_intake.certificate_completed") groups.push("report_generated");
+  return groups;
+}
+
 function kvConfig(readOnly = false) {
   const url = process.env.KV_REST_API_URL?.trim() || process.env.UPSTASH_REDIS_REST_URL?.trim();
   const token = readOnly
@@ -175,6 +240,10 @@ function kvConfig(readOnly = false) {
 function numberValue(value: unknown) {
   const number = Number(value || 0);
   return Number.isFinite(number) ? Math.max(0, Math.round(number)) : 0;
+}
+
+function arrayCount(value: unknown) {
+  return Array.isArray(value) ? value.length : numberValue(value);
 }
 
 function parseRecentEvent(value: unknown) {
