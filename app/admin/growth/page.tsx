@@ -47,10 +47,13 @@ export default async function AdminGrowthPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">Owner Metrics</Badge>
             <Badge variant="muted">Generated {formatDateTime(snapshot.generatedAt)}</Badge>
+            <Badge variant={snapshot.dataSource.available ? "ready" : "risky"}>
+              {snapshot.dataSource.available ? "Postgres live" : `Postgres unavailable: ${snapshot.dataSource.reason}`}
+            </Badge>
           </div>
           <h1 className="mt-4 vos-h1">Users and money.</h1>
           <p className="mt-3 max-w-3xl vos-body">
-            Tracks real database users, paid customers, subscriptions, revenue, and plan mix without counting internal founder access as paid revenue.
+            Tracks real database users, paid customers, subscriptions, revenue, and plan mix without counting internal founder access as paid revenue. If the database source is unavailable, VentureOS keeps the page online and marks the counts as unavailable instead of pretending they are proven.
           </p>
         </section>
 

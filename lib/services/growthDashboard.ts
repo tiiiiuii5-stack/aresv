@@ -5,6 +5,11 @@ type MoneyRow = { cents: number | bigint | string | null };
 
 export type GrowthDashboardSnapshot = {
   generatedAt: string;
+  dataSource: {
+    available: boolean;
+    provider: "postgres";
+    reason: string | null;
+  };
   users: {
     total: number;
     likelyReal: number;
@@ -33,10 +38,88 @@ const MONTHLY_RECURRING_CENTS: Record<string, number> = {
 
 export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnapshot> {
   const db = getPrisma();
-  if (!db) return emptyGrowthDashboardSnapshot();
+  if (!db) return emptyGrowthDashboardSnapshot("database_not_configured");
 
   const since7 = daysAgo(7);
   const since30 = daysAgo(30);
+
+  let rows: [
+    CountRow[],
+    CountRow[],
+    CountRow[],
+    CountRow[],
+    CountRow[],
+    CountRow[],
+    MoneyRow[],
+    Array<{ plan: string | null; count: number }>,
+    Array<{ tier: string; status: string; count: number }>,
+    Array<{ tier: string }>,
+    Array<{ id: string; email: string; plan: string; createdAt: Date }>,
+    Array<{ id: string; customerEmail: string | null; offerId: string; status: string; amount: number; currency: string; createdAt: Date }>,
+  ];
+
+  try {
+    rows = await Promise.all([
+      db.$queryRawUnsafe<CountRow[]>(`SELECT COUNT(*)::int AS count FROM "users"`),
+      db.$queryRawUnsafe<CountRow[]>(
+        `SELECT COUNT(*)::int AS count
+         FROM "users"
+         WHERE "email" NOT ILIKE '%@ventureos.local'
+           AND "email" NOT ILIKE '%test%'
+           AND "email" NOT ILIKE '%demo%'
+           AND "email" NOT ILIKE '%seed%'
+           AND "email" NOT ILIKE '%example.%'`,
+      ),
+      db.$queryRawUnsafe<CountRow[]>(`SELECT COUNT(*)::int AS count FROM "users" WHERE "createdAt" >= $1`, since7),
+      db.$queryRawUnsafe<CountRow[]>(`SELECT COUNT(*)::int AS count FROM "users" WHERE "createdAt" >= $1`, since30),
+      db.$queryRawUnsafe<CountRow[]>(
+        `SELECT COUNT(DISTINCT "userId")::int AS count
+         FROM "payments"
+         WHERE LOWER("status") IN ('paid', 'succeeded', 'complete', 'completed')`,
+      ),
+      db.$queryRawUnsafe<CountRow[]>(
+        `SELECT COUNT(*)::int AS count
+         FROM "subscriptions"
+         WHERE "status" IN ('ACTIVE', 'TRIALING') AND "tier" <> 'STARTER'`,
+      ),
+      db.$queryRawUnsafe<MoneyRow[]>(
+        `SELECT COALESCE(SUM("amount"), 0)::int AS cents
+         FROM "payments"
+         WHERE LOWER("status") IN ('paid', 'succeeded', 'complete', 'completed')`,
+      ),
+      db.$queryRawUnsafe<Array<{ plan: string | null; count: number }>>(
+        `SELECT COALESCE(NULLIF("plan", ''), 'free') AS plan, COUNT(*)::int AS count
+         FROM "users"
+         GROUP BY COALESCE(NULLIF("plan", ''), 'free')
+         ORDER BY count DESC`,
+      ),
+      db.$queryRawUnsafe<Array<{ tier: string; status: string; count: number }>>(
+        `SELECT "tier"::text AS tier, "status"::text AS status, COUNT(*)::int AS count
+         FROM "subscriptions"
+         GROUP BY "tier", "status"
+         ORDER BY count DESC`,
+      ),
+      db.$queryRawUnsafe<Array<{ tier: string }>>(
+        `SELECT "tier"::text AS tier
+         FROM "subscriptions"
+         WHERE "status" IN ('ACTIVE', 'TRIALING') AND "tier" <> 'STARTER'`,
+      ),
+      db.$queryRawUnsafe<Array<{ id: string; email: string; plan: string; createdAt: Date }>>(
+        `SELECT "id", "email", "plan", "createdAt"
+         FROM "users"
+         ORDER BY "createdAt" DESC
+         LIMIT 12`,
+      ),
+      db.$queryRawUnsafe<Array<{ id: string; customerEmail: string | null; offerId: string; status: string; amount: number; currency: string; createdAt: Date }>>(
+        `SELECT "id", "customerEmail", "offerId", "status", "amount", "currency", "createdAt"
+         FROM "payments"
+         ORDER BY "createdAt" DESC
+         LIMIT 12`,
+      ),
+    ]);
+  } catch (error) {
+    return emptyGrowthDashboardSnapshot(databaseUnavailableReason(error));
+  }
 
   const [
     totalUsers,
@@ -51,70 +134,18 @@ export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnap
     activeSubscriptionRows,
     recentUsers,
     recentPayments,
-  ] = await Promise.all([
-    db.$queryRawUnsafe<CountRow[]>(`SELECT COUNT(*)::int AS count FROM "users"`),
-    db.$queryRawUnsafe<CountRow[]>(
-      `SELECT COUNT(*)::int AS count
-       FROM "users"
-       WHERE "email" NOT ILIKE '%@ventureos.local'
-         AND "email" NOT ILIKE '%test%'
-         AND "email" NOT ILIKE '%demo%'
-         AND "email" NOT ILIKE '%seed%'
-         AND "email" NOT ILIKE '%example.%'`,
-    ),
-    db.$queryRawUnsafe<CountRow[]>(`SELECT COUNT(*)::int AS count FROM "users" WHERE "createdAt" >= $1`, since7),
-    db.$queryRawUnsafe<CountRow[]>(`SELECT COUNT(*)::int AS count FROM "users" WHERE "createdAt" >= $1`, since30),
-    db.$queryRawUnsafe<CountRow[]>(
-      `SELECT COUNT(DISTINCT "userId")::int AS count
-       FROM "payments"
-       WHERE LOWER("status") IN ('paid', 'succeeded', 'complete', 'completed')`,
-    ),
-    db.$queryRawUnsafe<CountRow[]>(
-      `SELECT COUNT(*)::int AS count
-       FROM "subscriptions"
-       WHERE "status" IN ('ACTIVE', 'TRIALING') AND "tier" <> 'STARTER'`,
-    ),
-    db.$queryRawUnsafe<MoneyRow[]>(
-      `SELECT COALESCE(SUM("amount"), 0)::int AS cents
-       FROM "payments"
-       WHERE LOWER("status") IN ('paid', 'succeeded', 'complete', 'completed')`,
-    ),
-    db.$queryRawUnsafe<Array<{ plan: string | null; count: number }>>(
-      `SELECT COALESCE(NULLIF("plan", ''), 'free') AS plan, COUNT(*)::int AS count
-       FROM "users"
-       GROUP BY COALESCE(NULLIF("plan", ''), 'free')
-       ORDER BY count DESC`,
-    ),
-    db.$queryRawUnsafe<Array<{ tier: string; status: string; count: number }>>(
-      `SELECT "tier"::text AS tier, "status"::text AS status, COUNT(*)::int AS count
-       FROM "subscriptions"
-       GROUP BY "tier", "status"
-       ORDER BY count DESC`,
-    ),
-    db.$queryRawUnsafe<Array<{ tier: string }>>(
-      `SELECT "tier"::text AS tier
-       FROM "subscriptions"
-       WHERE "status" IN ('ACTIVE', 'TRIALING') AND "tier" <> 'STARTER'`,
-    ),
-    db.$queryRawUnsafe<Array<{ id: string; email: string; plan: string; createdAt: Date }>>(
-      `SELECT "id", "email", "plan", "createdAt"
-       FROM "users"
-       ORDER BY "createdAt" DESC
-       LIMIT 12`,
-    ),
-    db.$queryRawUnsafe<Array<{ id: string; customerEmail: string | null; offerId: string; status: string; amount: number; currency: string; createdAt: Date }>>(
-      `SELECT "id", "customerEmail", "offerId", "status", "amount", "currency", "createdAt"
-       FROM "payments"
-       ORDER BY "createdAt" DESC
-       LIMIT 12`,
-    ),
-  ]);
+  ] = rows;
 
   const total = numberFromRow(totalUsers);
   const likelyReal = numberFromRow(likelyRealUsers);
 
   return {
     generatedAt: new Date().toISOString(),
+    dataSource: {
+      available: true,
+      provider: "postgres",
+      reason: null,
+    },
     users: {
       total,
       likelyReal,
@@ -147,9 +178,14 @@ export async function loadGrowthDashboardSnapshot(): Promise<GrowthDashboardSnap
   };
 }
 
-function emptyGrowthDashboardSnapshot(): GrowthDashboardSnapshot {
+function emptyGrowthDashboardSnapshot(reason: string): GrowthDashboardSnapshot {
   return {
     generatedAt: new Date().toISOString(),
+    dataSource: {
+      available: false,
+      provider: "postgres",
+      reason,
+    },
     users: {
       total: 0,
       likelyReal: 0,
@@ -181,4 +217,12 @@ function numberFromRow(rows: CountRow[]) {
 
 function centsFromRow(rows: MoneyRow[]) {
   return Number(rows[0]?.cents || 0);
+}
+
+function databaseUnavailableReason(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/quota/i.test(message)) return "database_quota_exceeded";
+  if (/DATABASE_URL|database.*not.*configured/i.test(message)) return "database_not_configured";
+  if (/connect|timeout|unavailable|ECONN|ENOTFOUND/i.test(message)) return "database_unreachable";
+  return "database_query_failed";
 }
