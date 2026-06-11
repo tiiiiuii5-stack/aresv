@@ -2,6 +2,27 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./app/**/*.{js,ts,jsx,tsx,mdx}", "./components/**/*.{js,ts,jsx,tsx,mdx}"],
+  safelist: [
+    "app-shell",
+    "surface",
+    "surface-muted",
+    "container-app",
+    "section",
+    "h1",
+    "h2",
+    "h3",
+    "text-muted",
+    "btn",
+    "btn-primary",
+    "btn-secondary",
+    "btn-ghost",
+    "input",
+    "table",
+    "badge",
+    "badge-success",
+    "badge-warning",
+    "badge-danger"
+  ],
   theme: {
     extend: {
       fontFamily: {
