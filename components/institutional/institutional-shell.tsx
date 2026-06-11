@@ -30,9 +30,9 @@ const coreNavigation = [
 const primaryNavigation = [
   {
     label: "Workbench",
-    href: "/build",
-    description: "Build, scan, decide",
-    mapsTo: ["/build", "/analyze", "/passport", "/launch-decision"],
+    href: "/due-diligence",
+    description: "Diligence, evidence, decisions",
+    mapsTo: ["/due-diligence", "/evidence", "/trust-graph", "/monitoring", "/vendor-comparison", "/build", "/analyze", "/passport", "/launch-decision"],
   },
   {
     label: "Public Ledger",

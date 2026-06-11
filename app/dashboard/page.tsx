@@ -59,28 +59,28 @@ export default async function DashboardPage() {
       {/* Quick Action Buttons */}
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <QuickActionButton
-          href="/free-review"
+          href="/due-diligence"
           marker="01"
-          label="New Scan"
-          description="Analyze code instantly"
+          label="Due Diligence"
+          description="Open buyer workspace"
         />
         <QuickActionButton
-          href="/dashboard"
+          href="/evidence"
           marker="02"
-          label="Generate App"
-          description="Create with AI"
+          label="Evidence"
+          description="Inspect source proof"
         />
         <QuickActionButton
-          href="/projects"
+          href="/trust-graph"
           marker="03"
-          label="View Projects"
-          description="See all projects"
+          label="Trust Graph"
+          description="Map evidence and risk"
         />
         <QuickActionButton
-          href="/certificate"
+          href="/free-review"
           marker="04"
-          label="Get Certificate"
-          description="Download badges"
+          label="New Review"
+          description="Scan a repository"
         />
       </section>
 
