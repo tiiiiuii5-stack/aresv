@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { InstitutionalPageShell } from "@/components/institutional/institutional-shell";
 import { Button } from "@/components/ui/button";
-import { buttonClassName } from "@/components/ui/button";
 
 type ReviewIssue = {
   id?: string;
@@ -116,7 +115,9 @@ export default function FreeReviewPage() {
   const [framework, setFramework] = useState("nextjs");
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [scanBusy, setScanBusy] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [error, setError] = useState("");
+  const [checkoutError, setCheckoutError] = useState("");
   const [message, setMessage] = useState("");
   const viewTracked = useRef(false);
   const autoScanStarted = useRef(false);
@@ -257,6 +258,39 @@ export default function FreeReviewPage() {
     setMessage("");
     void runReviewScan();
   }
+
+  const startBuyerReportCheckout = useCallback(async () => {
+    if (!result || checkoutBusy) return;
+    setCheckoutBusy(true);
+    setCheckoutError("");
+    try {
+      await trackProductEvent("free_review.paid_cta_clicked", {
+        source: "free_review_verdict",
+        framework,
+        repositoryUrl: repoUrl,
+        riskLevel: result.riskLevel,
+        counts: { hadScanResult: true, readinessScore: readiness, issueCount: topIssues.length },
+      });
+      const response = await fetch("/api/appraisal-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          offer: "buyer-ready",
+          repoUrl,
+          framework,
+        }),
+      });
+      const payload = await response.json().catch(() => ({})) as { url?: string; error?: string };
+      if (!response.ok || typeof payload.url !== "string") {
+        throw new Error(payload.error || "Checkout could not be started.");
+      }
+      window.location.assign(payload.url);
+    } catch (checkoutStartError) {
+      setCheckoutError(checkoutStartError instanceof Error ? checkoutStartError.message : "Checkout could not be started.");
+    } finally {
+      setCheckoutBusy(false);
+    }
+  }, [checkoutBusy, framework, readiness, repoUrl, result, topIssues.length]);
 
   return (
     <InstitutionalPageShell
@@ -434,18 +468,25 @@ export default function FreeReviewPage() {
                 <div className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-4">
                   <p className="text-xs font-black uppercase tracking-normal text-emerald-200">Recommended next step</p>
                   <p className="mt-2 text-lg font-black text-white">{trustDecision?.nextActions?.[0] || decision.cta}</p>
-                  <Link
-                    href={trackingHref("appraisal_intake.checkout_clicked", paidUrl, "free_review_verdict")}
-                    onClick={() => void trackProductEvent("free_review.paid_cta_clicked", {
-                      source: "free_review_verdict",
-                      framework,
-                      repositoryUrl: repoUrl,
-                      riskLevel: result.riskLevel,
-                      counts: { hadScanResult: true, readinessScore: readiness, issueCount: topIssues.length },
-                    })}
-                    className={buttonClassName({ className: "mt-4 w-full" })}
+                  <Button
+                    type="button"
+                    onClick={startBuyerReportCheckout}
+                    disabled={checkoutBusy}
+                    className="mt-4 w-full"
                   >
-                    Generate Buyer Report <ArrowRight className="h-4 w-4" />
+                    {checkoutBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                    {checkoutBusy ? "Starting checkout" : "Generate Buyer Report"}
+                  </Button>
+                  {checkoutError ? (
+                    <p className="mt-3 rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-100">
+                      {checkoutError}
+                    </p>
+                  ) : null}
+                  <Link
+                    href={trackingHref("appraisal_intake.checkout_clicked", paidUrl, "free_review_verdict_fallback")}
+                    className="mt-3 inline-flex text-sm font-black text-emerald-100 underline decoration-emerald-300/50 underline-offset-4 hover:text-white"
+                  >
+                    Open the evidence form instead
                   </Link>
                 </div>
               </div>
