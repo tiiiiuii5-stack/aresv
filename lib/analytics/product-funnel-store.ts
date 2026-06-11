@@ -68,7 +68,7 @@ const funnelEvents = [
   "appraisal_intake.certificate_completed",
 ] as const;
 
-const realVisitorProofPrefix = "ventureos:funnel:v3:real:visitors";
+const realVisitorProofPrefix = "ventureos:funnel:v4:real:visitors";
 
 export async function recordProductFunnelEvent(input: ProductFunnelEventInput) {
   const config = kvConfig();
@@ -227,7 +227,6 @@ function proofGroupsForEvent(eventType: string) {
   if (eventType === "preview_completed" || eventType === "free_review.scan_completed" || eventType === "appraisal_intake.preview_completed") groups.push("preview_completed");
   if (eventType === "checkout_started" || eventType === "appraisal_intake.checkout_started" || eventType === "appraisal_intake.checkout_clicked") groups.push("checkout_started", "paid_intent");
   if (eventType === "free_review.paid_cta_clicked") groups.push("paid_intent");
-  if (eventType === "waitlist.joined") groups.push("homepage_intent");
   if (eventType === "homepage.free_review_clicked" || eventType === "homepage.pricing_clicked") groups.push("homepage_intent");
   if (eventType === "report_generated" || eventType === "appraisal_intake.certificate_completed") groups.push("report_generated");
   return groups;
