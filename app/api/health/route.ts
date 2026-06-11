@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getDatabaseCircuitStatus, isDatabaseConfigured, isDatabaseDisabled } from "@/lib/persistence/database";
+import { probeDatabaseRead } from "@/lib/persistence/database";
 import { compileTrust } from "@/lib/trust/compiler";
 
 export const runtime = "nodejs";
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   await compileTrust(request, { mode: "publicRead" });
+  const database = await probeDatabaseRead();
   return NextResponse.json({
     ok: true,
     service: "ventureos-backend",
@@ -41,9 +42,12 @@ export async function GET(request: Request) {
     },
     configuration: {
       database: {
-        configured: isDatabaseConfigured(),
-        disabled: isDatabaseDisabled(),
-        circuit: getDatabaseCircuitStatus(),
+        configured: database.configured,
+        disabled: database.disabled,
+        reachable: database.reachable,
+        verifiedRead: database.verifiedRead,
+        circuit: database.circuit,
+        reason: database.reason,
       },
       stripe: {
         checkoutEnabled: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),

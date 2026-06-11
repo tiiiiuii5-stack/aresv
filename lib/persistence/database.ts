@@ -61,6 +61,78 @@ export async function tryDatabase<T>(operation: (db: PrismaClient) => Promise<T>
   }
 }
 
+export type DatabaseReadProbe = {
+  configured: boolean;
+  disabled: boolean;
+  reachable: boolean;
+  verifiedRead: boolean;
+  circuit: ReturnType<typeof getDatabaseCircuitStatus>;
+  reason: string | null;
+};
+
+export async function probeDatabaseRead(): Promise<DatabaseReadProbe> {
+  const disabled = isDatabaseDisabled();
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (disabled) {
+    return {
+      configured: false,
+      disabled: true,
+      reachable: false,
+      verifiedRead: false,
+      circuit: getDatabaseCircuitStatus(),
+      reason: "disabled_by_env",
+    };
+  }
+  if (!databaseUrl) {
+    return {
+      configured: false,
+      disabled: false,
+      reachable: false,
+      verifiedRead: false,
+      circuit: getDatabaseCircuitStatus(),
+      reason: "missing_database_url",
+    };
+  }
+
+  try {
+    assertProductionDatabaseUrl(databaseUrl);
+  } catch (error) {
+    return {
+      configured: false,
+      disabled: false,
+      reachable: false,
+      verifiedRead: false,
+      circuit: getDatabaseCircuitStatus(),
+      reason: error instanceof Error ? error.message : "invalid_database_url",
+    };
+  }
+
+  const circuitBefore = getDatabaseCircuitStatus();
+  if (circuitBefore.open) {
+    return {
+      configured: true,
+      disabled: false,
+      reachable: false,
+      verifiedRead: false,
+      circuit: circuitBefore,
+      reason: circuitBefore.reason || "circuit_open",
+    };
+  }
+
+  const rows = await tryDatabase((db) => db.$queryRawUnsafe<Array<{ ok: number }>>("SELECT 1 AS ok"));
+  const verifiedRead = Array.isArray(rows) && Number(rows[0]?.ok || 0) === 1;
+  const circuitAfter = getDatabaseCircuitStatus();
+
+  return {
+    configured: true,
+    disabled: false,
+    reachable: verifiedRead,
+    verifiedRead,
+    circuit: circuitAfter,
+    reason: verifiedRead ? null : circuitAfter.reason || "read_probe_failed",
+  };
+}
+
 export async function getDefaultUserId() {
   const user = await tryDatabase((db) =>
     db.user.upsert({

@@ -117,9 +117,21 @@ function metadataForEvent(body: ProductEventBody, request: NextRequest) {
     metadata.hasRepositoryUrl = true;
   }
   metadata.source = cleanIdentifier(body.source, 60) || "unknown";
+  metadata.synthetic = isSyntheticEvent(metadata.source, body.counts, body.metadata);
   metadata.userAgentHash = hashValue(request.headers.get("user-agent") || "");
   metadata.rawSourceStored = false;
   return metadata;
+}
+
+function isSyntheticEvent(source: unknown, counts: unknown, metadata: unknown) {
+  const sourceText = String(source || "").toLowerCase();
+  if (/(^|[_.:-])(test|contract|synthetic|qa|smoke)([_.:-]|$)/.test(sourceText)) return true;
+  return Boolean(flagValue(counts, "contractTest") || flagValue(counts, "synthetic") || flagValue(metadata, "synthetic"));
+}
+
+function flagValue(value: unknown, key: string) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return Boolean((value as Record<string, unknown>)[key]);
 }
 
 function countsForEvent(value: unknown) {

@@ -13,11 +13,12 @@ export async function GET(request: NextRequest) {
   try {
     await compileTrust(request, { mode: "publicRead", reason: "aggregate public funnel readiness metrics" });
     const metrics = await loadProductFunnelMetrics();
-    const previewStarted = eventCount(metrics.events, "preview_started") + eventCount(metrics.events, "free_review.scan_started");
-    const previewCompleted = eventCount(metrics.events, "preview_completed") + eventCount(metrics.events, "free_review.scan_completed");
-    const checkoutStarted = eventCount(metrics.events, "checkout_started") + eventCount(metrics.events, "appraisal_intake.checkout_started") + eventCount(metrics.events, "appraisal_intake.checkout_clicked");
-    const reportGenerated = eventCount(metrics.events, "report_generated") + eventCount(metrics.events, "appraisal_intake.certificate_completed");
-    const paidIntent = eventCount(metrics.events, "free_review.paid_cta_clicked") + checkoutStarted;
+    const realEvents = metrics.realEvents || {};
+    const previewStarted = eventCount(realEvents, "preview_started") + eventCount(realEvents, "free_review.scan_started");
+    const previewCompleted = eventCount(realEvents, "preview_completed") + eventCount(realEvents, "free_review.scan_completed");
+    const checkoutStarted = eventCount(realEvents, "checkout_started") + eventCount(realEvents, "appraisal_intake.checkout_started") + eventCount(realEvents, "appraisal_intake.checkout_clicked");
+    const reportGenerated = eventCount(realEvents, "report_generated") + eventCount(realEvents, "appraisal_intake.certificate_completed");
+    const paidIntent = eventCount(realEvents, "free_review.paid_cta_clicked") + checkoutStarted;
 
     return jsonResponse({
       ok: true,
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
           proven: previewStarted >= 10,
           previewStarted,
           previewCompleted,
-          requirement: "At least 10 preview starts from production traffic.",
+          requirement: "At least 10 real preview starts from production traffic. Synthetic contract-test events do not count.",
         },
         conversionFunnel: {
           proven: checkoutStarted > 0 && previewStarted > 0,
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
           paidIntent,
           checkoutStarted,
           reportGenerated,
-          requirement: "At least one checkout start and measurable preview-to-checkout path.",
+          requirement: "At least one real checkout start and measurable real preview-to-checkout path. Synthetic contract-test events do not count.",
         },
       },
       timestamp: new Date().toISOString(),

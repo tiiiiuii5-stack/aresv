@@ -18,7 +18,7 @@ async function main() {
 
   const health = await getJson("/api/health") as {
     configuration?: {
-      database?: { configured?: boolean; disabled?: boolean; circuit?: { open?: boolean; reason?: string | null } };
+      database?: { configured?: boolean; disabled?: boolean; reachable?: boolean; verifiedRead?: boolean; reason?: string | null; circuit?: { open?: boolean; reason?: string | null } };
       stripe?: { checkoutEnabled?: boolean; webhookEnabled?: boolean; appraisalPriceIdsConfigured?: { instant?: boolean; buyerReady?: boolean } };
     };
   };
@@ -27,8 +27,8 @@ async function main() {
 
   gates.push({
     name: "production_db_flow",
-    passed: Boolean(database?.configured && !database.disabled && !database.circuit?.open),
-    detail: `configured=${Boolean(database?.configured)} disabled=${Boolean(database?.disabled)} circuitOpen=${Boolean(database?.circuit?.open)} reason=${database?.circuit?.reason || "none"}`,
+    passed: Boolean(database?.configured && !database.disabled && database.reachable && database.verifiedRead && !database.circuit?.open),
+    detail: `configured=${Boolean(database?.configured)} disabled=${Boolean(database?.disabled)} reachable=${Boolean(database?.reachable)} verifiedRead=${Boolean(database?.verifiedRead)} circuitOpen=${Boolean(database?.circuit?.open)} reason=${database?.reason || database?.circuit?.reason || "none"}`,
   });
 
   gates.push({
