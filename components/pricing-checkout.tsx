@@ -184,7 +184,7 @@ export function PricingCheckout() {
               </ul>
 
               {plan.href ? (
-                <Link href={plan.href} className={plan.tier === "STARTER" ? "mt-8 action primary" : "mt-8 action"}>
+                <Link href={trackedPlanHref(plan)} className={plan.tier === "STARTER" ? "mt-8 action primary" : "mt-8 action"}>
                   {plan.action}
                 </Link>
               ) : plan.tier === "ENTERPRISE" ? (
@@ -201,7 +201,7 @@ export function PricingCheckout() {
         </section>
 
         <footer className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href="/free-review" className="action primary">
+          <Link href={trackingHref("homepage.free_review_clicked", "/free-review", "pricing_footer")} className="action primary">
             Start with a free scan
           </Link>
           <a href="mailto:sales@ventureos.ai?subject=VentureOS%20Enterprise" className="action">
@@ -212,6 +212,17 @@ export function PricingCheckout() {
       <StickyConversionBar primaryHref="/free-review" secondaryHref="/sample-appraisal" source="pricing_sticky" />
     </InstitutionalPageShell>
   );
+}
+
+function trackedPlanHref(plan: Plan) {
+  if (!plan.href || plan.href.startsWith("mailto:")) return plan.href || "#";
+  const event = plan.tier === "STARTER" ? "homepage.free_review_clicked" : "appraisal_intake.checkout_clicked";
+  return trackingHref(event, plan.href, `pricing_${plan.tier.toLowerCase()}_plan`);
+}
+
+function trackingHref(event: string, to: string, source: string) {
+  const params = new URLSearchParams({ e: event, to, source });
+  return `/t?${params.toString()}`;
 }
 
 async function trackPricingEvent(event: "checkout_started", input: { counts?: Record<string, number | boolean> } = {}) {

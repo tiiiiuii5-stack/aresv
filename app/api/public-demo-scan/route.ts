@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { createTrace } from "@/lib/diagnostics";
+import { recordRequestProductFunnelEvent } from "@/lib/analytics/product-funnel-request";
 import {
   enforceRateLimit,
   jsonResponse,
@@ -61,6 +62,17 @@ export async function POST(request: NextRequest) {
     if (scanInput.appCode.trim().length < 40) {
       return jsonResponse({ ok: false, traceId, error: "Paste at least 40 characters of code for the public demo scan." }, { status: 400, headers: rateLimit.headers });
     }
+    await recordRequestProductFunnelEvent(request, {
+      eventType: "preview_started",
+      source: "public_demo_scan",
+      framework: scanInput.framework || "nextjs",
+      repositoryUrl,
+      metadata: {
+        surface: "public-demo-scan-api",
+        inputSource: repositorySource ? "public_github_repository" : "pasted_code",
+        filesLoaded: repositorySource?.filesLoaded || 0,
+      },
+    }).catch(() => false);
     const sbom = generateSoftwareBillOfMaterials({
       sourceCode: scanInput.appCode,
       appName: repositorySource ? `${repositorySource.owner}/${repositorySource.repo}` : "Submitted Source",
@@ -124,6 +136,21 @@ export async function POST(request: NextRequest) {
       } : null,
       sbom,
     });
+    await recordRequestProductFunnelEvent(request, {
+      eventType: "preview_completed",
+      source: "public_demo_scan",
+      framework: scanInput.framework || "nextjs",
+      riskLevel: adjustedScores.riskLevel,
+      repositoryUrl,
+      metadata: {
+        surface: "public-demo-scan-api",
+        decision: decision.answer,
+        confidence: decision.confidence,
+        coveragePercent: evidenceCoverage.coveragePercent,
+        filesLoaded: repositorySource?.filesLoaded || 0,
+        sbomComponents: sbom.componentCount,
+      },
+    }).catch(() => false);
 
     return jsonResponse({
       ok: true,

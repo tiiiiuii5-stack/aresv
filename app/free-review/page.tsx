@@ -143,6 +143,7 @@ export default function FreeReviewPage() {
   const repoReady = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+/i.test(repoUrl.trim()) || /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repoUrl.trim());
   const sourceReady = repoReady || code.trim().length >= 40;
   const paidUrl = `/appraisal-intake?offer=buyer-ready${repoUrl.trim() ? `&repo=${encodeURIComponent(repoUrl.trim())}` : ""}&framework=${encodeURIComponent(framework)}`;
+  const trackedPaidUrl = trackingHref("appraisal_intake.checkout_clicked", paidUrl, "free_review");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -251,7 +252,7 @@ export default function FreeReviewPage() {
       actions={[
         { label: "Sample", href: "/sample-appraisal", variant: "outline" },
         { label: "Pricing", href: "/pricing", variant: "outline" },
-        { label: "Buyer Report", href: paidUrl, variant: "default" },
+        { label: "Buyer Report", href: trackedPaidUrl, variant: "default" },
       ]}
       breadcrumbs={[
         { label: "Home", href: "/" },
@@ -421,7 +422,7 @@ export default function FreeReviewPage() {
                   <p className="text-xs font-black uppercase tracking-normal text-emerald-200">Recommended next step</p>
                   <p className="mt-2 text-lg font-black text-white">{trustDecision?.nextActions?.[0] || decision.cta}</p>
                   <Link
-                    href={paidUrl}
+                    href={trackingHref("appraisal_intake.checkout_clicked", paidUrl, "free_review_verdict")}
                     onClick={() => void trackProductEvent("free_review.paid_cta_clicked", {
                       source: "free_review_verdict",
                       framework,
@@ -464,6 +465,11 @@ export default function FreeReviewPage() {
         </section>
     </InstitutionalPageShell>
   );
+}
+
+function trackingHref(event: string, to: string, source: string) {
+  const params = new URLSearchParams({ e: event, to, source });
+  return `/t?${params.toString()}`;
 }
 
 async function trackProductEvent(

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { recordRequestProductFunnelEvent } from "@/lib/analytics/product-funnel-request";
 import { canonicalAppUrl } from "@/lib/appraisal/app-url";
 import { appraisalOfferFor, stripePriceIdForAppraisalOffer } from "@/lib/appraisal/offers";
 import { createTrace, errorResponse, trace } from "@/lib/diagnostics";
@@ -25,6 +26,17 @@ export async function POST(request: NextRequest) {
     const framework = cleanText(body.framework, 40);
     if (repo) params.set("repo", repo);
     if (framework) params.set("framework", framework);
+    await recordRequestProductFunnelEvent(request, {
+      eventType: "checkout_started",
+      source: "appraisal_checkout",
+      framework,
+      repositoryUrl: repo,
+      metadata: {
+        surface: "appraisal-checkout-api",
+        offerId: offer.id,
+        amount: offer.unitAmount,
+      },
+    }).catch(() => false);
 
     if (offer.unitAmount <= 0) {
       params.set("checkout", "success");

@@ -30,10 +30,10 @@ export function StickyConversionBar({
           <p className="truncate text-sm font-black text-[rgb(var(--vos-text))]">{title}</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
-          <Link href={secondaryHref} onClick={() => void trackStickyClick(eventForHref(secondaryHref, "secondary"), source)} className={buttonClassName({ variant: "outline", size: "sm", className: "min-h-11" })}>
+          <Link href={trackingHref(eventForHref(secondaryHref, "secondary"), secondaryHref, source)} className={buttonClassName({ variant: "outline", size: "sm", className: "min-h-11" })}>
             {secondaryLabel}
           </Link>
-          <Link href={primaryHref} onClick={() => void trackStickyClick(eventForHref(primaryHref, "primary"), source)} className={buttonClassName({ size: "sm", className: "min-h-11" })}>
+          <Link href={trackingHref(eventForHref(primaryHref, "primary"), primaryHref, source)} className={buttonClassName({ size: "sm", className: "min-h-11" })}>
             {primaryLabel}
           </Link>
         </div>
@@ -42,23 +42,15 @@ export function StickyConversionBar({
   );
 }
 
+function trackingHref(event: string, to: string, source: string) {
+  const params = new URLSearchParams({ e: event, to, source });
+  return `/t?${params.toString()}`;
+}
+
 function eventForHref(href: string, slot: "primary" | "secondary") {
   if (href.startsWith("/free-review")) return "homepage.free_review_clicked";
   if (href.startsWith("/sample-appraisal")) return "homepage.sample_clicked";
   if (href.startsWith("/pricing")) return "homepage.pricing_clicked";
   if (href.startsWith("/appraisal-intake")) return "appraisal_intake.checkout_clicked";
   return slot === "primary" ? "homepage.free_review_clicked" : "homepage.sample_clicked";
-}
-
-async function trackStickyClick(event: string, source: string) {
-  try {
-    await fetch("/api/product-events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event, source, metadata: { surface: "sticky_conversion" } }),
-      keepalive: true,
-    });
-  } catch {
-    // Conversion tracking must not block navigation.
-  }
 }

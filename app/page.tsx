@@ -73,11 +73,13 @@ export default function HomePage() {
             </p>
 
             <form
-              action="/free-review"
+              action="/t"
               method="get"
-              onSubmit={() => void trackHomeEvent("homepage.free_review_clicked", { repositoryUrl: target, metadata: { surface: "homepage_form" } })}
               className="mt-8 max-w-3xl rounded-xl border border-[rgb(var(--vos-primary))]/60 bg-[rgb(var(--vos-panel))]/95 p-4 shadow-2xl shadow-[rgb(var(--vos-primary))]/15 ring-1 ring-[rgb(var(--vos-primary))]/25"
             >
+              <input type="hidden" name="e" value="homepage.free_review_clicked" />
+              <input type="hidden" name="source" value="homepage_form" />
+              <input type="hidden" name="to" value="/free-review" />
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <label className="text-sm font-black uppercase tracking-normal text-[rgb(var(--vos-text))]" htmlFor="software-target">
                   Paste your public GitHub repo
@@ -108,10 +110,10 @@ export default function HomePage() {
             </form>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Link href="/sample-appraisal" onClick={() => void trackHomeEvent("homepage.sample_clicked", { metadata: { surface: "homepage_secondary_cta" } })} className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
+              <Link href={trackingHref("homepage.sample_clicked", "/sample-appraisal", "homepage_secondary_cta")} className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
                 See sample report
               </Link>
-              <Link href="/pricing" onClick={() => void trackHomeEvent("homepage.pricing_clicked", { metadata: { surface: "homepage_secondary_cta" } })} className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
+              <Link href={trackingHref("homepage.pricing_clicked", "/pricing", "homepage_secondary_cta")} className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
                 View pricing
               </Link>
             </div>
@@ -139,7 +141,7 @@ export default function HomePage() {
                 </div>
               ))}
               </div>
-            <Link href="/pricing" className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}>
+            <Link href={trackingHref("homepage.pricing_clicked", "/pricing", "homepage_next_steps")} className={buttonClassName({ variant: "outline", className: "mt-5 w-full" })}>
               See report options
             </Link>
           </aside>
@@ -160,6 +162,11 @@ export default function HomePage() {
       <VentureOSFooter />
     </main>
   );
+}
+
+function trackingHref(event: string, to: string, source: string) {
+  const params = new URLSearchParams({ e: event, to, source });
+  return `/t?${params.toString()}`;
 }
 
 async function trackHomeEvent(

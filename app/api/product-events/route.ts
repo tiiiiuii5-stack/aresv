@@ -1,12 +1,16 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import { NextRequest } from "next/server";
 
 import { createTrace } from "@/lib/diagnostics";
-import { recordProductFunnelEvent } from "@/lib/analytics/product-funnel-store";
+import {
+  cleanProductFunnelIdentifier,
+  isProductFunnelBotRequest,
+  productFunnelMetadataForRequest,
+  recordRequestProductFunnelEvent,
+} from "@/lib/analytics/product-funnel-request";
 import { tryDatabase } from "@/lib/prisma";
 import { enforceRateLimit, jsonResponse, readJsonBody, secureErrorResponse } from "@/lib/security/backendSecurity";
-import { sanitizeMetadata } from "@/lib/services/platformSupport";
 import { compileTrust } from "@/lib/trust/compiler";
 
 export const runtime = "nodejs";
@@ -65,10 +69,14 @@ export async function POST(request: NextRequest) {
       return jsonResponse({ ok: false, traceId, error: "Unsupported product event." }, { status: 400, headers: rateLimit.headers });
     }
 
-    const metadata = metadataForEvent(body, request);
-    const visitorHash = visitorHashForRequest(request);
-    const bot = isBotRequest(request);
-    metadata.bot = bot;
+    const metadata = productFunnelMetadataForRequest(request, {
+      eventType,
+      source: cleanIdentifier(body.source, 60) || "unknown",
+      repositoryUrl: String(body.repositoryUrl || "").trim(),
+      metadata: body.metadata && typeof body.metadata === "object" ? body.metadata as Record<string, unknown> : {},
+    });
+    metadata.synthetic = Boolean(metadata.synthetic || isSyntheticEvent(metadata.source, body.counts, body.metadata));
+    const bot = isProductFunnelBotRequest(request);
     const framework = cleanOptionalIdentifier(body.framework, 40);
     const riskLevel = cleanOptionalIdentifier(body.riskLevel, 40);
     const severity = cleanOptionalIdentifier(body.severity, 40);
@@ -87,14 +95,11 @@ export async function POST(request: NextRequest) {
       );
       return true;
     });
-    const kvStored = await recordProductFunnelEvent({
+    const kvStored = await recordRequestProductFunnelEvent(request, {
       eventType,
       source: String(metadata.source || "unknown"),
       framework,
       riskLevel,
-      hasRepositoryUrl: Boolean(metadata.hasRepositoryUrl),
-      visitorHash,
-      bot,
       metadata,
     }).catch(() => false);
 
@@ -119,42 +124,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function metadataForEvent(body: ProductEventBody, request: NextRequest) {
-  const metadata = sanitizeMetadata(body.metadata || {});
-  const repositoryUrl = String(body.repositoryUrl || "").trim();
-  if (repositoryUrl) {
-    metadata.repositoryHash = hashValue(repositoryUrl);
-    metadata.hasRepositoryUrl = true;
-  }
-  metadata.source = cleanIdentifier(body.source, 60) || "unknown";
-  metadata.synthetic = isSyntheticEvent(metadata.source, body.counts, body.metadata);
-  metadata.userAgentHash = hashValue(request.headers.get("user-agent") || "");
-  metadata.rawSourceStored = false;
-  return metadata;
-}
-
 function isSyntheticEvent(source: unknown, counts: unknown, metadata: unknown) {
   const sourceText = String(source || "").toLowerCase();
   if (/(^|[_.:-])(test|contract|synthetic|qa|smoke)([_.:-]|$)/.test(sourceText)) return true;
   return Boolean(flagValue(counts, "contractTest") || flagValue(counts, "synthetic") || flagValue(metadata, "synthetic"));
-}
-
-function isBotRequest(request: NextRequest) {
-  const userAgent = request.headers.get("user-agent") || "";
-  if (!userAgent.trim()) return true;
-  return /\b(bot|crawler|spider|scraper|curl|wget|python|node-fetch|httpclient|headlesschrome|playwright|lighthouse|uptimerobot|pingdom|vercelbot)\b/i.test(userAgent);
-}
-
-function visitorHashForRequest(request: NextRequest) {
-  const userAgent = request.headers.get("user-agent") || "unknown";
-  const forwardedFor = request.headers.get("x-forwarded-for") || "";
-  const ip = forwardedFor.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-vercel-forwarded-for") ||
-    "unknown";
-  const salt = process.env.ANALYTICS_HASH_SALT || process.env.SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || process.env.NEXTAUTH_SECRET || "ventureos-funnel-proof";
-  return createHash("sha256").update(`${salt}:${ip}:${userAgent}`).digest("hex").slice(0, 32);
 }
 
 function flagValue(value: unknown, key: string) {
@@ -178,19 +151,10 @@ function countsForEvent(value: unknown) {
 }
 
 function cleanIdentifier(value: unknown, maxLength: number) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_.:-]/g, "_")
-    .replace(/_+/g, "_")
-    .slice(0, maxLength);
+  return cleanProductFunnelIdentifier(value, maxLength);
 }
 
 function cleanOptionalIdentifier(value: unknown, maxLength: number) {
   const clean = cleanIdentifier(value, maxLength);
   return clean || null;
-}
-
-function hashValue(value: string) {
-  return createHash("sha256").update(value).digest("hex").slice(0, 24);
 }
