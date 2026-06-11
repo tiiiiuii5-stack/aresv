@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Code2, FileText, Loader2, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { InstitutionalPageShell } from "@/components/institutional/institutional-shell";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,7 @@ export default function FreeReviewPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const viewTracked = useRef(false);
+  const autoScanStarted = useRef(false);
   const upgradeShownTracked = useRef("");
 
   const topIssues = useMemo(() => (result?.issues || []).slice(0, 3), [result]);
@@ -182,7 +183,7 @@ export default function FreeReviewPage() {
     });
   }, [buyerScore, framework, repoUrl, result, topIssues.length]);
 
-  async function runReviewScan() {
+  const runReviewScan = useCallback(async () => {
     if (!sourceReady) {
       setError("Enter a public GitHub repository URL or paste at least 40 characters of code.");
       return;
@@ -237,7 +238,19 @@ export default function FreeReviewPage() {
     } finally {
       setScanBusy(false);
     }
-  }
+  }, [code, framework, repoReady, repoUrl, sourceReady]);
+
+  useEffect(() => {
+    if (autoScanStarted.current || scanBusy || result || !repoReady) return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get("repo")) return;
+    autoScanStarted.current = true;
+    const timeout = window.setTimeout(() => {
+      setMessage("Repo received. Starting the free decision preview...");
+      void runReviewScan();
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [repoReady, result, runReviewScan, scanBusy]);
 
   function handleRetry() {
     setError("");
@@ -265,7 +278,7 @@ export default function FreeReviewPage() {
             Paste software. Get a decision.
           </h1>
           <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-300">
-            VentureOS turns a repo, SaaS product, package, or code sample into BUY, INVESTIGATE, or AVOID with observed evidence, reasonable inferences, unknowns, and next actions.
+            VentureOS turns a repo, SaaS product, package, or code sample into BUY, INVESTIGATE, or AVOID with observed evidence, reasonable inferences, unknowns, and next actions. Repo links from the homepage start automatically.
           </p>
         </section>
 
