@@ -4,294 +4,146 @@ Generated: 2026-06-11
 Subject: VentureOS / `ventureos-full-fixed`  
 Repository: `https://github.com/tiiiiuii5-stack/aresv.git`  
 Live app: `https://ventureos-full-fixed.vercel.app`  
-Commit reviewed: `6313f4e Fix phantom API detection for dynamic routes`  
+Code commit reviewed: `e3129b1 Fix scanner coverage and strict production build`  
+Production deployment: `dpl_Ag6mWThMikvKPLyNZPHzwDtkTGJd`
 
 ## Assessment Boundary
 
 This is an evidence-based software review, not a legal audit, SOC 2 certification, security certification, investment opinion, or guarantee of production safety.
 
-The report is based on local repository inspection, local build/test commands, production HTTP checks, npm audit output, Vercel environment-variable presence, and a live VentureOS self-scan. It did not include penetration testing, private database inspection, production log review, cloud infrastructure review, Stripe transaction reconciliation, or real customer-session replay.
+Evidence reviewed here: local repository checks, local production build, lint/type gates, scanner regression scripts, production deployment result, production health endpoint, Vercel error-log scan, npm audit, and a live VentureOS self-scan against the public GitHub repository.
+
+Evidence not reviewed here: production database contents, Stripe revenue, real user identities, queue depth, worker internals, webhook delivery history, penetration testing, cloud account configuration, or customer-session replay.
 
 ## Bottom Line
 
-VentureOS is live, buildable, and has a real paid-report funnel. It is suitable for early paid pilots if the promise is kept narrow: free preview, then low-cost software decision reports.
+VentureOS is live and the core preview scanner is materially more honest than before.
 
-It is not yet ready to be described as enterprise-grade verification infrastructure or audit-grade trust certification. The strongest parts are the architecture, signed snapshot work, API surface, payment gate, and deterministic scanner fixes. The weakest parts are lint quality, limited scan coverage, dependency audit noise, and remaining evidence gaps around runtime behavior, users, payments, and production operations.
+The previous self-scan problem was severe: the preview loaded `2 of 973` files and could still show a strong score. After the fix, the live scanner loads `120 of 976` files, reports `12.3%` coverage, labels coverage as `limited`, and caps the displayed score at `62/100`.
 
-Decision: proceed with early paid users, but do not overclaim. Sell this as a fast decision-support report, not a formal verification certificate.
+Decision: suitable for early users and paid pilot reports if the app keeps the language conservative. Not ready to claim enterprise-grade verification or audit-grade certification.
 
-## Observed Evidence
+## Fixes Confirmed
 
-### Repository State
-
-- Git status: clean.
-- Local branch: `main`.
-- Remote tracking: `main...origin/main`.
-- Latest commit: `6313f4e Fix phantom API detection for dynamic routes`.
-- Recent prior commits include paid report funnel and signed snapshot manifest work.
-
-### Stack
-
-- Framework: Next.js App Router.
-- Frontend: React, Tailwind CSS, lucide-react, framer-motion.
-- Backend/runtime: Next.js route handlers, Prisma, PostgreSQL, Redis/BullMQ, Stripe.
-- Security/data libraries observed: `jose`, `bcryptjs`, Prisma, Stripe.
-- Deployment target: Vercel.
-
-### Codebase Size
-
-- App pages: 45.
-- API route handlers: 78.
-- Components: 43.
-- Library/source files: 173.
-- Prisma migrations: 19.
-- Generated app folders: 18.
-
-This is no longer a small landing page. It is a broad application with many operational surfaces.
+| Area | Result |
+|---|---:|
+| Scanner coverage | Improved from `2/973` to `120/976` files on live repo scan. |
+| GitHub sampling | Changed from sequential GitHub blob API reads to raw GitHub file reads after metadata lookup. |
+| Priority evidence | `package.json`, Prisma schema, config, and env examples get larger per-file budgets. |
+| Score alignment | Preview score is capped from actual coverage percentage. |
+| Production TypeScript gate | `ignoreBuildErrors` removed from `next.config.mjs`. |
+| Lint consistency | `npm run lint` now passes with zero warnings/errors. |
 
 ## Verification Results
 
-### Local Checks
-
 | Check | Result | Notes |
 |---|---:|---|
-| `npm run type-check` | Pass | TypeScript completed successfully. |
-| `npm run test:phantom-api` | Pass | Dynamic API route regression fixed. |
-| `npm run test:ai-scanner` | Pass | Scanner validation passed against test fixture. |
-| `npm run build` | Pass | Next.js production build completed successfully. |
-| `npm run lint` | Fail | 15 errors and 8 warnings. |
-| `npm audit --omit=dev --json` | Fail | 2 moderate production vulnerabilities reported. |
+| `npm run type-check` | Pass | TypeScript completed with production errors enforced. |
+| `npm run lint` | Pass | Zero warnings/errors. |
+| `npm run test:evidence-coverage` | Pass | Coverage gate and score caps validated. |
+| `npm run test:phantom-api` | Pass | Dynamic API route regression remains fixed. |
+| `npm run test:passport-pipeline` | Pass | Five-stage deterministic passport pipeline validates. |
+| `npm run build` | Pass | Next.js production build completed. |
+| Vercel production deploy | Pass | Deployment `dpl_Ag6mWThMikvKPLyNZPHzwDtkTGJd` ready and aliased. |
+| `/api/health` | Pass | HTTP 200. |
+| Vercel error logs, last 1h | Pass | No error logs found. |
+| `npm audit --omit=dev --json` | Fail | 2 moderate production vulnerabilities, no high/critical. |
 
-### Production Checks
+## Live Self-Scan Rerun
 
-| Endpoint/Page | Result |
+Endpoint: `POST /api/public-demo-scan`  
+Trace ID: `e97d02c5-e61f-4680-b23e-32323433050f`
+
+| Field | Result |
 |---|---:|
-| `/` | 200 |
-| `/free-review` | 200 |
-| `/pricing` | 200 |
-| `/registry` | 200 |
-| `/due-diligence` | 200 |
-| `/api/health` | 200 |
-| `/api/diligence/audit?format=json` | 200 |
-| unpaid `/api/appraisal-intake` report generation | 402 |
+| Files loaded | `120` |
+| Files discovered | `976` |
+| Coverage | `12.3%` |
+| Coverage level | `limited` |
+| Evidence confidence | `46/100` |
+| Score cap | `62/100` |
+| Raw readiness | `82/100` |
+| Displayed readiness | `62/100` |
+| Raw security | `82/100` |
+| Displayed security | `62/100` |
+| Risk level | `high` |
+| Issues returned | `4` |
+| Launch verdict | `DO NOT DEPLOY` |
 
-The paid-report gate is working. Unpaid full-report generation is blocked.
+Interpretation: this is now behaving more honestly. The scanner is not pretending a limited preview is a full assessment. It still needs broader coverage for buyer-grade reporting.
 
-## Live Self-Scan Result
+## SBOM Evidence
 
-The live VentureOS scan against the public GitHub repo returned:
+The live rerun preserved dependency evidence after the priority-file budget fix.
 
-- HTTP status: 200.
-- Reported security score: 100.
-- Reported production readiness score: 100.
-- Reported risk level: low.
-- Issues returned: 0.
-- Phantom API warning: not present.
-- Repository files loaded: 2.
-- Repository files discovered: 973.
-- Repository truncated: true.
+| Field | Result |
+|---|---:|
+| SBOM status | `available` |
+| Completeness | `limited` |
+| Components | `36` |
+| Direct dependencies | `21` |
+| Dev dependencies | `15` |
 
-Interpretation: the score is not reliable as a full-app score because the scan only loaded 2 of 973 discovered files. Treat this as a limited preview result, not a complete review.
+Limitations: this is still preview evidence. Lockfile/transitive dependency evidence is not complete in the public preview scan path.
 
-The self-scan also produced a separate launch verdict:
+## Remaining Findings
 
-- Launch verdict: HIGH RISK.
-- Reason: integration code appears present but disconnected.
-- Evidence files referenced: `.env.example`, `package.json`.
-- Blockers: none.
-- Warnings: integration-code/disconnected-workflow signal and scan-summary warning.
-
-Interpretation: the app needs better evidence coverage before the scanner should present strong readiness claims.
-
-## SBOM / Dependency Evidence
-
-The live self-scan generated SBOM evidence:
-
-- SBOM status: available.
-- Completeness: limited.
-- Manifest count: 1.
-- Component count: 36.
-- Direct dependencies: 21.
-- Dev dependencies: 15.
-- Package manager: npm.
-- SBOM hash: `7deb05856d9ccaf6f3219c49fa4f557901659281f319485a2e2dc331631986b3`.
-
-Limitations returned by the scan:
-
-- Lockfile evidence was not included in the API scan path.
-- Transitive dependency versions could not be confirmed.
-- Ranged dependency specs were observed.
-- Exact installed versions require lockfile, build artifact, or CI-generated SBOM evidence.
-
-Independent `npm audit --omit=dev --json` reported:
-
-- 2 moderate production vulnerabilities.
-- Affected chain: `next` via bundled `postcss`.
-- Advisory: `GHSA-qx2v-qp2m-jg93`.
-- No high or critical production vulnerabilities reported by npm audit in this run.
-
-## Strengths
-
-1. The app is live and reachable.
-2. The production build currently passes.
-3. TypeScript currently passes.
-4. Paid report gating is functional.
-5. Stripe checkout creation was previously verified after the paid funnel change.
-6. Snapshot manifest and audit JSON endpoint are live.
-7. Dynamic API route false positives were fixed and regression-tested.
-8. There is a serious amount of backend surface: appraisals, certificates, transparency log, trust ledger, registry, evidence, monitoring, comparison, passport APIs, and GitHub integration endpoints.
-9. The product direction is clearer now: free preview -> paid software decision report.
-
-## Material Findings
-
-### Finding 1: Lint Fails
+### 1. Preview Coverage Is Better, But Still Limited
 
 Severity: Medium  
-Confidence: High  
+Confidence: High
 
-`npm run lint` failed with 15 errors and 8 warnings.
+The scanner now samples `120` files, but that is still only `12.3%` of the repository.
 
-Examples:
+Required next step: full-report mode should use GitHub App access, upload, or CI artifact ingestion to reach broad or complete coverage.
 
-- `app/api/passport/pipeline/route.ts`: explicit `any` errors.
-- `components/activity-feed.tsx`: explicit `any`.
-- `components/billing-widget.tsx`: unescaped apostrophe.
-- `components/theme-toggle.tsx`: React set-state-in-effect warning/error.
-- `app/free-review/page.tsx`: set-state-in-effect issue.
-- `lib/passport/*`: multiple explicit `any` errors.
-- `scripts/validate-passport-prompt-pipeline.ts`: explicit `any`.
-
-Impact: the code can build, but it does not pass the project lint gate. This weakens engineering credibility and should be fixed before presenting the app as production-mature.
-
-### Finding 2: Build Can Ignore TypeScript Errors If Prebuild Is Bypassed
+### 2. npm Audit Still Reports Moderate Production Vulnerabilities
 
 Severity: Medium  
-Confidence: High  
+Confidence: Medium
 
-`next.config.mjs` contains:
+`npm audit --omit=dev` reports two moderate findings in the `next` -> bundled `postcss` chain. No high or critical production vulnerabilities were reported.
 
-```js
-typescript: {
-  ignoreBuildErrors: true
-}
-```
+Required next step: track the upstream Next/PostCSS fix or document risk acceptance.
 
-The current `npm run build` runs `npm run type-check` first, so this is partially mitigated. But if Vercel or another build flow invokes Next directly or skips `prebuild`, TypeScript errors could be ignored.
+### 3. Live Scanner Still Produces Some Noisy Findings
 
-Impact: this is not audit-friendly. Production builds should fail closed on type errors.
+Severity: Medium  
+Confidence: Medium
 
-### Finding 3: Self-Scan Coverage Is Too Thin
+The live scanner flags items like `/api/session` and `/api/health`. Some may be context-sensitive rather than true blockers. The scanner is useful, but the evidence engine still needs route-intent awareness so public health/session status routes are not over-penalized.
+
+### 4. Buyer-Grade Claims Still Need Full Evidence
 
 Severity: High  
-Confidence: High  
+Confidence: High
 
-The live self-scan loaded only 2 of 973 discovered repository files.
-
-Impact: any strong score from that scan is misleading if shown without the coverage warning. The app should surface evidence coverage next to every score and cap or downgrade confidence when coverage is this low.
-
-### Finding 4: SBOM Is Available But Limited
-
-Severity: Medium  
-Confidence: High  
-
-The SBOM path found dependency evidence but did not include resolved transitive dependency versions from lockfile/build evidence in the live self-scan.
-
-Impact: useful for preview, not enough for buyer-grade supply-chain claims.
-
-### Finding 5: npm Audit Reports Moderate Production Vulnerability Chain
-
-Severity: Medium  
-Confidence: Medium  
-
-`npm audit --omit=dev` reported moderate vulnerabilities involving `next` through `postcss`.
-
-Impact: this may be a framework-bundled dependency issue rather than directly exploitable app behavior, but a buyer report should disclose it until resolved or formally risk-accepted.
-
-### Finding 6: Product Surface Is Large
-
-Severity: Medium  
-Confidence: High  
-
-The app has 78 API routes and many systems: billing, passports, evidence, certificates, registry, GitHub, AI scanner, trust ledger, jobs, admin, monitoring.
-
-Impact: this is powerful, but operational complexity is high. Without strong monitoring, rate limiting, route-level auth review, and error tracking, failures will be difficult to diagnose.
-
-### Finding 7: Production User/Revenue Claims Are Not Verified Here
-
-Severity: Medium  
-Confidence: High  
-
-This report did not verify real users, paying users, Stripe revenue, conversion events, or analytics.
-
-Impact: do not claim customer traction or payment conversion from this report.
+The app should not call preview output "verified" or "audit-grade." With `12.3%` coverage, the correct language is limited preview, observed evidence, and unknowns.
 
 ## Unknowns
 
-This assessment could not verify:
+This assessment did not verify:
 
-- Real user count.
-- Paying user count.
-- Stripe balance, revenue, or successful payment volume.
+- Real users.
+- Paying users.
+- Stripe revenue.
 - Database contents.
-- Production logs.
-- Runtime error rate.
+- Queue health.
 - Worker health.
-- Queue depth.
 - GitHub App installation success.
-- Webhook delivery success.
-- Admin access controls beyond code/config presence.
-- Whether users complete the free preview -> checkout -> report flow in the browser.
-- Whether mobile UX is polished after the latest changes.
-- Whether all route handlers are correctly authorized.
-- Whether secrets are rotated and scoped correctly.
-
-## Buyer Interpretation
-
-For an early founder or indie SaaS user:
-
-- The app is usable enough to test the paid-report offer.
-- The current best offer is a low-cost report, not a platform subscription.
-- Pricing at $9 and $19 is appropriate for first willingness-to-pay testing.
-
-For an enterprise buyer:
-
-- The architecture is promising.
-- The current evidence is not enough for enterprise trust.
-- They would ask for stronger coverage, SOC/security boundaries, logs, access control review, and operational evidence.
-
-For an acquirer:
-
-- The product has real technical assets.
-- The current codebase needs lint cleanup, test hardening, scan-coverage improvements, and clearer operational controls before being considered mature.
-
-## Recommended Fix Order
-
-1. Fix `npm run lint` to zero errors.
-2. Remove `typescript.ignoreBuildErrors: true` after confirming Vercel builds still pass.
-3. Improve repo scan coverage so the app does not score 2/973-file scans as if they are full assessments.
-4. Make evidence coverage visible beside every score.
-5. Add a real full-flow browser test: homepage -> free preview -> checkout -> return -> generate report.
-6. Add production telemetry for:
-   - preview started
-   - preview completed
-   - checkout started
-   - checkout completed
-   - report generated
-   - report opened/shared
-7. Add a route-auth review for all mutating API routes.
-8. Generate SBOM from lockfile/CI and store it as a signed artifact.
-9. Add operational dashboards for API error rate, queue failures, and Stripe webhook failures.
-10. Keep public language conservative: "observed", "reviewed", "limited evidence", "unknown", "not independently verified".
+- Stripe webhook delivery history.
+- Full browser funnel completion.
+- Route-level authorization across every mutating endpoint.
+- Mobile UX quality after deployment.
 
 ## Final Verdict
 
-Current status: live MVP with real payment funnel and meaningful trust-infrastructure pieces.
+Current status: live MVP with a stricter build gate, clean lint, wider scanner sampling, and honest coverage-based score caps.
 
-Production readiness: moderate for early paid pilots, not high for enterprise.
+Production readiness: acceptable for early controlled use.
 
-Trust readiness: promising but limited by evidence coverage.
+Buyer-report readiness: usable only when the report clearly states evidence boundaries.
 
-Buyer-report readiness: usable if the report clearly states evidence boundaries and avoids overclaiming.
+Trust-infrastructure readiness: promising, but still limited by preview coverage and remaining runtime/operations unknowns.
 
-Do not sell this as a verification authority yet. Sell it as a fast software decision report that helps people find risk before they buy, ship, or integrate software.
-
+Do not sell this as a verification authority yet. Sell it as a conservative software decision report that states what was observed, what was inferred, and what remains unknown.
