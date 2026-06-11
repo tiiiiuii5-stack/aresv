@@ -95,15 +95,15 @@ export default function SampleAppraisalPage() {
 
         <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Sample evidence review</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
-              Can this app ship?
-            </h1>
-            <div className="mt-5 rounded-lg border border-amber-300/30 bg-amber-300/10 p-5">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100">Answer</p>
-              <p className="mt-2 text-4xl font-black text-white">Not yet.</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Sample software trust memo</p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
+              Should you trust this software?
+          </h1>
+          <div className="mt-5 rounded-lg border border-amber-300/30 bg-amber-300/10 p-5">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100">Decision</p>
+              <p className="mt-2 text-4xl font-black text-white">INVESTIGATE</p>
               <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-amber-50">
-                The app is commercially reviewable, but ownership, webhook, and deployment evidence must be tightened before this evidence review should be used in a buyer process.
+                The app is commercially reviewable, but ownership, webhook, and deployment evidence must be tightened before a buyer, investor, or operator should proceed.
               </p>
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function SampleAppraisalPage() {
         <section className="mb-5 grid gap-3 md:grid-cols-4">
           <ReportSignal icon={<FileText className="h-4 w-4" />} label="Artifact" value="Signed review" />
           <ReportSignal icon={<ShieldCheck className="h-4 w-4" />} label="Evidence" value="Scoped claims" />
-          <ReportSignal icon={<AlertTriangle className="h-4 w-4" />} label="Decision" value="Not yet" />
+          <ReportSignal icon={<AlertTriangle className="h-4 w-4" />} label="Decision" value="Investigate" />
           <ReportSignal icon={<Lock className="h-4 w-4" />} label="Buyer use" value="Diligence ready" />
         </section>
 

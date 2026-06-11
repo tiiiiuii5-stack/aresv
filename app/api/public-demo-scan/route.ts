@@ -109,6 +109,21 @@ export async function POST(request: NextRequest) {
       evidence: warning,
       fixSuggestion: "Use the paid report flow, GitHub App connection, upload, or CI-generated SBOM to increase coverage.",
     }));
+    const issuesForDecision = [...evidenceWarnings, ...result.issues];
+    const recommendationsForDecision = [...evidenceCoverage.warnings, ...result.recommendations];
+    const decision = buildTrustDecision({
+      scores: adjustedScores,
+      coverage: evidenceCoverage,
+      issues: issuesForDecision,
+      recommendations: recommendationsForDecision,
+      repository: repositorySource ? {
+        owner: repositorySource.owner,
+        repo: repositorySource.repo,
+        filesLoaded: repositorySource.filesLoaded,
+        totalFilesDiscovered: repositorySource.totalFilesDiscovered,
+      } : null,
+      sbom,
+    });
 
     return jsonResponse({
       ok: true,
@@ -138,12 +153,13 @@ export async function POST(request: NextRequest) {
       confidence: adjustedScores.confidence,
       coverageRatio: adjustedScores.coverageRatio,
       verdict: adjustedScores.verdict,
+      decision,
       rawScores: adjustedScores.rawScores,
       launchReadinessScore: result.launchReadinessScore,
       riskLevel: adjustedScores.riskLevel,
       severityBreakdown: result.severityBreakdown,
-      issues: [...evidenceWarnings, ...result.issues].slice(0, 5),
-      recommendations: [...evidenceCoverage.warnings, ...result.recommendations].slice(0, 5),
+      issues: issuesForDecision.slice(0, 5),
+      recommendations: recommendationsForDecision.slice(0, 5),
       externalIntelligence: {
         engine: result.externalIntelligence.engine,
         networkAccess: result.externalIntelligence.networkAccess,
@@ -189,6 +205,171 @@ export async function POST(request: NextRequest) {
     }
     return secureErrorResponse("public-demo-scan.POST", traceId, error, { fallbackStatus: 400 });
   }
+}
+
+type TrustDecisionAnswer = "BUY" | "INVESTIGATE" | "AVOID";
+
+type TrustDecisionEvidenceItem = {
+  kind: "OBSERVED" | "INFERRED" | "UNKNOWN";
+  text: string;
+  source: string;
+};
+
+type TrustDecisionInput = {
+  scores: ReturnType<typeof applyEvidenceCoverageGate>;
+  coverage: ReturnType<typeof assessEvidenceCoverage>;
+  issues: Array<{ severity?: string; title?: string; evidence?: string; category?: string }>;
+  recommendations: string[];
+  repository: { owner: string; repo: string; filesLoaded: number; totalFilesDiscovered: number } | null;
+  sbom: ReturnType<typeof generateSoftwareBillOfMaterials>;
+};
+
+function buildTrustDecision(input: TrustDecisionInput) {
+  const answer = trustAnswerFor(input);
+  const observed = observedDecisionEvidence(input);
+  const inferred = inferredDecisionEvidence(input);
+  const unknown = unknownDecisionEvidence(input);
+
+  return {
+    answer,
+    headline: trustHeadlineFor(answer),
+    summary: trustSummaryFor(answer, input),
+    confidence: input.scores.confidence,
+    coveragePercent: input.coverage.coveragePercent,
+    coverageLabel: input.coverage.level.toUpperCase(),
+    riskLevel: input.scores.riskLevel,
+    primaryReasons: primaryReasonsFor(answer, observed, inferred, unknown),
+    observed,
+    inferred,
+    unknown,
+    nextActions: nextActionsFor(answer, input),
+  };
+}
+
+function trustAnswerFor(input: TrustDecisionInput): TrustDecisionAnswer {
+  const criticalOrHigh = input.issues.some((issue) => /critical|high/i.test(String(issue.severity || "")));
+  if (input.scores.verdict === "HIGH_RISK" || input.scores.productionReadinessScore < 45) return "AVOID";
+  if (criticalOrHigh && input.scores.confidence >= 55) return "AVOID";
+  if (input.scores.verdict !== "FULL_REVIEW_READY") return "INVESTIGATE";
+  if (input.scores.confidence < 75 || input.coverage.level !== "complete") return "INVESTIGATE";
+  return input.scores.productionReadinessScore >= 80 ? "BUY" : "INVESTIGATE";
+}
+
+function observedDecisionEvidence(input: TrustDecisionInput): TrustDecisionEvidenceItem[] {
+  const items: TrustDecisionEvidenceItem[] = [];
+  if (input.repository) {
+    items.push({
+      kind: "OBSERVED",
+      text: `Repository evidence was read from ${input.repository.filesLoaded} of ${input.repository.totalFilesDiscovered} discovered file(s).`,
+      source: `${input.repository.owner}/${input.repository.repo}`,
+    });
+  } else {
+    items.push({
+      kind: "OBSERVED",
+      text: `Submitted source sample contained ${input.coverage.inputLength.toLocaleString()} character(s).`,
+      source: "submitted source",
+    });
+  }
+  if (input.sbom.status !== "not_found") {
+    items.push({
+      kind: "OBSERVED",
+      text: `SBOM evidence found ${input.sbom.componentCount} component(s) from ${input.sbom.manifestCount} manifest(s).`,
+      source: input.sbom.format,
+    });
+  }
+  if (input.issues.length > 0) {
+    items.push({
+      kind: "OBSERVED",
+      text: `${input.issues.length} risk signal(s) were returned by preview analysis.`,
+      source: "preview analysis",
+    });
+  }
+  return items.slice(0, 4);
+}
+
+function inferredDecisionEvidence(input: TrustDecisionInput): TrustDecisionEvidenceItem[] {
+  const items: TrustDecisionEvidenceItem[] = [
+    {
+      kind: "INFERRED",
+      text: `Decision is based on ${input.scores.confidence}% confidence and ${input.coverage.level} evidence coverage.`,
+      source: "coverage gate",
+    },
+    {
+      kind: "INFERRED",
+      text: `Displayed scores are capped at ${input.coverage.scoreCap}/100 because evidence is incomplete.`,
+      source: "coverage-adjusted score",
+    },
+  ];
+  if (input.scores.rawScores.productionReadinessScore > input.scores.productionReadinessScore) {
+    items.push({
+      kind: "INFERRED",
+      text: `Raw readiness was ${input.scores.rawScores.productionReadinessScore}/100 before the evidence cap was applied.`,
+      source: "raw scanner output",
+    });
+  }
+  return items.slice(0, 4);
+}
+
+function unknownDecisionEvidence(input: TrustDecisionInput): TrustDecisionEvidenceItem[] {
+  const items: TrustDecisionEvidenceItem[] = [];
+  if (input.coverage.level !== "complete") {
+    items.push({ kind: "UNKNOWN", text: "Full repository behavior cannot be determined from preview evidence.", source: "coverage boundary" });
+  }
+  if (input.sbom.status === "not_found") {
+    items.push({ kind: "UNKNOWN", text: "Dependency inventory could not be built from submitted evidence.", source: "SBOM boundary" });
+  } else if (input.sbom.completeness === "limited") {
+    items.push({ kind: "UNKNOWN", text: "Exact transitive dependency versions require lockfile, build artifact, or CI-generated SBOM evidence.", source: "SBOM boundary" });
+  }
+  items.push(
+    { kind: "UNKNOWN", text: "Production uptime, incident history, and live operational behavior were not measured.", source: "runtime boundary" },
+    { kind: "UNKNOWN", text: "Legal ownership, revenue, and customer usage were not independently verified.", source: "business boundary" },
+  );
+  return items.slice(0, 5);
+}
+
+function primaryReasonsFor(
+  answer: TrustDecisionAnswer,
+  observed: TrustDecisionEvidenceItem[],
+  inferred: TrustDecisionEvidenceItem[],
+  unknown: TrustDecisionEvidenceItem[],
+) {
+  const reasons = [...observed.slice(0, 2), ...inferred.slice(0, 2)].map((item) => item.text);
+  if (answer !== "BUY") reasons.push(unknown[0]?.text || "Material unknowns remain.");
+  return reasons.filter(Boolean).slice(0, 5);
+}
+
+function nextActionsFor(answer: TrustDecisionAnswer, input: TrustDecisionInput) {
+  if (answer === "BUY") {
+    return [
+      "Generate the full decision report before purchase or production use.",
+      "Attach repository, SBOM, deployment, and ownership evidence.",
+      "Monitor trust drift after dependency or deployment changes.",
+    ];
+  }
+  if (answer === "AVOID") {
+    return [
+      "Do not buy, integrate, or present this software until blockers are resolved.",
+      "Fix critical/high findings and rerun the decision preview.",
+      "Use a full review only after evidence coverage improves.",
+    ];
+  }
+  return [
+    "Investigate unknowns before buying, integrating, or recommending this software.",
+    "Run a full decision report with complete repo and lockfile evidence.",
+    ...input.recommendations.slice(0, 2),
+  ].filter(Boolean).slice(0, 4);
+}
+
+function trustHeadlineFor(answer: TrustDecisionAnswer) {
+  if (answer === "BUY") return "Proceed, with normal diligence.";
+  if (answer === "AVOID") return "Do not proceed yet.";
+  return "Investigate before proceeding.";
+}
+
+function trustSummaryFor(answer: TrustDecisionAnswer, input: TrustDecisionInput) {
+  if (answer === "BUY") return "The available evidence supports proceeding, but the decision remains limited to submitted and observed evidence.";
+  if (answer === "AVOID") return "The current evidence indicates material risk. Treat this as a repair or rejection signal until blockers change.";
+  return `The software has useful evidence, but ${input.coverage.level} coverage and ${input.scores.confidence}% confidence leave material unknowns.`;
 }
 
 function cleanText(value: unknown, maxLength: number) {

@@ -18,6 +18,12 @@ type ReviewIssue = {
   fixSuggestion?: string;
 };
 
+type TrustDecisionItem = {
+  kind?: "OBSERVED" | "INFERRED" | "UNKNOWN";
+  text?: string;
+  source?: string;
+};
+
 type ReviewResult = {
   ok?: boolean;
   inputLimit?: number;
@@ -42,6 +48,20 @@ type ReviewResult = {
   securityScore?: number;
   failureScore?: number;
   productionReadinessScore?: number;
+  decision?: {
+    answer?: "BUY" | "INVESTIGATE" | "AVOID";
+    headline?: string;
+    summary?: string;
+    confidence?: number;
+    coveragePercent?: number | null;
+    coverageLabel?: string;
+    riskLevel?: string;
+    primaryReasons?: string[];
+    observed?: TrustDecisionItem[];
+    inferred?: TrustDecisionItem[];
+    unknown?: TrustDecisionItem[];
+    nextActions?: string[];
+  };
   riskLevel?: string;
   issues?: ReviewIssue[];
   recommendations?: string[];
@@ -109,6 +129,8 @@ export default function FreeReviewPage() {
   const state = readiness >= 85 ? "READY" : readiness >= 65 ? "RISKY" : "BLOCKED";
   const verdict = verdictFor(readiness, result?.riskLevel);
   const decision = decisionFor(state);
+  const trustDecision = result?.decision;
+  const trustDecisionTone = decisionToneFor(trustDecision?.answer);
   const primaryFixes = useMemo(() => {
     const fixes = [
       ...(result?.launchVerdict?.blockers || []),
@@ -188,7 +210,7 @@ export default function FreeReviewPage() {
       const payload = await response.json().catch(() => ({})) as ReviewResult & { error?: string };
       if (!response.ok) throw new Error(payload.error || "Free review scan failed.");
       setResult(payload);
-      setMessage("Buyer verdict ready.");
+      setMessage("Decision ready.");
       await trackProductEvent("free_review.scan_completed", {
         source: "free_review",
         framework,
@@ -237,12 +259,12 @@ export default function FreeReviewPage() {
       ]}
     >
         <section className="py-8">
-          <p className="text-xs font-black uppercase tracking-normal text-emerald-300">Free software verdict</p>
+          <p className="text-xs font-black uppercase tracking-normal text-emerald-300">Software trust terminal</p>
           <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-normal text-white sm:text-5xl">
-            Run the scan. Get the buyer answer.
+            Paste software. Get a decision.
           </h1>
           <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-300">
-            One input. One verdict. VentureOS shows quality, safety, buyer readiness, top risks, and what to fix next.
+            VentureOS turns a repo, SaaS product, package, or code sample into BUY, INVESTIGATE, or AVOID with observed evidence, reasonable inferences, unknowns, and next actions.
           </p>
         </section>
 
@@ -318,17 +340,19 @@ export default function FreeReviewPage() {
             <div>
               <p className="flex items-center gap-2 text-xs font-black uppercase tracking-normal text-slate-500">
                 <FileText className="h-4 w-4" />
-                Buyer verdict
+                Software decision
               </p>
-              <h2 className="mt-2 text-3xl font-black text-white">{result ? verdict.title : scanBusy ? "Generating..." : "Waiting for scan"}</h2>
+              <h2 className="mt-2 text-3xl font-black text-white">
+                {result ? `Decision: ${trustDecision?.answer || "INVESTIGATE"}` : scanBusy ? "Generating..." : "Waiting for scan"}
+              </h2>
               <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-400">
-                {result ? verdict.detail : scanBusy ? "Analyzing your code for quality, security, and production readiness..." : "Run the free scan to generate the verdict, scorecard, risks, and recommended next step."}
+                {result ? trustDecision?.headline || verdict.title : scanBusy ? "Analyzing the evidence boundary, risk signals, and unknowns..." : "Run the free scan to generate a decision, evidence summary, unknowns, and recommended next step."}
               </p>
             </div>
             <span className={["rounded-full border px-4 py-2 text-sm font-black",
-              result ? verdict.className : scanBusy ? "border-slate-700 bg-slate-900 text-slate-300 animate-pulse" : "border-slate-700 bg-slate-900 text-slate-300"
+              result ? trustDecisionTone.className : scanBusy ? "border-slate-700 bg-slate-900 text-slate-300 animate-pulse" : "border-slate-700 bg-slate-900 text-slate-300"
             ].join(" ")}>
-              {result ? state : scanBusy ? "SCANNING..." : "NOT SCANNED"}
+              {result ? trustDecision?.answer || state : scanBusy ? "SCANNING..." : "NOT SCANNED"}
             </span>
           </div>
 
@@ -349,21 +373,26 @@ export default function FreeReviewPage() {
 
           {result ? (
             <div className="mt-5 grid gap-5">
-              <div className="grid gap-3 md:grid-cols-4">
-                <ScoreMeter label="Buyer Readiness" value={buyerScore} />
-                <ScoreMeter label="Quality" value={qualityScore} />
-                <ScoreMeter label="Safety" value={safetyScore} />
-                <ScoreMeter label="Launch Risk" value={riskLabel(result.riskLevel)} text />
+              <DecisionMemoPanel decision={trustDecision} fallbackDetail={verdict.detail} toneClassName={trustDecisionTone.panelClassName} />
+
+              <div>
+                <p className="mb-3 text-xs font-black uppercase tracking-normal text-slate-500">Reference metrics</p>
+                <div className="grid gap-3 md:grid-cols-4">
+                  <ScoreMeter label="Confidence" value={Number(trustDecision?.confidence ?? result.evidenceCoverage?.confidence ?? 0)} />
+                  <ScoreMeter label="Coverage" value={coverageLabelFor(trustDecision, result)} text />
+                  <ScoreMeter label="Readiness" value={buyerScore} />
+                  <ScoreMeter label="Risk" value={riskLabel(result.riskLevel)} text />
+                </div>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                  <p className="text-xs font-black uppercase tracking-normal text-slate-500">Decision</p>
-                  <h3 className="mt-2 text-2xl font-black text-white">{decision.title}</h3>
-                  <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">{decision.detail}</p>
+                  <p className="text-xs font-black uppercase tracking-normal text-slate-500">Why this decision exists</p>
+                  <h3 className="mt-2 text-2xl font-black text-white">{trustDecision?.headline || decision.title}</h3>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">{trustDecision?.summary || decision.detail}</p>
                   {result.evidenceCoverage ? (
                     <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-sm font-semibold leading-6 text-amber-50">
-                      <p className="font-black uppercase">Evidence confidence: {Number(result.evidenceCoverage.confidence || 0)}/100</p>
+                      <p className="font-black uppercase">Confidence: {Number(trustDecision?.confidence ?? result.evidenceCoverage.confidence ?? 0)}%</p>
                       <p className="mt-1">
                         Coverage is {String(result.evidenceCoverage.level || "limited")}
                         {typeof result.evidenceCoverage.coveragePercent === "number" ? ` (${result.evidenceCoverage.coveragePercent}% of discovered files)` : ""}
@@ -390,7 +419,7 @@ export default function FreeReviewPage() {
 
                 <div className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-4">
                   <p className="text-xs font-black uppercase tracking-normal text-emerald-200">Recommended next step</p>
-                  <p className="mt-2 text-lg font-black text-white">{decision.cta}</p>
+                  <p className="mt-2 text-lg font-black text-white">{trustDecision?.nextActions?.[0] || decision.cta}</p>
                   <Link
                     href={paidUrl}
                     onClick={() => void trackProductEvent("free_review.paid_cta_clicked", {
@@ -458,6 +487,61 @@ async function trackProductEvent(
   } catch {
     // Product telemetry must never block the review flow.
   }
+}
+
+function DecisionMemoPanel({
+  decision,
+  fallbackDetail,
+  toneClassName,
+}: {
+  decision?: ReviewResult["decision"];
+  fallbackDetail: string;
+  toneClassName: string;
+}) {
+  const reasons = decision?.primaryReasons?.length ? decision.primaryReasons : [fallbackDetail];
+  return (
+    <section className={["rounded-lg border p-5", toneClassName].join(" ")}>
+      <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div>
+          <p className="text-xs font-black uppercase tracking-normal opacity-80">Decision output</p>
+          <p className="mt-2 text-5xl font-black tracking-normal text-white">{decision?.answer || "INVESTIGATE"}</p>
+          <p className="mt-3 text-sm font-semibold leading-6 text-white/80">{decision?.summary || fallbackDetail}</p>
+        </div>
+        <div className="grid gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-normal text-white/60">Why</p>
+            <div className="mt-2 grid gap-2">
+              {reasons.slice(0, 5).map((reason) => (
+                <p key={reason} className="rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm font-semibold leading-6 text-white/85">{reason}</p>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <EvidenceBucket title="Observed" items={decision?.observed} empty="No direct evidence returned." />
+            <EvidenceBucket title="Inferred" items={decision?.inferred} empty="No inference returned." />
+            <EvidenceBucket title="Unknown" items={decision?.unknown} empty="No unknowns returned." />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function EvidenceBucket({ title, items, empty }: { title: string; items?: TrustDecisionItem[]; empty: string }) {
+  const visibleItems = Array.isArray(items) ? items.filter((item) => item.text).slice(0, 3) : [];
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+      <p className="text-xs font-black uppercase tracking-normal text-white/60">{title}</p>
+      <div className="mt-2 grid gap-2">
+        {visibleItems.length ? visibleItems.map((item) => (
+          <div key={`${title}:${item.text}`} className="text-xs font-semibold leading-5 text-white/80">
+            <p>{item.text}</p>
+            {item.source ? <p className="mt-1 font-mono text-[10px] uppercase text-white/45">{item.source}</p> : null}
+          </div>
+        )) : <p className="text-xs font-semibold leading-5 text-white/55">{empty}</p>}
+      </div>
+    </div>
+  );
 }
 
 function DependencyHealthPanel({ sbom }: { sbom?: ReviewResult["sbom"] }) {
@@ -537,6 +621,31 @@ function Finding({ eyebrow, title, detail }: { eyebrow: string; title: string; d
 function clampScore(value: number) {
   const number = Math.round(Number(value || 0));
   return Math.max(0, Math.min(100, Number.isFinite(number) ? number : 0));
+}
+
+function decisionToneFor(answer: "BUY" | "INVESTIGATE" | "AVOID" | undefined) {
+  if (answer === "BUY") {
+    return {
+      className: "border-emerald-300/40 bg-emerald-300/10 text-emerald-100",
+      panelClassName: "border-emerald-300/30 bg-emerald-300/10",
+    };
+  }
+  if (answer === "AVOID") {
+    return {
+      className: "border-red-300/40 bg-red-500/10 text-red-100",
+      panelClassName: "border-red-300/30 bg-red-500/10",
+    };
+  }
+  return {
+    className: "border-amber-300/40 bg-amber-300/10 text-amber-100",
+    panelClassName: "border-amber-300/30 bg-amber-300/10",
+  };
+}
+
+function coverageLabelFor(decision: ReviewResult["decision"] | undefined, result: ReviewResult) {
+  if (typeof decision?.coveragePercent === "number") return `${decision.coveragePercent}%`;
+  if (typeof result.evidenceCoverage?.coveragePercent === "number") return `${result.evidenceCoverage.coveragePercent}%`;
+  return String(decision?.coverageLabel || result.evidenceCoverage?.level || "limited").toUpperCase();
 }
 
 function verdictFor(score: number, riskLevel: unknown) {

@@ -10,23 +10,23 @@ import { buttonClassName } from "@/components/ui/button";
 
 const reviewChecks = [
   {
-    title: "Buying risk",
-    detail: "See what could break before you buy, integrate, or recommend a software tool.",
+    title: "Decision first",
+    detail: "Start with BUY, INVESTIGATE, or AVOID before looking at any score.",
   },
   {
-    title: "Safety signals",
-    detail: "Review authentication, data handling, secrets, dependencies, and operational gaps.",
+    title: "Evidence classes",
+    detail: "Separate observed facts, reasonable inferences, and unknowns buyers still need to resolve.",
   },
   {
-    title: "Decision output",
-    detail: "Get a plain-English recommendation with observed risks, unknowns, and next steps.",
+    title: "Trust rationale",
+    detail: "Explain why the decision exists with coverage, confidence, risks, and next actions.",
   },
 ];
 
 const nextSteps = [
   "Paste a public GitHub repo or app URL.",
-  "Run the free preview verdict.",
-  "Unlock a $9 or $19 report only if you need the full buyer artifact.",
+  "Get a free decision preview.",
+  "Use the full report when a buyer, investor, or operator needs the evidence memo.",
 ];
 
 export default function HomePage() {
@@ -56,13 +56,13 @@ export default function HomePage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel))]/85 px-3 py-2 text-xs font-black uppercase text-[rgb(var(--vos-text-muted))]">
               <ShieldCheck className="h-4 w-4 text-[rgb(var(--vos-verified))]" />
-              Free preview, paid decision report
+              Bloomberg Terminal for software trust
             </div>
             <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.02] tracking-normal text-[rgb(var(--vos-text))] sm:text-5xl lg:text-6xl">
-              Check if this software is safe to buy or use.
+              Decide whether to trust software before you buy, integrate, or deploy it.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-[rgb(var(--vos-text-muted))]">
-              VentureOS gives founders, buyers, and operators a fast software decision report: risk summary, engineering maturity, safety signals, and a recommendation.
+              VentureOS turns a repository, SaaS product, package, API, or company into a decision: BUY, INVESTIGATE, or AVOID, backed by observed evidence, inferences, unknowns, confidence, and coverage.
             </p>
 
             <form
@@ -91,11 +91,11 @@ export default function HomePage() {
                   />
                 </div>
                 <button type="submit" className={buttonClassName({ size: "lg", className: "h-16 w-full text-base" })}>
-                  Start Free Preview <ArrowRight className="h-4 w-4" />
+                Get Decision <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
               <p className="mt-3 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
-                Preview is free. Full decision reports start at $9.
+                Preview is free. Full decision reports are the buyer-ready evidence memo.
               </p>
             </form>
 
@@ -109,9 +109,9 @@ export default function HomePage() {
             </div>
 
           <div className="mt-6 grid gap-2 text-sm font-bold text-[rgb(var(--vos-text-muted))] sm:grid-cols-3">
-            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Quality</p>
-            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Safety</p>
-            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Buyer readiness</p>
+            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Observed</p>
+            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Inferred</p>
+            <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-[rgb(var(--vos-verified))]" />Unknown</p>
           </div>
           </div>
 
@@ -119,7 +119,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--vos-border))] pb-4">
               <div>
                 <p className="vos-label">What happens next</p>
-                <h2 className="mt-2 vos-card-title">Simple money path</h2>
+                <h2 className="mt-2 vos-card-title">Simple decision path</h2>
               </div>
               <span className="vos-badge vos-badge-ready">3 steps</span>
             </div>

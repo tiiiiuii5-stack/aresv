@@ -31,6 +31,12 @@ async function main() {
     ok?: boolean;
     evidenceCoverage?: unknown;
     verdict?: unknown;
+    decision?: {
+      answer?: unknown;
+      observed?: unknown;
+      inferred?: unknown;
+      unknown?: unknown;
+    };
     confidence?: unknown;
     productionReadinessScore?: unknown;
     rawScores?: unknown;
@@ -38,6 +44,11 @@ async function main() {
   assert.equal(scanPayload.ok, true, "Preview scan should return ok.");
   assert.ok(scanPayload.evidenceCoverage, "Preview scan must return evidence coverage.");
   assert.ok(scanPayload.verdict, "Preview scan must return confidence-aware verdict.");
+  assert.ok(scanPayload.decision, "Preview scan must return decision object.");
+  assert.match(String(scanPayload.decision?.answer || ""), /BUY|INVESTIGATE|AVOID/, "Decision must be BUY, INVESTIGATE, or AVOID.");
+  assert.ok(Array.isArray(scanPayload.decision?.observed), "Decision must expose observed evidence.");
+  assert.ok(Array.isArray(scanPayload.decision?.inferred), "Decision must expose inferred evidence.");
+  assert.ok(Array.isArray(scanPayload.decision?.unknown), "Decision must expose unknowns.");
   assert.equal(typeof scanPayload.confidence, "number", "Preview scan must return confidence.");
   assert.equal(typeof scanPayload.productionReadinessScore, "number", "Preview scan must return displayed score.");
   assert.ok(scanPayload.rawScores, "Preview scan must preserve raw scores.");
@@ -69,6 +80,7 @@ async function main() {
     passed: true,
     baseUrl,
     checkoutStatus: checkout.status,
+    decision: scanPayload.decision?.answer,
     previewVerdict: scanPayload.verdict,
     previewConfidence: scanPayload.confidence,
     previewScore: scanPayload.productionReadinessScore,
