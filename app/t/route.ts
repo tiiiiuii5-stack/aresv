@@ -14,14 +14,15 @@ const allowedRedirectEvents = new Set([
 ]);
 
 const copiedParams = new Set(["repo", "framework", "offer", "campaign", "ref", "utm_source", "utm_campaign"]);
+const sampleRepoUrl = "https://github.com/tiiiiuii5-stack/aresv.git";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const eventType = cleanProductFunnelIdentifier(url.searchParams.get("e"), 80);
   const source = cleanProductFunnelIdentifier(url.searchParams.get("source") || "tracked_redirect", 60);
-  const repositoryUrl = String(url.searchParams.get("repo") || url.searchParams.get("repositoryUrl") || "").trim();
   const framework = cleanProductFunnelIdentifier(url.searchParams.get("framework"), 40) || null;
-  const destination = destinationFor(request);
+  const destination = destinationFor(request, eventType);
+  const repositoryUrl = String(url.searchParams.get("repo") || url.searchParams.get("repositoryUrl") || destination.searchParams.get("repo") || "").trim();
 
   if (allowedRedirectEvents.has(eventType)) {
     await recordRequestProductFunnelEvent(request, {
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.redirect(destination, { status: 302 });
 }
 
-function destinationFor(request: NextRequest) {
+function destinationFor(request: NextRequest, eventType: string) {
   const url = new URL(request.url);
   const rawTo = url.searchParams.get("to") || "/";
   const cleanTo = safeInternalPath(rawTo);
@@ -48,6 +49,15 @@ function destinationFor(request: NextRequest) {
   for (const key of copiedParams) {
     const value = url.searchParams.get(key);
     if (value && !destination.searchParams.has(key)) destination.searchParams.set(key, value);
+  }
+  if (
+    eventType === "homepage.free_review_clicked" &&
+    destination.pathname === "/free-review" &&
+    !destination.searchParams.get("repo")
+  ) {
+    destination.searchParams.set("repo", sampleRepoUrl);
+    destination.searchParams.set("framework", destination.searchParams.get("framework") || "nextjs");
+    destination.searchParams.set("sample", "1");
   }
 
   return destination;

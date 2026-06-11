@@ -121,6 +121,7 @@ export default function FreeReviewPage() {
   const [checkoutError, setCheckoutError] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
   const [leadRole, setLeadRole] = useState("Founder / owner");
+  const [sampleMode] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("sample") === "1");
   const [leadBusy, setLeadBusy] = useState(false);
   const [leadMessage, setLeadMessage] = useState("");
   const [leadError, setLeadError] = useState("");
@@ -261,8 +262,9 @@ export default function FreeReviewPage() {
     const params = new URLSearchParams(window.location.search);
     if (!params.get("repo")) return;
     autoScanStarted.current = true;
+    const samplePreview = params.get("sample") === "1";
     const timeout = window.setTimeout(() => {
-      setMessage("Repo received. Starting the free decision preview...");
+      setMessage(samplePreview ? "Starting a sample decision preview. Paste your own repo above when ready." : "Repo received. Starting the free decision preview...");
       void runReviewScan();
     }, 250);
     return () => window.clearTimeout(timeout);
@@ -407,6 +409,11 @@ export default function FreeReviewPage() {
           <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-slate-300">
             VentureOS turns a repo, SaaS product, package, or code sample into BUY, INVESTIGATE, or AVOID with observed evidence, reasonable inferences, unknowns, and next actions. Repo links from the homepage start automatically.
           </p>
+          {sampleMode ? (
+            <div className="mt-5 max-w-2xl rounded-xl border border-cyan-300/30 bg-cyan-300/10 p-4 text-sm font-semibold leading-6 text-cyan-50">
+              Sample preview is running from a public VentureOS repo so you can see the output immediately. Replace the repository URL below to review your own software.
+            </div>
+          ) : null}
         </section>
 
         <section id="source-input" className="rounded-xl border border-emerald-300/30 bg-slate-950 p-5 shadow-2xl shadow-emerald-950/20">
