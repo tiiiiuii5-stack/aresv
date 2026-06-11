@@ -24,6 +24,17 @@ export const dynamic = "force-dynamic";
 const intakeRateLimit = { name: "free-appraisal-intake", limit: 20, windowMs: 60 * 60_000 };
 const MAX_APPRAISAL_CODE_LENGTH = 180_000;
 
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    endpoint: "appraisal-intake",
+    method: "POST",
+    status: "ready",
+    free: true,
+    message: "Submit source evidence with POST to generate a free VentureOS report.",
+  });
+}
+
 export async function POST(request: NextRequest) {
   const traceId = createTrace("appraisal-intake.POST");
   try {

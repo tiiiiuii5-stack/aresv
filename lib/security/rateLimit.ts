@@ -41,7 +41,7 @@ export const RATE_LIMITS = {
   githubWebhook: { name: "github-webhook", limit: 120, windowMs: 60_000 },
   backendChat: { name: "backend-chat", limit: 30, windowMs: 60_000 },
   auditPackets: { name: "audit-packets", limit: 20, windowMs: 60_000 },
-  publicDemoScan: { name: "public-demo-scan", limit: 8, windowMs: 60 * 60_000 },
+  publicDemoScan: { name: "public-demo-scan", limit: 60, windowMs: 60 * 60_000 },
   waitlist: { name: "waitlist", limit: 4, windowMs: 60 * 60_000 },
 } satisfies Record<string, RateLimitPolicy>;
 

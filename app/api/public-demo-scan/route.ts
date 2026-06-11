@@ -18,6 +18,16 @@ export const dynamic = "force-dynamic";
 
 const MAX_DEMO_CODE_LENGTH = 6_000;
 
+export async function GET() {
+  return jsonResponse({
+    ok: true,
+    endpoint: "public-demo-scan",
+    method: "POST",
+    status: "ready",
+    message: "Submit source code or a public GitHub repository URL with POST to run a free demo scan.",
+  });
+}
+
 export async function POST(request: NextRequest) {
   const traceId = createTrace("public-demo-scan.POST");
   try {
