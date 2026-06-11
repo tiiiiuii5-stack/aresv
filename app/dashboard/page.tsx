@@ -1,14 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Award, FileText, Sparkles, Zap } from "lucide-react";
 
 import { InstitutionalPageShell } from "@/components/institutional/institutional-shell";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
 import { buildRegistryItems } from "@/lib/registry/registry-pipeline";
-import { BillingWidget } from "@/components/billing-widget";
-import { ActivityFeed } from "@/components/activity-feed";
-import { IntegrationStatusWidget } from "@/components/integration-status-widget";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,12 +14,6 @@ export default async function DashboardPage() {
   const verified = registry.items.filter((item) => item.currentState === "ISSUED" || item.currentState === "VERIFIED").length;
   const avgTrust = average(registry.items.map((item) => item.trustScore).filter((score) => score > 0));
   const hasRecords = registry.items.length > 0;
-
-  const subscription = null;
-  const jobs = [];
-  const scansUsed = 12;
-  const scansAllowed = 20;
-  const reportsGenerated = registry.count || 0;
 
   return (
     <InstitutionalPageShell
@@ -70,25 +60,25 @@ export default async function DashboardPage() {
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <QuickActionButton
           href="/free-review"
-          icon={<Zap className="h-5 w-5" />}
+          marker="01"
           label="New Scan"
           description="Analyze code instantly"
         />
         <QuickActionButton
           href="/dashboard"
-          icon={<Sparkles className="h-5 w-5" />}
+          marker="02"
           label="Generate App"
           description="Create with AI"
         />
         <QuickActionButton
           href="/projects"
-          icon={<FileText className="h-5 w-5" />}
+          marker="03"
           label="View Projects"
           description="See all projects"
         />
         <QuickActionButton
           href="/certificate"
-          icon={<Award className="h-5 w-5" />}
+          marker="04"
           label="Get Certificate"
           description="Download badges"
         />
@@ -145,24 +135,6 @@ export default async function DashboardPage() {
       </aside>
       </section>
 
-      {/* Dashboard Widgets */}
-      <section className="mt-6 grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ActivityFeed jobs={jobs} />
-        </div>
-        <div>
-          <BillingWidget
-            subscription={subscription}
-            scansUsed={scansUsed}
-            scansAllowed={scansAllowed}
-            reportsGenerated={reportsGenerated}
-          />
-        </div>
-      </section>
-
-      <section className="mt-6">
-        <IntegrationStatusWidget />
-      </section>
     </InstitutionalPageShell>
   );
 }
@@ -199,12 +171,12 @@ function average(values: number[]) {
 
 function QuickActionButton({
   href,
-  icon,
+  marker,
   label,
   description,
 }: {
   href: string;
-  icon: ReactNode;
+  marker: string;
   label: string;
   description: string;
 }) {
@@ -214,7 +186,7 @@ function QuickActionButton({
       className="vos-panel flex flex-col items-center justify-center gap-3 rounded-lg p-5 text-center transition hover:-translate-y-1 hover:border-[rgb(var(--vos-border-strong))]"
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[rgb(var(--vos-accent))]/20 text-[rgb(var(--vos-accent))]">
-        {icon}
+        <span className="text-xs font-black">{marker}</span>
       </div>
       <div>
         <p className="text-sm font-bold text-[rgb(var(--vos-text))]">{label}</p>

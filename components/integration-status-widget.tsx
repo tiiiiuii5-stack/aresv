@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Github, Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Code2, FileText, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface IntegrationStatus {
@@ -45,10 +45,10 @@ export function IntegrationStatusWidget({
           >
             <div className="flex items-center gap-3">
               {integration.provider === "github" && (
-                <Github className="h-4 w-4 text-slate-400" />
+                <Code2 className="h-4 w-4 text-slate-400" />
               )}
               {integration.provider === "google" && (
-                <Mail className="h-4 w-4 text-slate-400" />
+                <FileText className="h-4 w-4 text-slate-400" />
               )}
               <div>
                 <p className="text-sm font-bold text-[rgb(var(--vos-text))]">
@@ -76,7 +76,7 @@ export function IntegrationStatusWidget({
                 </>
               ) : (
                 <>
-                  <AlertCircle className="h-4 w-4 text-slate-400" />
+                  <ShieldAlert className="h-4 w-4 text-slate-400" />
                   <Link href={integration.connectHref || "#"}>
                     <Button variant="outline" size="sm" className="text-xs">
                       Connect

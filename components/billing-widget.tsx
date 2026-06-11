@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CreditCard } from "lucide-react";
+import { FileText } from "lucide-react";
 import type { Subscription } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,7 @@ export function BillingWidget({
       <div className="flex items-start justify-between">
         <div>
           <p className="vos-label flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
+            <FileText className="h-4 w-4" />
             Billing
           </p>
           <h3 className="mt-2 vos-h3">Your Plan</h3>

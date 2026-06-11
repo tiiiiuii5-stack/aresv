@@ -270,9 +270,9 @@ export default function FreeReviewPage() {
         {error ? (
           <div className="mt-4 rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-2 flex items-center justify-between">
             <p className="text-sm font-semibold text-red-100">{error}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleRetry}
               disabled={scanBusy}
               className="ml-3"
@@ -294,7 +294,7 @@ export default function FreeReviewPage() {
                 {result ? verdict.detail : scanBusy ? "Analyzing your code for quality, security, and production readiness..." : "Run the free scan to generate the verdict, scorecard, risks, and recommended next step."}
               </p>
             </div>
-            <span className={["rounded-full border px-4 py-2 text-sm font-black", 
+            <span className={["rounded-full border px-4 py-2 text-sm font-black",
               result ? verdict.className : scanBusy ? "border-slate-700 bg-slate-900 text-slate-300 animate-pulse" : "border-slate-700 bg-slate-900 text-slate-300"
             ].join(" ")}>
               {result ? state : scanBusy ? "SCANNING..." : "NOT SCANNED"}

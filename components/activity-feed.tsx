@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Clock, BarChart3, CheckCircle2, AlertCircle, Zap } from "lucide-react";
+import { BarChart3, CheckCircle2, FileText, Sparkles } from "lucide-react";
 import type { Job } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 
@@ -22,7 +22,7 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ items = [], jobs = [] }: ActivityFeedProps) {
   // Convert jobs to activity items
-  const activityItems: ActivityItem[] = jobs
+  const jobItems: ActivityItem[] = jobs
     .slice(0, 8)
     .map((job) => {
       const statusMap: Record<string, "completed" | "failed" | "pending" | "in_progress"> = {
@@ -38,29 +38,29 @@ export function ActivityFeed({ items = [], jobs = [] }: ActivityFeedProps) {
 
       return {
         id: job.id,
-        type: job.type === "scan" ? "scan" : "job",
+        type: job.type === "scan" ? "scan" : "job" as ActivityItem["type"],
         title: `${job.type === "generation" ? "App generated" : "Scan completed"}: ${job.project?.title || "Untitled"}`,
         description: job.currentStep || job.status,
         status: statusMap[job.status] || "pending",
         timestamp: job.completedAt || job.updatedAt,
         href: job.projectId ? `/projects/${job.projectId}` : undefined,
       };
-    })
-    .concat(items);
+    });
+  const activityItems: ActivityItem[] = jobItems.concat(items);
 
   const getIcon = (type: ActivityItem["type"]) => {
     const iconProps = { className: "h-4 w-4" };
     switch (type) {
       case "job":
-        return <Zap {...iconProps} />;
+        return <Sparkles {...iconProps} />;
       case "scan":
         return <BarChart3 {...iconProps} />;
       case "report":
-        return <Clock {...iconProps} />;
+        return <FileText {...iconProps} />;
       case "certificate":
         return <CheckCircle2 {...iconProps} />;
       default:
-        return <Clock {...iconProps} />;
+        return <FileText {...iconProps} />;
     }
   };
 
@@ -72,7 +72,7 @@ export function ActivityFeed({ items = [], jobs = [] }: ActivityFeedProps) {
       in_progress: "risky",
     };
     const labels: Record<ActivityItem["status"], string> = {
-      completed: "✓ Done",
+      completed: "Done",
       failed: "Failed",
       pending: "Pending",
       in_progress: "Running",
