@@ -2,6 +2,13 @@ import { createHash } from "crypto";
 
 import { buildRegistryItems, type RegistryItem } from "@/lib/registry/registry-pipeline";
 
+const TRUST_KERNEL_VERSION = "trust-kernel-v1.0.0";
+const EVIDENCE_SCHEMA_VERSION = "evidence-ledger-v1.0.0";
+const PASSPORT_SCHEMA_VERSION = "software-passport-v2.0.0";
+const POLICY_VERSION = "buyer-policy-v1.0.0";
+const SCORING_VERSION = "deterministic-scoring-v1.0.0";
+const SIGNER_IDENTITY = "ventureos-platform-signer:v1";
+
 export type EvidenceCategory =
   | "identity"
   | "security"
@@ -209,6 +216,7 @@ export type SignedPassportSnapshot = {
   version: "3.0.0";
   snapshotId: string;
   issuedAt: string;
+  manifest: SnapshotManifest;
   deterministicInputHash: string;
   evidenceRootHash: string;
   riskRootHash: string;
@@ -218,6 +226,33 @@ export type SignedPassportSnapshot = {
   signatureAlgorithm: "sha256-platform-signature-v1";
   jsonUrl: string;
   pdfUrl: string;
+};
+
+export type SnapshotManifest = {
+  manifestVersion: "snapshot-manifest-v1";
+  trustKernelVersion: string;
+  evidenceSchemaVersion: string;
+  passportSchemaVersion: string;
+  policyVersion: string;
+  scoringVersion: string;
+  timestamp: string;
+  signerIdentity: string;
+  inputEvidenceHashes: string[];
+  inputEvidenceCount: number;
+  derivedRiskHashes: string[];
+  derivedPassportHashes: string[];
+  canonicalization: {
+    algorithm: "stable-json-sort-keys";
+    inputHash: string;
+    evidenceRootHash: string;
+    riskRootHash: string;
+    passportRootHash: string;
+  };
+  separation: {
+    rawEvidence: string;
+    derivedSignals: string;
+    signedOutput: string;
+  };
 };
 
 type EvidenceRecordDraft = Omit<EvidenceRecord, "id" | "hash" | "anchors" | "provenance" | "scoringImpacts" | "deterministicInputHash"> & {
@@ -1091,9 +1126,36 @@ function signedSnapshotFor(input: {
   const evidenceRootHash = sha256(input.evidence.map((record) => ({ id: record.id, hash: record.hash })).sort(byId));
   const riskRootHash = sha256(input.risks.map((risk) => ({ id: risk.id, evidenceIds: risk.evidenceIds, confidence: risk.confidence, severity: risk.severity })).sort(byId));
   const passportRootHash = sha256(input.passports.map((passport) => ({ id: passport.id, hash: passport.deterministicHash })).sort(byId));
+  const manifest: SnapshotManifest = {
+    manifestVersion: "snapshot-manifest-v1",
+    trustKernelVersion: TRUST_KERNEL_VERSION,
+    evidenceSchemaVersion: EVIDENCE_SCHEMA_VERSION,
+    passportSchemaVersion: PASSPORT_SCHEMA_VERSION,
+    policyVersion: POLICY_VERSION,
+    scoringVersion: SCORING_VERSION,
+    timestamp: input.generatedAt,
+    signerIdentity: SIGNER_IDENTITY,
+    inputEvidenceHashes: input.evidence.map((record) => record.hash).sort(),
+    inputEvidenceCount: input.evidence.length,
+    derivedRiskHashes: input.risks.map((risk) => sha256({ id: risk.id, evidenceIds: risk.evidenceIds, severity: risk.severity, confidence: risk.confidence })).sort(),
+    derivedPassportHashes: input.passports.map((passport) => passport.deterministicHash).sort(),
+    canonicalization: {
+      algorithm: "stable-json-sort-keys",
+      inputHash: input.deterministicInputHash,
+      evidenceRootHash,
+      riskRootHash,
+      passportRootHash,
+    },
+    separation: {
+      rawEvidence: "EvidenceRecord hashes are canonicalized before risk, score, or passport output is signed.",
+      derivedSignals: "Risk and dimension score outputs are derived from immutable evidence hashes and policy/scoring versions.",
+      signedOutput: "Only the final manifest-backed workspace root is signed.",
+    },
+  };
   const workspaceRootHash = sha256({
     version: "3.0.0",
     deterministicInputHash: input.deterministicInputHash,
+    manifest,
     evidenceRootHash,
     riskRootHash,
     passportRootHash,
@@ -1104,6 +1166,7 @@ function signedSnapshotFor(input: {
     version: "3.0.0",
     snapshotId,
     issuedAt: input.generatedAt,
+    manifest,
     deterministicInputHash: input.deterministicInputHash,
     evidenceRootHash,
     riskRootHash,

@@ -59,6 +59,9 @@ export default async function DueDiligenceDashboardPage() {
               <p className="text-sm font-semibold leading-6 text-[rgb(var(--vos-text-muted))]">
                 Snapshot root: <span className="font-mono">{workspace.snapshot.workspaceRootHash.slice(0, 18)}</span>. Deterministic hash: <span className="font-mono">{workspace.deterministicInputHash.slice(0, 18)}</span>.
               </p>
+              <p className="text-xs font-semibold leading-5 text-[rgb(var(--vos-text-subtle))]">
+                Manifest: {workspace.snapshot.manifest.policyVersion} · {workspace.snapshot.manifest.scoringVersion} · signer {workspace.snapshot.manifest.signerIdentity}
+              </p>
             </div>
           }
         />
