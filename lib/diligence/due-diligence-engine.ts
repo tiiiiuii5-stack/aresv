@@ -225,6 +225,23 @@ type EvidenceRecordDraft = Omit<EvidenceRecord, "id" | "hash" | "anchors" | "pro
   scoringImpacts?: ScoreImpact[];
 };
 
+export type SubmittedEvidenceInput = {
+  subjectId?: string;
+  subjectName?: string;
+  source: string;
+  sourceKind?: EvidenceSourceKind;
+  type: string;
+  category?: EvidenceCategory;
+  summary: string;
+  timestamp?: string;
+  confidence?: number;
+  verified?: boolean;
+  href?: string;
+  limitations?: string[];
+  anchors: ExternalEvidenceAnchor[];
+  scoringImpacts?: ScoreImpact[];
+};
+
 export async function buildDueDiligenceWorkspace(input: { query?: string; limit?: number; deterministic?: boolean } = {}): Promise<DueDiligenceWorkspace> {
   const registry = await buildRegistryItems({ query: input.query, limit: input.limit || 12 });
   const deterministicInputHash = sha256(registry.items.map(registryItemForHash));
@@ -280,6 +297,27 @@ export async function buildDueDiligenceWorkspace(input: { query?: string; limit?
     graph: graphForWorkspace(registry.items, evidence, risks),
     comparison,
   };
+}
+
+export function buildSubmittedEvidenceReceipt(input: SubmittedEvidenceInput): EvidenceRecord {
+  return materializeEvidenceRecord({
+    subjectId: cleanText(input.subjectId || "submitted-vendor", 120),
+    subjectName: cleanText(input.subjectName || input.subjectId || "Submitted vendor", 160),
+    source: cleanText(input.source, 240),
+    sourceKind: input.sourceKind || "self_attested",
+    type: cleanText(input.type, 80),
+    category: input.category || "buyer_readiness",
+    summary: cleanText(input.summary, 2000),
+    timestamp: validIsoTimestamp(input.timestamp) || new Date().toISOString(),
+    confidence: clamp(input.confidence ?? 35),
+    verified: Boolean(input.verified),
+    href: input.href ? cleanText(input.href, 500) : undefined,
+    limitations: (input.limitations || ["Submitted evidence was normalized and hashed, but not persisted by this endpoint."]).map((item) => cleanText(item, 240)).slice(0, 8),
+    anchors: input.anchors,
+    scoringImpacts: input.scoringImpacts || [
+      impact("buyer_readiness", "Submitted external evidence", Math.max(1, Math.round((input.confidence ?? 35) / 20)), "Submitted anchored evidence contributes to buyer readiness after review."),
+    ],
+  });
 }
 
 function evidenceForRegistryItem(item: RegistryItem, generatedAt: string): EvidenceRecord[] {
@@ -1156,6 +1194,17 @@ function clamp(value: number) {
 function clampSigned(value: number) {
   if (!Number.isFinite(value)) return 0;
   return Math.max(-100, Math.min(100, Math.round(value)));
+}
+
+function cleanText(value: unknown, maxLength: number) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function validIsoTimestamp(value: unknown) {
+  const text = typeof value === "string" ? value.trim() : "";
+  if (!text) return "";
+  const date = new Date(text);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
 function formatDate(value: string) {
