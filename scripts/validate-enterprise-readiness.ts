@@ -61,20 +61,33 @@ async function main() {
   });
 
   const funnel = await getJson("/api/funnel/metrics") as {
+    metrics?: {
+      uniqueReal?: {
+        previewStarted?: number;
+        previewCompleted?: number;
+        checkoutStarted?: number;
+        paidIntent?: number;
+        reportGenerated?: number;
+        previewToCheckoutPath?: number;
+      };
+      syntheticTotalEvents?: number;
+      botTotalEvents?: number;
+    };
     proof?: {
-      customerDemand?: { proven?: boolean; previewStarted?: number; previewCompleted?: number };
-      conversionFunnel?: { proven?: boolean; checkoutStarted?: number; paidIntent?: number; previewToCheckoutRate?: number };
+      customerDemand?: { proven?: boolean; previewStarted?: number; previewCompleted?: number; requirement?: string };
+      conversionFunnel?: { proven?: boolean; checkoutStarted?: number; paidIntent?: number; previewToCheckoutRate?: number; previewToCheckoutPath?: number; requirement?: string };
     };
   };
+  const uniqueReal = funnel.metrics?.uniqueReal;
   gates.push({
     name: "proven_customer_demand",
     passed: Boolean(funnel.proof?.customerDemand?.proven),
-    detail: `previewStarted=${funnel.proof?.customerDemand?.previewStarted ?? 0} previewCompleted=${funnel.proof?.customerDemand?.previewCompleted ?? 0}`,
+    detail: `uniqueRealPreviewStarted=${uniqueReal?.previewStarted ?? funnel.proof?.customerDemand?.previewStarted ?? 0} uniqueRealPreviewCompleted=${uniqueReal?.previewCompleted ?? funnel.proof?.customerDemand?.previewCompleted ?? 0} syntheticEvents=${funnel.metrics?.syntheticTotalEvents ?? 0} botEvents=${funnel.metrics?.botTotalEvents ?? 0} requirement="${funnel.proof?.customerDemand?.requirement || "missing"}"`,
   });
   gates.push({
     name: "proven_conversion_funnel",
     passed: Boolean(funnel.proof?.conversionFunnel?.proven),
-    detail: `checkoutStarted=${funnel.proof?.conversionFunnel?.checkoutStarted ?? 0} paidIntent=${funnel.proof?.conversionFunnel?.paidIntent ?? 0} previewToCheckoutRate=${funnel.proof?.conversionFunnel?.previewToCheckoutRate ?? 0}%`,
+    detail: `uniqueRealCheckoutStarted=${uniqueReal?.checkoutStarted ?? funnel.proof?.conversionFunnel?.checkoutStarted ?? 0} uniqueRealPaidIntent=${uniqueReal?.paidIntent ?? funnel.proof?.conversionFunnel?.paidIntent ?? 0} uniqueRealPreviewToCheckoutPath=${uniqueReal?.previewToCheckoutPath ?? funnel.proof?.conversionFunnel?.previewToCheckoutPath ?? 0} previewToCheckoutRate=${funnel.proof?.conversionFunnel?.previewToCheckoutRate ?? 0}% requirement="${funnel.proof?.conversionFunnel?.requirement || "missing"}"`,
   });
 
   console.log(JSON.stringify({ passed: gates.every((gate) => gate.passed), baseUrl, gates }, null, 2));

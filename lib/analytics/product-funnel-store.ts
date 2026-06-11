@@ -251,8 +251,16 @@ function parseRecentEvent(value: unknown) {
   try {
     const parsed = JSON.parse(value) as ProductFunnelMetrics["recent"][number];
     if (!parsed || typeof parsed.eventType !== "string" || typeof parsed.createdAt !== "string") return null;
-    return parsed;
+    return {
+      ...parsed,
+      synthetic: parsed.synthetic ?? isSyntheticSource(parsed.source),
+      bot: Boolean(parsed.bot),
+    };
   } catch {
     return null;
   }
+}
+
+function isSyntheticSource(source: unknown) {
+  return /(^|[_.:-])(test|contract|synthetic|qa|smoke)([_.:-]|$)/.test(String(source || "").toLowerCase());
 }
