@@ -13,7 +13,7 @@ const allowedRedirectEvents = new Set([
   "appraisal_intake.checkout_clicked",
 ]);
 
-const copiedParams = new Set(["repo", "framework", "offer", "campaign", "ref", "utm_source", "utm_campaign"]);
+const copiedParams = new Set(["repo", "framework", "offer", "sample", "campaign", "ref", "utm_source", "utm_campaign"]);
 const sampleRepoUrl = "https://github.com/tiiiiuii5-stack/aresv.git";
 
 export async function GET(request: NextRequest) {

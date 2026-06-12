@@ -33,6 +33,9 @@ const sampleRepoUrl = "https://github.com/tiiiiuii5-stack/aresv.git";
 
 export default function HomePage() {
   const [target, setTarget] = useState("");
+  const [primaryEmail, setPrimaryEmail] = useState("");
+  const [startBusy, setStartBusy] = useState(false);
+  const [startError, setStartError] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
   const [leadBusy, setLeadBusy] = useState(false);
   const [leadMessage, setLeadMessage] = useState("");
@@ -44,6 +47,45 @@ export default function HomePage() {
     viewTracked.current = true;
     void trackHomeEvent("homepage.view", { metadata: { surface: "homepage" } });
   }, []);
+
+  async function startReview(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const cleanTarget = target.trim();
+    const cleanEmail = primaryEmail.trim().toLowerCase();
+    setStartBusy(true);
+    setStartError("");
+    try {
+      if (cleanEmail) {
+        const response = await fetch("/api/waitlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: cleanEmail,
+            role: "founder-or-buyer",
+            source: "homepage_primary_review",
+            useCase: cleanTarget
+              ? `Started review for ${cleanTarget}`
+              : `Started sample review for ${sampleRepoUrl}`,
+            ...campaignMetadataFromLocation(),
+          }),
+        });
+        const payload = await response.json().catch(() => ({})) as { error?: string };
+        if (!response.ok) throw new Error(payload.error || "Could not save email before starting the review.");
+      }
+
+      const reviewUrl = new URL("/t", window.location.origin);
+      reviewUrl.searchParams.set("e", "homepage.free_review_clicked");
+      reviewUrl.searchParams.set("source", cleanTarget ? "homepage_form" : "homepage_sample_form");
+      reviewUrl.searchParams.set("to", "/free-review");
+      reviewUrl.searchParams.set("framework", "nextjs");
+      if (cleanTarget) reviewUrl.searchParams.set("repo", cleanTarget);
+      copyCampaignParamsToUrl(reviewUrl);
+      window.location.assign(reviewUrl.toString());
+    } catch (error) {
+      setStartError(error instanceof Error ? error.message : "Could not start this review.");
+      setStartBusy(false);
+    }
+  }
 
   async function saveHomepageLead(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,13 +151,9 @@ export default function HomePage() {
             </p>
 
             <form
-              action="/t"
-              method="get"
+              onSubmit={startReview}
               className="mt-8 max-w-3xl rounded-xl border border-[rgb(var(--vos-primary))]/60 bg-[rgb(var(--vos-panel))]/95 p-4 shadow-2xl shadow-[rgb(var(--vos-primary))]/15 ring-1 ring-[rgb(var(--vos-primary))]/25"
             >
-              <input type="hidden" name="e" value="homepage.free_review_clicked" />
-              <input type="hidden" name="source" value="homepage_form" />
-              <input type="hidden" name="to" value="/free-review" />
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <label className="text-sm font-black uppercase tracking-normal text-[rgb(var(--vos-text))]" htmlFor="software-target">
                   Paste your public GitHub repo
@@ -129,26 +167,39 @@ export default function HomePage() {
                   <FileText className="h-5 w-5 shrink-0 text-[rgb(var(--vos-primary))]" />
                   <input
                     id="software-target"
-                    name="repo"
                     value={target}
                     onChange={(event) => setTarget(event.target.value)}
                     placeholder="https://github.com/username/repo"
                     className="h-16 min-w-0 flex-1 border-0 bg-transparent text-base font-bold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))]"
                   />
                 </div>
-                <button type="submit" className={buttonClassName({ size: "lg", className: "h-16 w-full text-base" })}>
-                Get Decision <ArrowRight className="h-4 w-4" />
+                <button type="submit" disabled={startBusy} className={buttonClassName({ size: "lg", className: "h-16 w-full text-base" })}>
+                  {startBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                  {startBusy ? "Starting" : "Get Decision"}
                 </button>
               </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_210px]">
+                <label className="block">
+                  <span className="sr-only">Email for report path</span>
+                  <input
+                    value={primaryEmail}
+                    onChange={(event) => setPrimaryEmail(event.target.value)}
+                    type="email"
+                    placeholder="Optional: email to save the result path"
+                    className="h-12 w-full rounded-lg border border-[rgb(var(--vos-border-strong))] bg-[rgb(var(--vos-panel-raised))] px-4 text-sm font-bold text-[rgb(var(--vos-text))] outline-none placeholder:text-[rgb(var(--vos-text-subtle))] focus:border-[rgb(var(--vos-primary))]"
+                  />
+                </label>
+                <Link
+                  href={trackingHref("homepage.free_review_clicked", "/free-review", "homepage_sample_repo", { repo: sampleRepoUrl, framework: "nextjs", sample: "1" })}
+                  className={buttonClassName({ variant: "outline", className: "h-12 w-full" })}
+                >
+                  Try sample
+                </Link>
+              </div>
               <p className="mt-3 text-sm font-semibold text-[rgb(var(--vos-text-muted))]">
-                Preview is free. Full decision reports are the buyer-ready evidence memo.
+                Preview is free. Add an email only if you want to save the result path.
               </p>
-              <Link
-                href={trackingHref("homepage.free_review_clicked", "/free-review", "homepage_sample_repo", { repo: sampleRepoUrl, framework: "nextjs" })}
-                className="mt-3 inline-flex text-sm font-black text-[rgb(var(--vos-primary))] underline decoration-[rgb(var(--vos-primary))]/40 underline-offset-4 hover:text-[rgb(var(--vos-text))]"
-              >
-                No repo handy? Try the live sample repo.
-              </Link>
+              {startError ? <p className="mt-2 rounded-lg border border-[rgb(var(--vos-danger))]/30 bg-[rgb(var(--vos-danger))]/10 px-3 py-2 text-xs font-bold leading-5 text-[rgb(var(--vos-danger))]">{startError}</p> : null}
             </form>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -244,6 +295,15 @@ function campaignMetadataFromLocation() {
 
 function cleanCampaignParam(value: unknown) {
   return String(value || "").trim().replace(/[^a-zA-Z0-9_.:-]/g, "_").slice(0, 80);
+}
+
+function copyCampaignParamsToUrl(url: URL) {
+  if (typeof window === "undefined") return;
+  const params = new URLSearchParams(window.location.search);
+  for (const key of ["campaign", "ref", "utm_source", "utm_campaign"]) {
+    const value = cleanCampaignParam(params.get(key));
+    if (value) url.searchParams.set(key, value);
+  }
 }
 
 function trackingHref(event: string, to: string, source: string, extra?: Record<string, string>) {
