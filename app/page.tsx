@@ -131,6 +131,9 @@ export default function HomePage() {
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Link href="/request-report" className={buttonClassName({ variant: "outline", size: "sm" })}>
+              Request Report
+            </Link>
             <Link href="/registry" className={buttonClassName({ variant: "outline", size: "sm" })}>
               Registry
             </Link>
@@ -203,6 +206,9 @@ export default function HomePage() {
             </form>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <Link href={trackingHref("homepage.pricing_clicked", "/request-report", "homepage_report_request")} className={buttonClassName({ size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
+                Request report path
+              </Link>
               <Link href={trackingHref("homepage.sample_clicked", "/sample-appraisal", "homepage_secondary_cta")} className={buttonClassName({ variant: "outline", size: "lg", className: "min-h-14 w-full text-base sm:w-auto" })}>
                 See sample report
               </Link>

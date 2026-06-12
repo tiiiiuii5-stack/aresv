@@ -125,7 +125,7 @@ export default async function LaunchKitPage() {
 function campaignLinks(origin: string) {
   const founder = trackedReviewUrl(origin, "founder_outreach", "founder_dm", sampleRepo);
   const buyer = trackedReviewUrl(origin, "buyer_review", "buyer_email", sampleRepo);
-  const directLead = `${origin}/?campaign=lead_capture&ref=direct_outreach&utm_source=launch_kit`;
+  const directLead = `${origin}/request-report?campaign=lead_capture&ref=direct_outreach&utm_source=launch_kit`;
   return [
     {
       label: "Founder link",

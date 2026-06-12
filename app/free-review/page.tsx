@@ -153,6 +153,7 @@ export default function FreeReviewPage() {
   const sourceReady = repoReady || code.trim().length >= 40;
   const paidUrl = `/appraisal-intake?offer=buyer-ready${repoUrl.trim() ? `&repo=${encodeURIComponent(repoUrl.trim())}` : ""}&framework=${encodeURIComponent(framework)}`;
   const trackedPaidUrl = trackingHref("appraisal_intake.checkout_clicked", paidUrl, "free_review");
+  const reportRequestUrl = `/request-report?ref=free_review_result${repoUrl.trim() ? `&repo=${encodeURIComponent(repoUrl.trim())}` : ""}&framework=${encodeURIComponent(framework)}`;
   const shareableRepoUrl = repoReady ? repoUrl.trim() : "";
 
   const recordLeadInterest = useCallback(async ({
@@ -686,6 +687,12 @@ export default function FreeReviewPage() {
                     className="mt-3 inline-flex text-sm font-black text-emerald-100 underline decoration-emerald-300/50 underline-offset-4 hover:text-white"
                   >
                     Open the evidence form instead
+                  </Link>
+                  <Link
+                    href={reportRequestUrl}
+                    className="mt-3 inline-flex text-sm font-black text-emerald-100 underline decoration-emerald-300/50 underline-offset-4 hover:text-white"
+                  >
+                    Request the free report path
                   </Link>
                   {shareableRepoUrl ? (
                     <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/50 p-3">
