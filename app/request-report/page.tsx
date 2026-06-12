@@ -16,6 +16,7 @@ export default function RequestReportPage() {
         purposeLabel="Request Report"
         actions={[
           { label: "Free Review", href: "/free-review", variant: "default" },
+          { label: "Reviewer Invite", href: "/reviewer-invite", variant: "outline" },
           { label: "Sample", href: "/sample-appraisal", variant: "outline" },
         ]}
       />

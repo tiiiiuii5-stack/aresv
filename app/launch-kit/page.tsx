@@ -67,7 +67,7 @@ export default async function LaunchKitPage() {
           />
         </section>
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-3">
+        <section className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
           {links.map((link) => (
             <article key={link.label} className="vos-panel p-5">
               <p className="vos-label">{link.label}</p>
@@ -94,7 +94,7 @@ export default async function LaunchKitPage() {
             <p className="vos-label">What to send</p>
             <div className="mt-4 grid gap-3">
               {[
-                "Send the founder link to 10 founders with public repos.",
+                "Send the reviewer invite to founders, buyers, operators, and security reviewers.",
                 "Ask 3 people to leave their real email if they want the report path.",
                 "Ask 1 person to run a preview and click Generate Buyer Report. They do not need to complete payment for conversion intent proof.",
               ].map((step, index) => (
@@ -126,7 +126,15 @@ function campaignLinks(origin: string) {
   const founder = trackedReviewUrl(origin, "founder_outreach", "founder_dm", sampleRepo);
   const buyer = trackedReviewUrl(origin, "buyer_review", "buyer_email", sampleRepo);
   const directLead = `${origin}/request-report?campaign=lead_capture&ref=direct_outreach&utm_source=launch_kit`;
+  const reviewerInvite = `${origin}/reviewer-invite?campaign=reviewer_invite&ref=launch_kit&utm_source=launch_kit`;
   return [
+    {
+      label: "Reviewer invite",
+      title: "One link for real reviewers",
+      detail: "Best all-purpose link: email capture, sample preview, and buyer-report intent path.",
+      href: reviewerInvite,
+      message: `Can you test VentureOS and tell me if the software trust decision is useful? ${reviewerInvite}`,
+    },
     {
       label: "Founder link",
       title: "Run the sample decision preview",
