@@ -47,6 +47,7 @@ export async function sendReportPathEmail(input: ReportPathEmailInput): Promise<
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      "User-Agent": "VentureOS/1.0 (transactional-email)",
     },
     body: JSON.stringify({
       from,
