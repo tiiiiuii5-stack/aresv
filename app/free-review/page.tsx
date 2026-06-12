@@ -93,6 +93,12 @@ type ReviewResult = {
   } | null;
 };
 
+type LeadSaveResult = {
+  synthetic?: boolean;
+  emailSent?: boolean;
+  emailDelivery?: { reason?: string };
+};
+
 const starterCode = `// app/api/projects/[id]/route.ts
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const body = await request.json();
@@ -173,16 +179,17 @@ export default function FreeReviewPage() {
       body: JSON.stringify({
         email: cleanLeadEmail,
         role: leadRole,
+        repositoryUrl: repoUrl.trim(),
         source,
         useCase,
         ...campaignMetadataFromLocation(),
       }),
     });
-    const payload = await response.json().catch(() => ({})) as { error?: string };
+    const payload = await response.json().catch(() => ({})) as LeadSaveResult & { error?: string };
     if (!response.ok) throw new Error(payload.error || "Could not save this request.");
     if (clearOnSuccess) setLeadEmail("");
-    return true;
-  }, [leadEmail, leadRole]);
+    return payload;
+  }, [leadEmail, leadRole, repoUrl]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -252,7 +259,7 @@ export default function FreeReviewPage() {
           ].join(" | "),
           clearOnSuccess: false,
         }).then((stored) => {
-          if (stored) setLeadMessage("Saved. We can send the review path after the scan.");
+          if (stored) setLeadMessage(deliveryMessage(stored));
         }).catch((leadSaveError) => {
           setLeadError(leadSaveError instanceof Error ? leadSaveError.message : "Could not save this request.");
         });
@@ -390,7 +397,7 @@ export default function FreeReviewPage() {
     setLeadMessage("");
     setLeadError("");
     try {
-      await recordLeadInterest({
+      const stored = await recordLeadInterest({
         source: "free_review_verdict",
         useCase: [
           `Decision: ${result.decision?.answer || "INVESTIGATE"}`,
@@ -414,7 +421,7 @@ export default function FreeReviewPage() {
           issueCount: Array.isArray(result.issues) ? result.issues.length : 0,
         },
       });
-      setLeadMessage("Saved. We will use this to follow up with the full report path or a human-assisted review.");
+      setLeadMessage(deliveryMessage(stored));
     } catch (saveError) {
       setLeadError(saveError instanceof Error ? saveError.message : "Could not save this verdict.");
     } finally {
@@ -746,6 +753,16 @@ function campaignMetadataFromLocation() {
     ref: cleanCampaignParam(params.get("ref")),
     utmSource: cleanCampaignParam(params.get("utm_source")),
   };
+}
+
+function deliveryMessage(payload: LeadSaveResult | false) {
+  if (!payload) return "No email was saved.";
+  if (payload.synthetic) return "Saved as a test request. No email was sent for synthetic traffic.";
+  if (payload.emailSent) return "Saved and emailed. Check your inbox for the VentureOS review links.";
+  if (payload.emailDelivery?.reason === "not_configured") {
+    return "Saved. Email delivery is not configured yet; use the preview/report links on this page.";
+  }
+  return "Saved. Email delivery was not confirmed; use the preview/report links on this page.";
 }
 
 function copyCampaignParamsToUrl(url: URL) {

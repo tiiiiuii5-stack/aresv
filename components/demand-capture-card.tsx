@@ -51,9 +51,9 @@ export function DemandCaptureCard({
           ...campaignMetadataFromLocation(),
         }),
       });
-      const payload = await response.json().catch(() => ({})) as { error?: string };
+      const payload = await response.json().catch(() => ({})) as { error?: string; synthetic?: boolean; emailSent?: boolean; emailDelivery?: { reason?: string } };
       if (!response.ok) throw new Error(payload.error || "Could not save this request.");
-      setMessage("Saved. We can follow up with the review path.");
+      setMessage(deliveryMessage(payload));
       setEmail("");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Could not save this request.");
@@ -88,6 +88,13 @@ export function DemandCaptureCard({
       {error ? <p className="mt-2 text-xs font-bold leading-5 text-red-100">{error}</p> : null}
     </form>
   );
+}
+
+function deliveryMessage(payload: { synthetic?: boolean; emailSent?: boolean; emailDelivery?: { reason?: string } }) {
+  if (payload.synthetic) return "Saved as a test request. No email was sent for synthetic traffic.";
+  if (payload.emailSent) return "Saved and emailed. Check your inbox for the VentureOS review links.";
+  if (payload.emailDelivery?.reason === "not_configured") return "Saved. Email delivery is not configured yet.";
+  return "Saved. Email delivery was not confirmed.";
 }
 
 function campaignMetadataFromLocation() {

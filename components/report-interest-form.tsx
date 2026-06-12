@@ -51,6 +51,7 @@ export function ReportInterestForm() {
         body: JSON.stringify({
           email: cleanEmail,
           role,
+          repositoryUrl: repoUrl.trim(),
           source: "request_report_page",
           useCase: [
             "Requested VentureOS report path",
@@ -60,9 +61,9 @@ export function ReportInterestForm() {
           ...campaignMetadataFromLocation(),
         }),
       });
-      const payload = await response.json().catch(() => ({})) as { error?: string; synthetic?: boolean };
+      const payload = await response.json().catch(() => ({})) as { error?: string; synthetic?: boolean; emailSent?: boolean; emailDelivery?: { reason?: string } };
       if (!response.ok) throw new Error(payload.error || "Could not save this request.");
-      setMessage(payload.synthetic ? "Saved as a test request." : "Saved. This counts as real demand when it comes from a real browser and email.");
+      setMessage(deliveryMessage(payload));
       setSaved(true);
       setEmail("");
       setContext("");
@@ -148,6 +149,15 @@ export function ReportInterestForm() {
       {error ? <p className="mt-3 rounded-lg border border-[rgb(var(--vos-danger))]/30 bg-[rgb(var(--vos-danger))]/10 px-3 py-2 text-sm font-bold leading-6 text-[rgb(var(--vos-danger))]">{error}</p> : null}
     </form>
   );
+}
+
+function deliveryMessage(payload: { synthetic?: boolean; emailSent?: boolean; emailDelivery?: { reason?: string } }) {
+  if (payload.synthetic) return "Saved as a test request. No email was sent for synthetic traffic.";
+  if (payload.emailSent) return "Saved and emailed. Check your inbox for the VentureOS review links.";
+  if (payload.emailDelivery?.reason === "not_configured") {
+    return "Saved, but outbound email is not configured yet. Use the preview button below now.";
+  }
+  return "Saved. Use the preview button below now; email delivery was not confirmed.";
 }
 
 function previewUrlFor(repoUrl: string) {

@@ -63,6 +63,7 @@ export default function HomePage() {
             email: cleanEmail,
             role: "founder-or-buyer",
             source: "homepage_primary_review",
+            repositoryUrl: cleanTarget || sampleRepoUrl,
             useCase: cleanTarget
               ? `Started review for ${cleanTarget}`
               : `Started sample review for ${sampleRepoUrl}`,
@@ -100,15 +101,16 @@ export default function HomePage() {
           email: leadEmail,
           role: "founder-or-buyer",
           source: "homepage_hero",
+          repositoryUrl: target.trim(),
           useCase: target.trim()
             ? `Send report path for ${target.trim()}`
             : "Send VentureOS report path",
           ...campaignMetadataFromLocation(),
         }),
       });
-      const payload = await response.json().catch(() => ({})) as { error?: string };
+      const payload = await response.json().catch(() => ({})) as { error?: string; synthetic?: boolean; emailSent?: boolean; emailDelivery?: { reason?: string } };
       if (!response.ok) throw new Error(payload.error || "Could not save this request.");
-      setLeadMessage("Saved. We can send the report path and review options.");
+      setLeadMessage(deliveryMessage(payload));
       setLeadEmail("");
     } catch (error) {
       setLeadError(error instanceof Error ? error.message : "Could not save this request.");
@@ -301,6 +303,13 @@ function campaignMetadataFromLocation() {
 
 function cleanCampaignParam(value: unknown) {
   return String(value || "").trim().replace(/[^a-zA-Z0-9_.:-]/g, "_").slice(0, 80);
+}
+
+function deliveryMessage(payload: { synthetic?: boolean; emailSent?: boolean; emailDelivery?: { reason?: string } }) {
+  if (payload.synthetic) return "Saved as a test request. No email was sent for synthetic traffic.";
+  if (payload.emailSent) return "Saved and emailed. Check your inbox for the VentureOS review links.";
+  if (payload.emailDelivery?.reason === "not_configured") return "Saved. Email delivery is not configured yet.";
+  return "Saved. Email delivery was not confirmed.";
 }
 
 function copyCampaignParamsToUrl(url: URL) {

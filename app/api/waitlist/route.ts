@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import { isProductFunnelBotRequest, recordRequestProductFunnelEvent } from "@/lib/analytics/product-funnel-request";
 import { recordWaitlistLead } from "@/lib/analytics/waitlist-lead-store";
 import { createTrace } from "@/lib/diagnostics";
+import { sendReportPathEmail } from "@/lib/email/report-path-email";
 import { tryDatabase } from "@/lib/prisma";
 import {
   enforceRateLimit,
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
       source?: unknown;
       campaign?: unknown;
       ref?: unknown;
+      repositoryUrl?: unknown;
       utmSource?: unknown;
       utm_source?: unknown;
       synthetic?: unknown;
@@ -48,6 +50,7 @@ export async function POST(request: NextRequest) {
     const source = sanitizePublicText(body.source, 80) || "conversion_trust_sections";
     const campaign = sanitizePublicText(body.campaign, 80);
     const ref = sanitizePublicText(body.ref, 80);
+    const repositoryUrl = sanitizePublicText(body.repositoryUrl, 500);
     const utmSource = sanitizePublicText(body.utmSource || body.utm_source, 80);
     const userAgent = request.headers.get("user-agent")?.slice(0, 240) || "";
     const userAgentHash = userAgent ? hashForLog(userAgent) : null;
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
           source,
           campaign,
           ref,
+          repositoryUrl,
           utmSource,
           userAgentHash,
         }),
@@ -82,6 +86,15 @@ export async function POST(request: NextRequest) {
       utmSource,
       userAgentHash,
     });
+    const emailDelivery = synthetic ? { attempted: false, sent: false, provider: "none" as const, reason: "synthetic" as const } : await sendReportPathEmail({
+      to: email,
+      role,
+      source,
+      useCase,
+      reportRequestUrl: absoluteUrl(request, "/request-report", { campaign: campaign || "lead_email", ref: source, utm_source: utmSource || "waitlist_email", repo: repositoryUrl }),
+      previewUrl: absoluteUrl(request, "/free-review", { campaign: campaign || "lead_email", ref: source, utm_source: utmSource || "waitlist_email", repo: repositoryUrl, framework: "nextjs" }),
+      sampleReportUrl: absoluteUrl(request, "/sample-appraisal", { campaign: campaign || "lead_email", ref: source, utm_source: utmSource || "waitlist_email" }),
+    });
 
     await recordRequestProductFunnelEvent(request, {
       eventType: "waitlist.joined",
@@ -95,6 +108,8 @@ export async function POST(request: NextRequest) {
         utmSource,
         synthetic,
         leadStored: Boolean(stored || kvLead.stored),
+        emailSent: emailDelivery.sent,
+        emailDeliveryReason: emailDelivery.reason,
       },
     }).catch(() => false);
 
@@ -110,9 +125,20 @@ export async function POST(request: NextRequest) {
       traceId,
       stored: true,
       provider: stored && kvLead.stored ? "postgres+upstash-kv" : stored ? "postgres" : kvLead.provider,
+      emailSent: emailDelivery.sent,
+      emailDelivery,
     }, { headers: rateLimit.headers });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return secureErrorResponse("waitlist.POST", traceId, error, { fallbackStatus: message === "UNAUTHORIZED" ? 401 : 400 });
   }
+}
+
+function absoluteUrl(request: NextRequest, pathname: string, params: Record<string, string>) {
+  const url = new URL(pathname, request.nextUrl.origin);
+  for (const [key, value] of Object.entries(params)) {
+    const clean = String(value || "").trim();
+    if (clean) url.searchParams.set(key, clean);
+  }
+  return url.toString();
 }
