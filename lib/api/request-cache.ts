@@ -119,11 +119,16 @@ export async function dedupedFetch<T>(
     method,
     url,
     async () => {
-      const response = await fetch(url, {
+      const fetchOptions: RequestInit = {
         method,
         headers: { "Content-Type": "application/json" },
-        ...(body && { body: JSON.stringify(body) }),
-      });
+      };
+      
+      if (body) {
+        fetchOptions.body = JSON.stringify(body);
+      }
+
+      const response = await fetch(url, fetchOptions);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

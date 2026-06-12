@@ -3,7 +3,9 @@
  * Provides consistent logging format and Application Insights integration
  */
 
-import { trackEvent, trackException } from "./appinsights";
+// Optional appinsights - lazy loaded to avoid circular dependency
+let trackEvent: ((name: string, props?: Record<string, string>, measurements?: Record<string, number>) => void) | null = null;
+let trackException: ((error: Error, props?: Record<string, string>) => void) | null = null;
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -68,8 +70,8 @@ export class Logger {
 
     console.log(`${levelColors[level]}[${level.toUpperCase()}]${reset} ${formatted}`);
 
-    // Track to Application Insights
-    if (level === "error") {
+    // Track to Application Insights (if available)
+    if (level === "error" && trackEvent) {
       trackEvent("log_error", {
         message,
         traceId: this.traceId,
@@ -105,8 +107,8 @@ export class Logger {
 
     this.log("error", message, errorContext);
 
-    // Also track exception to AppInsights
-    if (error instanceof Error) {
+    // Also track exception to AppInsights (if available)
+    if (error instanceof Error && trackException) {
       trackException(error, { message, traceId: this.traceId });
     }
   }

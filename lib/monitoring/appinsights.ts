@@ -3,9 +3,9 @@
  * Provides telemetry collection for production monitoring
  */
 
-import { useAzureMonitor, AzureMonitorOpenTelemetryOptions } from "@azure/monitor-opentelemetry";
+import { useAzureMonitor } from "@azure/monitor-opentelemetry";
 
-let telemetryClient: ReturnType<typeof useAzureMonitor> | null = null;
+let telemetryClient: any = null;
 
 /**
  * Initialize Azure Monitor OpenTelemetry
@@ -33,15 +33,10 @@ export function initializeAppInsights(): void {
   }
 
   try {
-    const options: AzureMonitorOpenTelemetryOptions = {
+    const options = {
       azureMonitorExporterOptions: {
         connectionString,
       },
-      // Enable auto-collection of common telemetry
-      enableAutoCollectExceptions: true,
-      enableAutoCollectDependencies: true,
-      enableAutoCollectRequests: true,
-      enableAutoCollectConsole: true,
     };
 
     telemetryClient = useAzureMonitor(options);
