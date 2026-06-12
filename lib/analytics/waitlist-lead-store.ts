@@ -1,5 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
+import { tryDatabase } from "@/lib/prisma";
+
 export type WaitlistLeadInput = {
   email: string;
   role: string;
@@ -22,6 +24,16 @@ export type WaitlistLeadMetrics = {
     campaign: string | null;
     createdAt: string;
   }>;
+};
+
+type DbLeadCountRow = { count?: number | string | bigint | null };
+type DbLeadRow = {
+  id?: string | null;
+  email?: string | null;
+  role?: string | null;
+  source?: string | null;
+  campaign?: string | null;
+  createdAt?: Date | string | null;
 };
 
 export async function recordWaitlistLead(input: WaitlistLeadInput) {
@@ -69,8 +81,12 @@ export async function recordWaitlistLead(input: WaitlistLeadInput) {
 }
 
 export async function loadWaitlistLeadMetrics(): Promise<WaitlistLeadMetrics> {
+  const dbMetricsPromise = loadDatabaseLeadMetrics();
   const config = kvConfig(true);
-  if (!config) return emptyMetrics();
+  if (!config) {
+    const dbMetrics = await dbMetricsPromise;
+    return dbMetrics || emptyMetrics();
+  }
 
   const firstResponse = await fetch(`${config.url}/pipeline`, {
     method: "POST",
@@ -84,12 +100,13 @@ export async function loadWaitlistLeadMetrics(): Promise<WaitlistLeadMetrics> {
     ]),
     cache: "no-store",
   }).catch(() => null);
-  if (!firstResponse?.ok) return emptyMetrics();
+  const dbMetrics = await dbMetricsPromise;
+  if (!firstResponse?.ok) return dbMetrics || emptyMetrics();
 
   const firstPayload = await firstResponse.json().catch(() => []) as Array<{ result?: unknown }>;
   const total = numberValue(firstPayload[0]?.result);
   const keys = Array.isArray(firstPayload[1]?.result) ? firstPayload[1].result.filter((key): key is string => typeof key === "string") : [];
-  if (!keys.length) return { available: true, total, recent: [] };
+  if (!keys.length) return mergeLeadMetrics({ available: true, total, recent: [] }, dbMetrics);
 
   const secondResponse = await fetch(`${config.url}/pipeline`, {
     method: "POST",
@@ -100,14 +117,63 @@ export async function loadWaitlistLeadMetrics(): Promise<WaitlistLeadMetrics> {
     body: JSON.stringify(keys.map((key) => ["GET", key])),
     cache: "no-store",
   }).catch(() => null);
-  if (!secondResponse?.ok) return { available: true, total, recent: [] };
+  if (!secondResponse?.ok) return mergeLeadMetrics({ available: true, total, recent: [] }, dbMetrics);
 
   const secondPayload = await secondResponse.json().catch(() => []) as Array<{ result?: unknown }>;
   const recent = secondPayload
     .map((item) => parseLead(item.result))
     .filter((item): item is WaitlistLeadMetrics["recent"][number] => Boolean(item));
 
-  return { available: true, total, recent };
+  return mergeLeadMetrics({ available: true, total, recent }, dbMetrics);
+}
+
+async function loadDatabaseLeadMetrics(): Promise<WaitlistLeadMetrics | null> {
+  const countRows = await tryDatabase((db) => db.$queryRawUnsafe<DbLeadCountRow[]>(`
+    SELECT COUNT(DISTINCT LOWER("metadata"->>'email'))::int AS count
+    FROM "usage_events"
+    WHERE "event" = 'waitlist.joined'
+      AND COALESCE("metadata"->>'email', '') <> ''
+  `));
+  if (!countRows) return null;
+
+  const recentRows = await tryDatabase((db) => db.$queryRawUnsafe<DbLeadRow[]>(`
+    SELECT DISTINCT ON (LOWER("metadata"->>'email'))
+      "id",
+      "metadata"->>'email' AS email,
+      COALESCE(NULLIF("metadata"->>'role', ''), 'unknown') AS role,
+      COALESCE(NULLIF("metadata"->>'source', ''), 'postgres_usage_event') AS source,
+      NULLIF("metadata"->>'campaign', '') AS campaign,
+      "createdAt"
+    FROM "usage_events"
+    WHERE "event" = 'waitlist.joined'
+      AND COALESCE("metadata"->>'email', '') <> ''
+    ORDER BY LOWER("metadata"->>'email'), "createdAt" DESC
+    LIMIT 100
+  `)) || [];
+
+  return {
+    available: true,
+    total: numberValue(countRows[0]?.count),
+    recent: recentRows.map(parseDatabaseLead).filter((lead): lead is WaitlistLeadMetrics["recent"][number] => Boolean(lead)).slice(0, 10),
+  };
+}
+
+function mergeLeadMetrics(kvMetrics: WaitlistLeadMetrics, dbMetrics: WaitlistLeadMetrics | null): WaitlistLeadMetrics {
+  if (!dbMetrics) return kvMetrics;
+  const recent = [...kvMetrics.recent, ...dbMetrics.recent];
+  const seen = new Set<string>();
+  const deduped = recent.filter((lead) => {
+    const key = lead.email.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+
+  return {
+    available: kvMetrics.available || dbMetrics.available,
+    total: Math.max(kvMetrics.total, dbMetrics.total, deduped.length),
+    recent: deduped,
+  };
 }
 
 function emptyMetrics(): WaitlistLeadMetrics {
@@ -133,6 +199,21 @@ function parseLead(value: unknown) {
   } catch {
     return null;
   }
+}
+
+function parseDatabaseLead(row: DbLeadRow) {
+  const email = String(row.email || "");
+  const id = String(row.id || "");
+  const createdAt = row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt || "");
+  if (!id || !email || !createdAt) return null;
+  return {
+    id,
+    email,
+    role: String(row.role || "unknown"),
+    source: String(row.source || "postgres_usage_event"),
+    campaign: row.campaign ? String(row.campaign) : null,
+    createdAt,
+  };
 }
 
 function kvConfig(readOnly = false) {

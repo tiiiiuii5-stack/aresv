@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         }),
       ),
     );
-    const kvLead = stored || synthetic ? { stored: false, provider: stored ? "postgres" as const : "synthetic" as const, id: null } : await recordWaitlistLead({
+    const kvLead = synthetic ? { stored: false, provider: "synthetic" as const, id: null } : await recordWaitlistLead({
       email,
       role,
       useCase,
@@ -105,7 +105,12 @@ export async function POST(request: NextRequest) {
       return jsonResponse({ ok: false, traceId, error: "Waitlist storage is unavailable. Please try again later." }, { status: 503, headers: rateLimit.headers });
     }
 
-    return jsonResponse({ ok: true, traceId, stored: true, provider: stored ? "postgres" : kvLead.provider }, { headers: rateLimit.headers });
+    return jsonResponse({
+      ok: true,
+      traceId,
+      stored: true,
+      provider: stored && kvLead.stored ? "postgres+upstash-kv" : stored ? "postgres" : kvLead.provider,
+    }, { headers: rateLimit.headers });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return secureErrorResponse("waitlist.POST", traceId, error, { fallbackStatus: message === "UNAUTHORIZED" ? 401 : 400 });
