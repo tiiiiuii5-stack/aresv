@@ -157,6 +157,15 @@ function deliveryMessage(payload: { synthetic?: boolean; emailSent?: boolean; em
   if (payload.emailDelivery?.reason === "not_configured") {
     return "Saved, but outbound email is not configured yet. Use the preview button below now.";
   }
+  if (payload.emailDelivery?.reason === "api_key_rejected") {
+    return "Saved, but the email provider rejected the API key. Use the preview button below now.";
+  }
+  if (payload.emailDelivery?.reason === "domain_not_verified" || payload.emailDelivery?.reason === "sender_not_verified") {
+    return "Saved, but the email sender needs provider verification. Use the preview button below now.";
+  }
+  if (payload.emailDelivery?.reason === "rate_limited") {
+    return "Saved, but the email provider is rate limiting sends. Use the preview button below now.";
+  }
   return "Saved. Use the preview button below now; email delivery was not confirmed.";
 }
 

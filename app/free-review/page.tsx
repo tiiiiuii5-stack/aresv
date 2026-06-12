@@ -762,6 +762,15 @@ function deliveryMessage(payload: LeadSaveResult | false) {
   if (payload.emailDelivery?.reason === "not_configured") {
     return "Saved. Email delivery is not configured yet; use the preview/report links on this page.";
   }
+  if (payload.emailDelivery?.reason === "api_key_rejected") {
+    return "Saved. Email provider rejected the API key; use the preview/report links on this page.";
+  }
+  if (payload.emailDelivery?.reason === "domain_not_verified" || payload.emailDelivery?.reason === "sender_not_verified") {
+    return "Saved. Email sender needs provider verification; use the preview/report links on this page.";
+  }
+  if (payload.emailDelivery?.reason === "rate_limited") {
+    return "Saved. Email provider is rate limiting sends; use the preview/report links on this page.";
+  }
   return "Saved. Email delivery was not confirmed; use the preview/report links on this page.";
 }
 

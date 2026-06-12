@@ -309,6 +309,11 @@ function deliveryMessage(payload: { synthetic?: boolean; emailSent?: boolean; em
   if (payload.synthetic) return "Saved as a test request. No email was sent for synthetic traffic.";
   if (payload.emailSent) return "Saved and emailed. Check your inbox for the VentureOS review links.";
   if (payload.emailDelivery?.reason === "not_configured") return "Saved. Email delivery is not configured yet.";
+  if (payload.emailDelivery?.reason === "api_key_rejected") return "Saved. Email provider rejected the API key.";
+  if (payload.emailDelivery?.reason === "domain_not_verified" || payload.emailDelivery?.reason === "sender_not_verified") {
+    return "Saved. Email sender needs provider verification.";
+  }
+  if (payload.emailDelivery?.reason === "rate_limited") return "Saved. Email provider is rate limiting sends.";
   return "Saved. Email delivery was not confirmed.";
 }
 

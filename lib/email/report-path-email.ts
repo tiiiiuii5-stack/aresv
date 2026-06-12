@@ -12,8 +12,17 @@ export type ReportPathEmailResult = {
   attempted: boolean;
   sent: boolean;
   provider: "resend" | "none";
-  reason: "sent" | "not_configured" | "provider_error" | "invalid_recipient";
+  reason:
+    | "sent"
+    | "not_configured"
+    | "provider_error"
+    | "api_key_rejected"
+    | "sender_not_verified"
+    | "domain_not_verified"
+    | "rate_limited"
+    | "invalid_recipient";
   providerId?: string | null;
+  providerStatus?: number;
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,7 +64,15 @@ export async function sendReportPathEmail(input: ReportPathEmailInput): Promise<
   }).catch(() => null);
 
   if (!response?.ok) {
-    return { attempted: true, sent: false, provider: "resend", reason: "provider_error" };
+    const providerStatus = response?.status;
+    const providerMessage = response ? await response.text().catch(() => "") : "";
+    return {
+      attempted: true,
+      sent: false,
+      provider: "resend",
+      reason: classifyProviderError(providerStatus, providerMessage),
+      providerStatus,
+    };
   }
 
   const payload = await response.json().catch(() => ({})) as { id?: string };
@@ -115,4 +132,15 @@ function escapeHtml(value: string) {
 
 function cleanTag(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9_-]/g, "_").slice(0, 50) || "unknown";
+}
+
+function classifyProviderError(status: number | undefined, message: string): ReportPathEmailResult["reason"] {
+  const clean = message.toLowerCase();
+  if (status === 401 || (status === 403 && /api key|token|unauthorized|authentication/.test(clean))) {
+    return "api_key_rejected";
+  }
+  if (status === 429) return "rate_limited";
+  if (/domain|dns|verify|verified/.test(clean)) return "domain_not_verified";
+  if (/sender|from address|from/.test(clean)) return "sender_not_verified";
+  return "provider_error";
 }
