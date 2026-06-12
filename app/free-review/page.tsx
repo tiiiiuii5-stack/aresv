@@ -155,6 +155,34 @@ export default function FreeReviewPage() {
   const trackedPaidUrl = trackingHref("appraisal_intake.checkout_clicked", paidUrl, "free_review");
   const shareableRepoUrl = repoReady ? repoUrl.trim() : "";
 
+  const recordLeadInterest = useCallback(async ({
+    source,
+    useCase,
+    clearOnSuccess = false,
+  }: {
+    source: string;
+    useCase: string;
+    clearOnSuccess?: boolean;
+  }) => {
+    const cleanLeadEmail = leadEmail.trim().toLowerCase();
+    if (!cleanLeadEmail) return false;
+    const response = await fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: cleanLeadEmail,
+        role: leadRole,
+        source,
+        useCase,
+        ...campaignMetadataFromLocation(),
+      }),
+    });
+    const payload = await response.json().catch(() => ({})) as { error?: string };
+    if (!response.ok) throw new Error(payload.error || "Could not save this request.");
+    if (clearOnSuccess) setLeadEmail("");
+    return true;
+  }, [leadEmail, leadRole]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const incomingRepo = params.get("repo");
@@ -213,6 +241,21 @@ export default function FreeReviewPage() {
           pastedCharacters: code.trim().length,
         },
       });
+      if (leadEmail.trim()) {
+        void recordLeadInterest({
+          source: "free_review_scan_start",
+          useCase: [
+            `Started free review`,
+            `Repo: ${repoUrl || "pasted code"}`,
+            `Framework: ${framework}`,
+          ].join(" | "),
+          clearOnSuccess: false,
+        }).then((stored) => {
+          if (stored) setLeadMessage("Saved. We can send the review path after the scan.");
+        }).catch((leadSaveError) => {
+          setLeadError(leadSaveError instanceof Error ? leadSaveError.message : "Could not save this request.");
+        });
+      }
       setMessage("Analyzing code structure...");
       const response = await fetch("/api/public-demo-scan", {
         method: "POST",
@@ -255,7 +298,7 @@ export default function FreeReviewPage() {
     } finally {
       setScanBusy(false);
     }
-  }, [code, framework, repoReady, repoUrl, sourceReady]);
+  }, [code, framework, leadEmail, recordLeadInterest, repoReady, repoUrl, sourceReady]);
 
   useEffect(() => {
     if (autoScanStarted.current || scanBusy || result || !repoReady) return;
@@ -346,25 +389,17 @@ export default function FreeReviewPage() {
     setLeadMessage("");
     setLeadError("");
     try {
-      const response = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: cleanLeadEmail,
-          role: leadRole,
-          source: "free_review_verdict",
-          useCase: [
-            `Decision: ${result.decision?.answer || "INVESTIGATE"}`,
-            `Repo: ${repoUrl || "pasted code"}`,
-            `Framework: ${framework}`,
-            `Coverage: ${coverageLabelFor(result.decision, result)}`,
-            `Risk: ${riskLabel(result.riskLevel)}`,
-          ].join(" | "),
-          ...campaignMetadataFromLocation(),
-        }),
+      await recordLeadInterest({
+        source: "free_review_verdict",
+        useCase: [
+          `Decision: ${result.decision?.answer || "INVESTIGATE"}`,
+          `Repo: ${repoUrl || "pasted code"}`,
+          `Framework: ${framework}`,
+          `Coverage: ${coverageLabelFor(result.decision, result)}`,
+          `Risk: ${riskLabel(result.riskLevel)}`,
+        ].join(" | "),
+        clearOnSuccess: true,
       });
-      const payload = await response.json().catch(() => ({})) as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Could not save this verdict.");
       await trackProductEvent("free_review.feedback_submitted", {
         source: "free_review_verdict",
         framework,
@@ -379,13 +414,12 @@ export default function FreeReviewPage() {
         },
       });
       setLeadMessage("Saved. We will use this to follow up with the full report path or a human-assisted review.");
-      setLeadEmail("");
     } catch (saveError) {
       setLeadError(saveError instanceof Error ? saveError.message : "Could not save this verdict.");
     } finally {
       setLeadBusy(false);
     }
-  }, [framework, leadBusy, leadEmail, leadRole, repoUrl, result]);
+  }, [framework, leadBusy, leadEmail, recordLeadInterest, repoUrl, result]);
 
   return (
     <InstitutionalPageShell
@@ -456,6 +490,33 @@ export default function FreeReviewPage() {
                 Public GitHub repos produce the strongest free verdict.
               </span>
             </label>
+            <div className="mt-4 grid gap-3 rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-3 sm:grid-cols-[minmax(0,1fr)_180px]">
+              <label className="block">
+                <span className="text-xs font-black uppercase tracking-normal text-emerald-100">Optional: email me the result path</span>
+                <input
+                  value={leadEmail}
+                  onChange={(event) => setLeadEmail(event.target.value)}
+                  type="email"
+                  placeholder="you@company.com"
+                  className="mt-2 h-11 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none placeholder:text-emerald-50/35 focus:border-emerald-300"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-black uppercase tracking-normal text-emerald-100">Role</span>
+                <select
+                  value={leadRole}
+                  onChange={(event) => setLeadRole(event.target.value)}
+                  className="mt-2 h-11 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm font-semibold text-white outline-none focus:border-emerald-300"
+                >
+                  <option>Founder / owner</option>
+                  <option>Buyer / investor</option>
+                  <option>Security reviewer</option>
+                  <option>Operator / engineering lead</option>
+                </select>
+              </label>
+              {leadMessage ? <p className="sm:col-span-2 text-xs font-bold leading-5 text-emerald-100">{leadMessage}</p> : null}
+              {leadError ? <p className="sm:col-span-2 text-xs font-bold leading-5 text-red-100">{leadError}</p> : null}
+            </div>
             <textarea
               value={code}
               onChange={(event) => setCode(event.target.value.slice(0, 6_000))}
@@ -582,7 +643,7 @@ export default function FreeReviewPage() {
                       <p className="mt-1">
                         Coverage is {String(result.evidenceCoverage.level || "limited")}
                         {typeof result.evidenceCoverage.coveragePercent === "number" ? ` (${result.evidenceCoverage.coveragePercent}% of discovered files)` : ""}
-                        {typeof result.evidenceCoverage.scoreCap === "number" ? `, so preview scores are capped at ${result.evidenceCoverage.scoreCap}/100.` : "."}
+                        {coverageCapText(result.evidenceCoverage)}
                       </p>
                       {result.rawScores?.productionReadinessScore && result.rawScores.productionReadinessScore > readiness ? (
                         <p className="mt-1 text-xs text-amber-100/85">
@@ -933,10 +994,31 @@ function safeText(value: unknown) {
   if (typeof value === "string") return value.trim();
   if (value == null) return "";
   if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") return String(value);
+  if (typeof value === "object" && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+    const title = typeof record.title === "string" ? record.title.trim() : "";
+    const detail = typeof record.detail === "string" ? record.detail.trim() : "";
+    const fixSuggestion = typeof record.fixSuggestion === "string" ? record.fixSuggestion.trim() : "";
+    const evidence = typeof record.evidence === "string" ? record.evidence.trim() : "";
+    const severity = typeof record.severity === "string" ? record.severity.trim() : "";
+    const readable = [
+      title,
+      detail || fixSuggestion || evidence,
+    ].filter(Boolean).join(": ");
+    return severity && readable ? `${severity.toUpperCase()}: ${readable}` : readable;
+  }
 
   try {
     return JSON.stringify(value);
   } catch {
     return String(value);
   }
+}
+
+function coverageCapText(coverage: NonNullable<ReviewResult["evidenceCoverage"]>) {
+  if (typeof coverage.scoreCap !== "number") return ".";
+  if (coverage.level === "complete") {
+    return `, with preview scores capped at ${coverage.scoreCap}/100 because runtime operations, ownership, and incident history were not measured.`;
+  }
+  return `, so preview scores are capped at ${coverage.scoreCap}/100 because submitted evidence coverage is ${coverage.level}.`;
 }

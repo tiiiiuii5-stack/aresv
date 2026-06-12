@@ -346,12 +346,16 @@ function inferredDecisionEvidence(input: TrustDecisionInput): TrustDecisionEvide
       text: `Decision is based on ${input.scores.confidence}% confidence and ${input.coverage.level} evidence coverage.`,
       source: "coverage gate",
     },
-    {
-      kind: "INFERRED",
-      text: `Displayed scores are capped at ${input.coverage.scoreCap}/100 because evidence is incomplete.`,
-      source: "coverage-adjusted score",
-    },
   ];
+  if (input.coverage.scoreCapped) {
+    items.push({
+      kind: "INFERRED",
+      text: input.coverage.level === "complete"
+        ? `Preview scores are capped at ${input.coverage.scoreCap}/100 because runtime operations, ownership, and incident history were not measured.`
+        : `Displayed scores are capped at ${input.coverage.scoreCap}/100 because submitted evidence coverage is ${input.coverage.level}.`,
+      source: "coverage-adjusted score",
+    });
+  }
   if (input.scores.rawScores.productionReadinessScore > input.scores.productionReadinessScore) {
     items.push({
       kind: "INFERRED",

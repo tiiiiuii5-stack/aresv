@@ -81,7 +81,7 @@ export function assessEvidenceCoverage(input: EvidenceCoverageInput): EvidenceCo
     if (input.inputTruncated) {
       warnings.push(`Source input was capped at ${input.inputLimit.toLocaleString()} characters.`);
     }
-    if (scoreCap < 100) {
+    if (scoreCap < 100 && level !== "complete") {
       warnings.push(`Readiness scores are capped at ${scoreCap}/100 because evidence coverage is ${level}.`);
     }
 
