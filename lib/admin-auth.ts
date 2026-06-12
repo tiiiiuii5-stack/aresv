@@ -74,3 +74,27 @@ export async function getAdminSession() {
 
   return { email, expires };
 }
+
+/**
+ * Rotate admin session token
+ * Should be called on sensitive operations to prevent session fixation
+ */
+export async function rotateAdminSession(email: string) {
+  const configuredSecret = sessionSecret();
+  if (!configuredSecret) return false;
+
+  const expires = Date.now() + SESSION_TTL_MS;
+  const payload = `${email}:${expires}`;
+  const token = `${Buffer.from(payload).toString("base64url")}.${sign(payload, configuredSecret)}`;
+  
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "strict", // Stricter for privileged operations
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    expires: new Date(expires),
+  });
+  
+  return true;
+}

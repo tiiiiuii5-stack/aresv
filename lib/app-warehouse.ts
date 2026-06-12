@@ -123,29 +123,40 @@ export function scoreProject(project: ProjectRecord): QualityScores {
   }
   const files = project.files.map((file) => file.path);
   const source = project.files.map((file) => file.content).join("\n").toLowerCase();
+
+  // Enterprise-grade detection logic
   const hasAppRoute = files.some((file) => file === "app/page.tsx");
   const hasOnboarding = project.onboarding.length >= 3 || files.some((file) => file.includes("onboarding"));
   const hasPackage = files.includes("package.json");
   const hasWorkingActions = /onclick|href=|form|button/.test(source);
-  const hasValidation = /required|invalid|error|zod|validate/.test(source);
+  const hasValidation = /required|invalid|error|zod|validate|yup|\\.safeparse/i.test(source);
   const hasResponsive = /md:|lg:|grid|flex-wrap/.test(source);
-  const hasPremiumVisuals = /shadow|ring|rounded|transition|loading|empty/.test(source);
+  const hasPremiumVisuals = /shadow|ring|rounded|transition|loading|skeleton|animate-|opacity-/i.test(source);
   const hasMonetization = project.monetization.length > 8;
-  const hasTrust = /export|download|security|privacy|review|status|ready/.test(source);
+  const hasTrust = /export|download|security|privacy|review|status|ready|audit|logging|checksum/i.test(source);
+  const hasAccessibility = /aria-|role=|tabindex|alt=|aria-label/i.test(source);
+  const hasErrorHandling = /errorboundary|try\s*{|catch\s*\(|\\.catch\(/i.test(source);
+  const hasTypeSafety = /interface\s+[A-Z]|type\s+[A-Z]\s*=|:\s*[A-Z][a-z]+/i.test(source);
+  const hasSanitization = /dompurify|sanitize|escapehtml/i.test(source);
+
   const featureDepth = Math.min(18, project.features.length * 3);
 
-  const polish = clampScore(72 + (hasPremiumVisuals ? 12 : 0) + (hasResponsive ? 8 : 0) + (project.uiDirection ? 6 : 0));
+  const polish = clampScore(60 + (hasPremiumVisuals ? 15 : 0) + (hasResponsive ? 10 : 0) + (hasAccessibility ? 15 : 0));
   const usability = clampScore(70 + (hasWorkingActions ? 10 : 0) + (hasOnboarding ? 8 : 0) + (hasValidation ? 5 : 0));
   const uxClarity = clampScore(74 + (project.problem.length > 20 ? 7 : 0) + (project.audience.length > 8 ? 6 : 0) + (hasOnboarding ? 5 : 0));
   const visualQuality = clampScore(72 + (hasPremiumVisuals ? 14 : 0) + (project.uiDirection.includes("dashboard") ? 4 : 0));
   const responsiveness = clampScore(70 + (hasResponsive ? 17 : 0));
   const architectureQuality = clampScore(70 + (hasAppRoute ? 6 : 0) + (hasPackage ? 6 : 0) + Math.min(10, files.length * 2));
-  const trustworthiness = clampScore(72 + (hasTrust ? 9 : 0) + (hasValidation ? 6 : 0));
+  const trustworthiness = clampScore(65 + (hasTrust ? 15 : 0) + (hasValidation ? 10 : 0) + (hasSanitization ? 10 : 0));
   const featureCompleteness = clampScore(68 + featureDepth + (hasWorkingActions ? 5 : 0));
   const launchReadiness = clampScore(70 + (hasPackage ? 7 : 0) + (hasAppRoute ? 7 : 0) + (hasValidation ? 4 : 0));
-  const monetizationReadiness = clampScore(70 + (hasMonetization ? 16 : 0));
+  const monetizationReadiness = clampScore(50 + (hasMonetization ? 25 : 0) + (source.includes("stripe") || source.includes("paddle") ? 25 : 0));
+
+  // Enterprise Hardening Penalties
+  const overallPenalty = (!hasErrorHandling ? 8 : 0) + (!hasTypeSafety ? 7 : 0) + (!hasAccessibility ? 5 : 0);
+  
   const values = [polish, usability, uxClarity, visualQuality, responsiveness, architectureQuality, trustworthiness, featureCompleteness, launchReadiness, monetizationReadiness];
-  const overall = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  const overall = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) - overallPenalty;
 
   return { polish, usability, uxClarity, visualQuality, responsiveness, architectureQuality, trustworthiness, featureCompleteness, launchReadiness, monetizationReadiness, overall };
 }

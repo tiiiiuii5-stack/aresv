@@ -22,6 +22,17 @@ import {
   saveProjectFile,
 } from "../lib/project-store.ts";
 
+// Initialize Application Insights FIRST before anything else
+// This is required for proper telemetry collection
+if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
+  try {
+    const { initializeAppInsights } = await import("../lib/monitoring/appinsights.ts");
+    initializeAppInsights();
+  } catch (error) {
+    console.warn("Failed to initialize AppInsights:", error);
+  }
+}
+
 loadEnv({ path: ".env.local" });
 loadEnv();
 

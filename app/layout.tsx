@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ToastViewport } from "@/components/ui/toast";
 import "./globals.css";
@@ -66,6 +67,24 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <head>
         <style id="ventureos-critical-css" dangerouslySetInnerHTML={{ __html: criticalCss }} />
+        {/* Google Analytics */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-TY92EVV63J"
+          strategy="afterInteractive"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-TY92EVV63J');
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.variable} ${jetBrainsMono.variable}`}>
         {children}

@@ -11,7 +11,8 @@ export function createTrace(action: string) {
 
 export function trace(action: string, message: string, fields: TraceFields = {}) {
   const safeFields = sanitize(fields);
-  console.log(JSON.stringify({ level: "info", source: "ventureos", action, message, ...safeFields, timestamp: new Date().toISOString() }));
+  const logEntry = { level: "info", source: "ventureos", action, message, ...safeFields, timestamp: new Date().toISOString() };
+  console.log(JSON.stringify(logEntry));
 }
 
 export function traceError(action: string, message: string, error: unknown, fields: TraceFields = {}) {
@@ -22,7 +23,9 @@ export function traceError(action: string, message: string, error: unknown, fiel
           stack: process.env.NODE_ENV === "production" ? undefined : redactSensitiveText(error.stack || ""),
         }
       : { error: redactSensitiveText(String(error)) };
-  console.error(JSON.stringify({ level: "error", source: "ventureos", action, message, ...sanitize(fields), ...details, timestamp: new Date().toISOString() }));
+  
+  const logEntry = { level: "error", source: "ventureos", action, message, ...sanitize(fields), ...details, timestamp: new Date().toISOString() };
+  console.error(JSON.stringify(logEntry));
 }
 
 export function errorResponse(action: string, traceId: string, error: unknown, status = 500) {

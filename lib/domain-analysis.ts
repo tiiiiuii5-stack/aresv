@@ -88,12 +88,13 @@ export function applyDomainAnalysis<T extends Omit<AppPlan, "truthSpec">>(plan: 
 function studioBookingDomain(): DomainAnalysis {
   return {
     entities: [
-      { name: "Studio", fields: ["name", "address", "timezone", "ownerName"] },
-      { name: "Instructor", fields: ["studioId", "name", "specialty", "email"] },
-      { name: "Class", fields: ["studioId", "instructorId", "title", "level", "durationMinutes"] },
-      { name: "TimeSlot", fields: ["classId", "startTime", "capacityTotal", "capacityRemaining", "isPublished", "status"] },
-      { name: "Booking", fields: ["timeSlotId", "memberName", "memberEmail", "status", "bookedAt", "cancelledAt"] },
-      { name: "Attendance", fields: ["bookingId", "status", "markedByInstructorId", "markedAt"] },
+      { name: "Studio", fields: ["name", "address", "timezone", "ownerName", "createdAt", "updatedBy"] },
+      { name: "Instructor", fields: ["studioId", "name", "specialty", "email", "isActive"] },
+      { name: "Class", fields: ["studioId", "instructorId", "title", "level", "durationMinutes", "categoryTag"] },
+      { name: "TimeSlot", fields: ["classId", "startTime", "capacityTotal", "capacityRemaining", "isPublished", "status", "version"] },
+      { name: "Booking", fields: ["timeSlotId", "memberName", "memberEmail", "status", "bookedAt", "cancelledAt", "externalRefId"] },
+      { name: "Attendance", fields: ["bookingId", "status", "markedByInstructorId", "markedAt", "auditLog"] },
+      { name: "SecurityLog", fields: ["actorId", "action", "resource", "timestamp", "ipAddress", "outcome"] },
     ],
     relationships: [
       { from: "Studio", to: "Instructor", type: "one-to-many", via: "studioId" },
@@ -120,6 +121,8 @@ function studioBookingDomain(): DomainAnalysis {
       { rule: "Booking.create decrements TimeSlot.capacityRemaining by 1" },
       { rule: "Booking.cancel restores capacity only when status is confirmed and startTime > now", error: "Cannot cancel past classes" },
       { rule: "Attendance.mark requires Instructor role and Booking.status = confirmed", error: "Attendance can only be marked for confirmed bookings" },
+      { rule: "All mutating actions must record a SecurityLog entry with the outcome and actor ID" },
+      { rule: "TimeSlot.publish requires verification of Class ownership by the Studio" },
       { rule: "TimeSlot.publish requires Owner role, capacityTotal > 0, and classId", error: "Only owners can publish valid class time slots" },
     ],
     stateMachines: [
