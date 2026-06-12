@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
@@ -21,6 +22,9 @@ export function ReportInterestForm() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const previewHref = previewUrlFor(repoUrl);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -39,6 +43,7 @@ export function ReportInterestForm() {
     setBusy(true);
     setMessage("");
     setError("");
+    setSaved(false);
     try {
       const response = await fetch("/api/waitlist", {
         method: "POST",
@@ -58,6 +63,7 @@ export function ReportInterestForm() {
       const payload = await response.json().catch(() => ({})) as { error?: string; synthetic?: boolean };
       if (!response.ok) throw new Error(payload.error || "Could not save this request.");
       setMessage(payload.synthetic ? "Saved as a test request." : "Saved. This counts as real demand when it comes from a real browser and email.");
+      setSaved(true);
       setEmail("");
       setContext("");
     } catch (submitError) {
@@ -128,9 +134,30 @@ export function ReportInterestForm() {
         {busy ? "Saving request" : "Send report path"}
       </button>
       {message ? <p className="mt-3 rounded-lg border border-[rgb(var(--vos-verified))]/30 bg-[rgb(var(--vos-verified-bg))] px-3 py-2 text-sm font-bold leading-6 text-[rgb(var(--vos-verified))]">{message}</p> : null}
+      {saved ? (
+        <div className="mt-3 grid gap-2 rounded-lg border border-[rgb(var(--vos-border))] bg-[rgb(var(--vos-panel-raised))] p-3">
+          <p className="text-xs font-black uppercase tracking-normal text-[rgb(var(--vos-text-muted))]">Next step</p>
+          <Link href={previewHref} className={buttonClassName({ className: "w-full" })}>
+            Run the free decision preview
+          </Link>
+          <p className="text-xs font-bold leading-5 text-[rgb(var(--vos-text-muted))]">
+            The preview creates the second demand signal: a real person moving from interest to software review.
+          </p>
+        </div>
+      ) : null}
       {error ? <p className="mt-3 rounded-lg border border-[rgb(var(--vos-danger))]/30 bg-[rgb(var(--vos-danger))]/10 px-3 py-2 text-sm font-bold leading-6 text-[rgb(var(--vos-danger))]">{error}</p> : null}
     </form>
   );
+}
+
+function previewUrlFor(repoUrl: string) {
+  const url = new URL("/free-review", "https://ventureos.local");
+  const cleanRepo = repoUrl.trim();
+  if (cleanRepo) url.searchParams.set("repo", cleanRepo);
+  url.searchParams.set("campaign", "lead_to_preview");
+  url.searchParams.set("ref", "request_report");
+  url.searchParams.set("utm_source", "request_report_form");
+  return `${url.pathname}?${url.searchParams.toString()}`;
 }
 
 function campaignMetadataFromLocation() {
