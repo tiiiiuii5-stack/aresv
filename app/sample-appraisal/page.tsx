@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { InstitutionalPageShell } from "@/components/institutional/institutional-shell";
 import { BuyerJourneyStrip } from "@/components/buyer-journey-strip";
+import { DemandCaptureCard } from "@/components/demand-capture-card";
 import { StickyConversionBar } from "@/components/sticky-conversion-bar";
 import { buttonClassName } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -154,6 +155,14 @@ export default function SampleAppraisalPage() {
               </Link>
               <CopyButton value={badgeEmbed} label="Copy sample badge" successMessage="Sample badge embed copied." />
             </div>
+            <DemandCaptureCard
+              source="sample_appraisal_receipt"
+              title="Want this for your software?"
+              description="Leave an email and get the shortest path from sample memo to your own buyer-ready evidence review."
+              useCase="Requested report path from sample appraisal page"
+              buttonLabel="Send path"
+              className="mt-4"
+            />
           </aside>
         </section>
 

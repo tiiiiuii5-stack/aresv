@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
+import { DemandCaptureCard } from "@/components/demand-capture-card";
 import { InstitutionalMetricCard, InstitutionalPageHero, InstitutionalPageShell, InstitutionalPanel } from "@/components/institutional/institutional-shell";
 import { StickyConversionBar } from "@/components/sticky-conversion-bar";
 
@@ -152,6 +153,14 @@ export function PricingCheckout() {
           <TrustQuote title="Acquirer" quote="An evidence review turns diligence from opinion into observed facts, inferences, and limitations." />
           <TrustQuote title="Auditor" quote="The useful part is not the score. It is the boundary between observed and unknown." />
         </section>
+
+        <DemandCaptureCard
+          source="pricing_report_path"
+          title="Need the right report path?"
+          description="Leave an email if you want the free preview, $9 report, $19 buyer-ready option, or human review path sent to you."
+          useCase="Requested pricing/report path from pricing page"
+          buttonLabel="Send path"
+        />
 
         {error ? <div className="vos-cell px-4 py-3 text-sm font-semibold text-[rgb(var(--vos-danger))]">{error}</div> : null}
 
